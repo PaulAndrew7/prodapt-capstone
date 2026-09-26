@@ -1,0 +1,112 @@
+@import "tailwindcss";
+@import "./styles/fonts.css";
+@import "./styles/tokens.css";
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-rule: var(--rule);
+  --color-mark: var(--mark);
+  --color-on-mark: var(--on-mark);
+  --color-violated: var(--violated);
+  --color-unknown: var(--unknown);
+  --color-met: var(--met);
+  --color-muted: var(--muted);
+
+  --font-sans: "Switzer", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Clash Display", "Switzer", ui-sans-serif, sans-serif;
+
+  --ease-out: var(--ease-out);
+}
+
+@layer base {
+  html {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scrollbar-color: var(--ink-2) var(--paper);
+  }
+
+  body {
+    min-height: 100dvh;
+    font-size: 1rem;
+    line-height: 1.55;
+    caret-color: var(--ink);
+  }
+
+  ::selection {
+    background: var(--mark);
+    color: var(--on-mark);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1.5px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  /* Clash Display sets a narrow word space; open it slightly at display sizes. */
+  .font-display {
+    word-spacing: 0.045em;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Highlighter span. Width is driven by --sweep (0% to 100%) so multi-line spans sweep per line. */
+  .mark-span {
+    background-image: linear-gradient(var(--mark), var(--mark));
+    background-repeat: no-repeat;
+    background-position: 0 58%;
+    background-size: var(--sweep, 100%) 88%;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    /* Text on the mark is always dark ink, in both themes. */
+    color: var(--on-mark);
+    padding-inline: 0.08em;
+  }
+
+  /* Wordmark bar: overlaps the letters in light; in dark it sits under them so the name stays legible. */
+  .wordmark-bar {
+    bottom: 0.02em;
+    height: 0.36em;
+  }
+  :root[data-theme="dark"] .wordmark-bar {
+    bottom: -0.14em;
+    height: 0.16em;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .wordmark-bar {
+      bottom: -0.14em;
+      height: 0.16em;
+    }
+  }
+}

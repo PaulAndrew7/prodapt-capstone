@@ -1,0 +1,209 @@
+{
+  "schema_version": "1.0",
+  "run_id": "run_demo_001",
+  "case_revision_id": "scenario_002",
+  "policy_snapshot_id": "snapshot_demo_v1",
+  "as_of": "2026-09-25",
+  "status": "non_compliant",
+  "scope": "Kestrel Mutual demo data-sharing and vendor policies",
+  "summary": "The plan shares customer data externally without the data-owner approval that clause 4.2 requires.",
+  "findings": [
+    {
+      "id": "finding_1",
+      "requirement_id": "req_ds_4_2",
+      "title": "Data-owner approval is absent",
+      "status": "violated",
+      "rationale": "You stated the data owner has not approved the share. Clause 4.2 requires recorded approval before any transfer.",
+      "fact_ids": [
+        "fact_approval_absent",
+        "fact_recipient"
+      ],
+      "citation_ids": [
+        "cite_1",
+        "cite_5"
+      ],
+      "support": "validated",
+      "missing_facts": []
+    },
+    {
+      "id": "finding_2",
+      "requirement_id": "req_vd_3_1",
+      "title": "Vendor review status is unknown",
+      "status": "unknown",
+      "rationale": "Brightline Analytics must hold Approved status before receiving customer data. Nobody has confirmed its status.",
+      "fact_ids": [
+        "fact_vendor_review"
+      ],
+      "citation_ids": [
+        "cite_2"
+      ],
+      "support": "validated",
+      "missing_facts": [
+        "Vendor register status for Brightline Analytics"
+      ]
+    },
+    {
+      "id": "finding_3",
+      "requirement_id": "req_ds_4_3",
+      "title": "Purpose and fields are not yet recorded",
+      "status": "unknown",
+      "rationale": "You named the fields and the purpose, but clause 4.3 needs them recorded with an approval, which does not exist yet.",
+      "fact_ids": [
+        "fact_fields",
+        "fact_purpose"
+      ],
+      "citation_ids": [
+        "cite_3"
+      ],
+      "support": "validated",
+      "missing_facts": [
+        "Recorded purpose and field list"
+      ]
+    },
+    {
+      "id": "finding_4",
+      "requirement_id": "req_ds_4_4",
+      "title": "Legal disclosure exception does not apply",
+      "status": "not_applicable",
+      "rationale": "No law or regulator request is involved, so the exception in clause 4.4 is not triggered.",
+      "fact_ids": [
+        "fact_purpose"
+      ],
+      "citation_ids": [
+        "cite_4"
+      ],
+      "support": "validated",
+      "missing_facts": []
+    }
+  ],
+  "citations": [
+    {
+      "id": "cite_1",
+      "policy_version_id": "ds_v1",
+      "clause_id": "ds_v1_4_4.2",
+      "page_index": 2,
+      "section_path": [
+        "4",
+        "4.2"
+      ],
+      "quote": "requires written approval from the data owner, recorded in the data-sharing register before any transfer takes place",
+      "source_url": "/api/v1/policy-versions/ds_v1/source?page=3"
+    },
+    {
+      "id": "cite_2",
+      "policy_version_id": "vd_v1",
+      "clause_id": "vd_v1_3_3.1",
+      "page_index": 1,
+      "section_path": [
+        "3",
+        "3.1"
+      ],
+      "quote": "hold Approved status in the vendor register, before receiving customer data",
+      "source_url": "/api/v1/policy-versions/vd_v1/source?page=2"
+    },
+    {
+      "id": "cite_3",
+      "policy_version_id": "ds_v1",
+      "clause_id": "ds_v1_4_4.3",
+      "page_index": 2,
+      "section_path": [
+        "4",
+        "4.3"
+      ],
+      "quote": "The purpose and the field list must be recorded with the approval",
+      "source_url": "/api/v1/policy-versions/ds_v1/source?page=3"
+    },
+    {
+      "id": "cite_4",
+      "policy_version_id": "ds_v1",
+      "clause_id": "ds_v1_4_4.4",
+      "page_index": 3,
+      "section_path": [
+        "4",
+        "4.4"
+      ],
+      "quote": "Transfers required by law or by a regulator’s written request follow the Legal Disclosure Procedure",
+      "source_url": "/api/v1/policy-versions/ds_v1/source?page=4"
+    },
+    {
+      "id": "cite_5",
+      "policy_version_id": "ds_v1",
+      "clause_id": "ds_v1_4_4.1",
+      "page_index": 2,
+      "section_path": [
+        "4",
+        "4.1"
+      ],
+      "quote": "any transfer of, or remote access to, customer data by a party outside Kestrel Mutual, including vendors",
+      "source_url": "/api/v1/policy-versions/ds_v1/source?page=3"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk_1",
+      "finding_ids": [
+        "finding_1"
+      ],
+      "severity": "high",
+      "likelihood": "unknown",
+      "description": "Customer data would leave the organization without the owner’s recorded approval.",
+      "rubric_version": "demo-risk-v1"
+    },
+    {
+      "id": "risk_2",
+      "finding_ids": [
+        "finding_2"
+      ],
+      "severity": "medium",
+      "likelihood": "unknown",
+      "description": "If the vendor is unreviewed, data would reach a party whose controls nobody has checked.",
+      "rubric_version": "demo-risk-v1"
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "action_1",
+      "finding_ids": [
+        "finding_1"
+      ],
+      "citation_ids": [
+        "cite_1"
+      ],
+      "action": "Get written approval from the data owner and record it in the data-sharing register before any transfer.",
+      "suggested_role": "Data owner",
+      "completion_criteria": "An approval entry for this share exists in the register.",
+      "kind": "mandatory"
+    },
+    {
+      "id": "action_2",
+      "finding_ids": [
+        "finding_2"
+      ],
+      "citation_ids": [
+        "cite_2"
+      ],
+      "action": "Confirm Brightline Analytics holds Approved status in the vendor register. If it does not, start a vendor review.",
+      "suggested_role": "Vendor management",
+      "completion_criteria": "The register shows Approved status within the last twelve months.",
+      "kind": "mandatory"
+    },
+    {
+      "id": "action_3",
+      "finding_ids": [
+        "finding_3"
+      ],
+      "citation_ids": [
+        "cite_3"
+      ],
+      "action": "Record the purpose (churn modelling) and the three fields with the approval.",
+      "suggested_role": "Requester",
+      "completion_criteria": "The register entry lists the purpose and the field list.",
+      "kind": "mandatory"
+    }
+  ],
+  "limitations": [
+    "Only Kestrel Mutual’s demo data-sharing and vendor policies were assessed.",
+    "Results use policy snapshot snapshot_demo_v1 as of 25 Sep 2026."
+  ],
+  "review_state": "unreviewed"
+}

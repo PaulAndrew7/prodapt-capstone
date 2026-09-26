@@ -1,0 +1,124 @@
+[
+  {
+    "event_id": "evt_run_demo_001_1",
+    "run_id": "run_demo_001",
+    "sequence": 1,
+    "occurred_at": "2026-09-25T09:12:04.000Z",
+    "schema_version": "1.0",
+    "type": "run.queued",
+    "payload": {}
+  },
+  {
+    "event_id": "evt_run_demo_001_2",
+    "run_id": "run_demo_001",
+    "sequence": 2,
+    "occurred_at": "2026-09-25T09:12:04.350Z",
+    "schema_version": "1.0",
+    "type": "run.started",
+    "payload": {}
+  },
+  {
+    "event_id": "evt_run_demo_001_3",
+    "run_id": "run_demo_001",
+    "sequence": 3,
+    "occurred_at": "2026-09-25T09:12:05.450Z",
+    "schema_version": "1.0",
+    "type": "retrieval.completed",
+    "payload": {
+      "clauses": 6,
+      "policies": 2
+    }
+  },
+  {
+    "event_id": "evt_run_demo_001_4",
+    "run_id": "run_demo_001",
+    "sequence": 4,
+    "occurred_at": "2026-09-25T09:12:07.750Z",
+    "schema_version": "1.0",
+    "type": "analysis.completed",
+    "payload": {
+      "requirements": 4,
+      "missing_facts": 2
+    }
+  },
+  {
+    "event_id": "evt_run_demo_001_5",
+    "run_id": "run_demo_001",
+    "sequence": 5,
+    "occurred_at": "2026-09-25T09:12:08.350Z",
+    "schema_version": "1.0",
+    "type": "clarification.required",
+    "payload": {
+      "question_ids": [
+        "q_vendor_review",
+        "q_fields"
+      ]
+    }
+  },
+  {
+    "event_id": "evt_run_demo_001_6",
+    "run_id": "run_demo_001",
+    "sequence": 6,
+    "occurred_at": "2026-09-25T09:12:08.350Z",
+    "schema_version": "1.0",
+    "type": "run.resumed",
+    "payload": {}
+  },
+  {
+    "event_id": "evt_run_demo_001_7",
+    "run_id": "run_demo_001",
+    "sequence": 7,
+    "occurred_at": "2026-09-25T09:12:09.850Z",
+    "schema_version": "1.0",
+    "type": "analysis.completed",
+    "payload": {
+      "requirements": 4,
+      "missing_facts": 1
+    }
+  },
+  {
+    "event_id": "evt_run_demo_001_8",
+    "run_id": "run_demo_001",
+    "sequence": 8,
+    "occurred_at": "2026-09-25T09:12:10.650Z",
+    "schema_version": "1.0",
+    "type": "risk.completed",
+    "payload": {
+      "risks": 2
+    }
+  },
+  {
+    "event_id": "evt_run_demo_001_9",
+    "run_id": "run_demo_001",
+    "sequence": 9,
+    "occurred_at": "2026-09-25T09:12:12.050Z",
+    "schema_version": "1.0",
+    "type": "validation.completed",
+    "payload": {
+      "supported": 4,
+      "repairs": 1
+    }
+  },
+  {
+    "event_id": "evt_run_demo_001_10",
+    "run_id": "run_demo_001",
+    "sequence": 10,
+    "occurred_at": "2026-09-25T09:12:13.350Z",
+    "schema_version": "1.0",
+    "type": "recommendation.completed",
+    "payload": {
+      "actions": 3
+    }
+  },
+  {
+    "event_id": "evt_run_demo_001_11",
+    "run_id": "run_demo_001",
+    "sequence": 11,
+    "occurred_at": "2026-09-25T09:12:13.750Z",
+    "schema_version": "1.0",
+    "type": "run.completed",
+    "payload": {
+      "status": "non_compliant"
+    }
+  }
+]

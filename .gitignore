@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.impeccable/config.local.json
+apps/web/test-results/
+apps/web/playwright-report/
+
+# Python / local runtime state
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+var/
+
+# Design-review screenshots (regenerable with apps/web/scripts/*.mjs)
+.impeccable/review/
+
+# Course brief: kept local while the repository is public
+Project_4_-_AI_Powered_POLICY_COMPLIANCE_INTELLIGENCE.pdf

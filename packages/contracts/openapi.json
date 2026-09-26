@@ -1,0 +1,1240 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Clause compliance API",
+    "description": "Policy compliance service for Clause. Demo data is a fictional organization's policies, not real policy, law or regulatory guidance.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health/live": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Live",
+        "operationId": "live_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Ready",
+        "operationId": "ready_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policies": {
+      "get": {
+        "tags": [
+          "policies"
+        ],
+        "summary": "List Policies",
+        "operationId": "list_policies_api_v1_policies_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Policy_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policies/{policy_id}/versions": {
+      "get": {
+        "tags": [
+          "policies"
+        ],
+        "summary": "List Versions",
+        "operationId": "list_versions_api_v1_policies__policy_id__versions_get",
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Policy Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PolicyVersionSummary"
+                  },
+                  "title": "Response List Versions Api V1 Policies  Policy Id  Versions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policy-versions/{version_id}": {
+      "get": {
+        "tags": [
+          "policies"
+        ],
+        "summary": "Get Version",
+        "operationId": "get_version_api_v1_policy_versions__version_id__get",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyVersion"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policy-versions/{version_id}/clauses": {
+      "get": {
+        "tags": [
+          "policies"
+        ],
+        "summary": "List Clauses",
+        "operationId": "list_clauses_api_v1_policy_versions__version_id__clauses_get",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClauseWithSource"
+                  },
+                  "title": "Response List Clauses Api V1 Policy Versions  Version Id  Clauses Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policy-versions/{version_id}/pages/{page_index}": {
+      "get": {
+        "tags": [
+          "policies"
+        ],
+        "summary": "Get Page Text",
+        "operationId": "get_page_text_api_v1_policy_versions__version_id__pages__page_index__get",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Version Id"
+            }
+          },
+          {
+            "name": "page_index",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Page Index"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageText"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policy-versions/{version_id}/source": {
+      "get": {
+        "tags": [
+          "policies"
+        ],
+        "summary": "Get Source",
+        "description": "The authorized original PDF. `?page=N` redirects to `#page=N` for browser viewers.",
+        "operationId": "get_source_api_v1_policy_versions__version_id__source_get",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Version Id"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Page"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "307": {
+            "description": "Page anchor"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/search": {
+      "post": {
+        "tags": [
+          "search"
+        ],
+        "summary": "Evidence Search",
+        "description": "Ranked clauses with lexical/dense ranks and backend-built citations.",
+        "operationId": "evidence_search_api_v1_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/lookup": {
+      "post": {
+        "tags": [
+          "search"
+        ],
+        "summary": "Grounded Lookup",
+        "description": "Cited natural-language answer (F06). Needs the runtime model provider.",
+        "operationId": "grounded_lookup_api_v1_lookup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupAnswer"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "F06"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Citation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "policy_version_id": {
+            "type": "string",
+            "title": "Policy Version Id"
+          },
+          "clause_id": {
+            "type": "string",
+            "title": "Clause Id"
+          },
+          "page_index": {
+            "type": "integer",
+            "title": "Page Index"
+          },
+          "section_path": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Section Path"
+          },
+          "quote": {
+            "type": "string",
+            "title": "Quote"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "policy_version_id",
+          "clause_id",
+          "page_index",
+          "section_path",
+          "quote",
+          "source_url"
+        ],
+        "title": "Citation",
+        "description": "Built by the backend from stored clause records; models only select allowed IDs."
+      },
+      "Clause": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "policy_id": {
+            "type": "string",
+            "title": "Policy Id"
+          },
+          "policy_version_id": {
+            "type": "string",
+            "title": "Policy Version Id"
+          },
+          "section_path": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Section Path"
+          },
+          "heading": {
+            "type": "string",
+            "title": "Heading"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "page_index": {
+            "type": "integer",
+            "title": "Page Index",
+            "description": "Zero-based index of the page where the clause starts."
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ClauseKind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "policy_id",
+          "policy_version_id",
+          "section_path",
+          "heading",
+          "text",
+          "page_index",
+          "kind"
+        ],
+        "title": "Clause"
+      },
+      "ClauseKind": {
+        "type": "string",
+        "enum": [
+          "definition",
+          "requirement",
+          "exception",
+          "general"
+        ],
+        "title": "ClauseKind"
+      },
+      "ClauseWithSource": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "policy_id": {
+            "type": "string",
+            "title": "Policy Id"
+          },
+          "policy_version_id": {
+            "type": "string",
+            "title": "Policy Version Id"
+          },
+          "section_path": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Section Path"
+          },
+          "heading": {
+            "type": "string",
+            "title": "Heading"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "page_index": {
+            "type": "integer",
+            "title": "Page Index",
+            "description": "Zero-based index of the page where the clause starts."
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ClauseKind"
+          },
+          "clause_key": {
+            "type": "string",
+            "title": "Clause Key"
+          },
+          "section_headings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Section Headings"
+          },
+          "page_end": {
+            "type": "integer",
+            "title": "Page End"
+          },
+          "extraction_quality": {
+            "type": "string",
+            "title": "Extraction Quality"
+          },
+          "spans": {
+            "items": {
+              "$ref": "#/components/schemas/SourceSpan"
+            },
+            "type": "array",
+            "title": "Spans"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "policy_id",
+          "policy_version_id",
+          "section_path",
+          "heading",
+          "text",
+          "page_index",
+          "kind",
+          "clause_key",
+          "section_headings",
+          "page_end",
+          "extraction_quality",
+          "spans"
+        ],
+        "title": "ClauseWithSource"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded",
+              "unavailable"
+            ],
+            "title": "Status"
+          },
+          "checks": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Checks"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "checks"
+        ],
+        "title": "HealthStatus"
+      },
+      "IndexStatus": {
+        "type": "string",
+        "enum": [
+          "indexing",
+          "ready",
+          "failed"
+        ],
+        "title": "IndexStatus"
+      },
+      "LookupAnswer": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "support": {
+            "$ref": "#/components/schemas/SupportState"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "title": "Snapshot Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "question",
+          "answer",
+          "citations",
+          "support",
+          "snapshot_id"
+        ],
+        "title": "LookupAnswer"
+      },
+      "PageText": {
+        "properties": {
+          "policy_version_id": {
+            "type": "string",
+            "title": "Policy Version Id"
+          },
+          "page_index": {
+            "type": "integer",
+            "title": "Page Index"
+          },
+          "page_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Label"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "spans": {
+            "items": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Spans",
+            "description": "Clause spans on this page: clause_id, char_start, char_end."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "policy_version_id",
+          "page_index",
+          "page_label",
+          "text",
+          "warnings",
+          "spans"
+        ],
+        "title": "PageText"
+      },
+      "Page_Policy_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Policy"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "Page[Policy]"
+      },
+      "Policy": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "business_area": {
+            "type": "string",
+            "title": "Business Area"
+          },
+          "owner": {
+            "type": "string",
+            "title": "Owner"
+          },
+          "active_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Version Id"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/PolicyVersionSummary"
+            },
+            "type": "array",
+            "title": "Versions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "category",
+          "business_area",
+          "owner",
+          "active_version_id",
+          "versions"
+        ],
+        "title": "Policy"
+      },
+      "PolicyVersion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PolicyVersionStatus"
+          },
+          "index_status": {
+            "$ref": "#/components/schemas/IndexStatus"
+          },
+          "pages": {
+            "type": "integer",
+            "title": "Pages"
+          },
+          "policy_id": {
+            "type": "string",
+            "title": "Policy Id"
+          },
+          "policy_title": {
+            "type": "string",
+            "title": "Policy Title"
+          },
+          "clauses": {
+            "items": {
+              "$ref": "#/components/schemas/Clause"
+            },
+            "type": "array",
+            "title": "Clauses"
+          },
+          "extraction_warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Extraction Warnings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "effective_from",
+          "effective_to",
+          "status",
+          "index_status",
+          "pages",
+          "policy_id",
+          "policy_title",
+          "clauses",
+          "extraction_warnings"
+        ],
+        "title": "PolicyVersion"
+      },
+      "PolicyVersionStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "published",
+          "superseded"
+        ],
+        "title": "PolicyVersionStatus"
+      },
+      "PolicyVersionSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PolicyVersionStatus"
+          },
+          "index_status": {
+            "$ref": "#/components/schemas/IndexStatus"
+          },
+          "pages": {
+            "type": "integer",
+            "title": "Pages"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "effective_from",
+          "effective_to",
+          "status",
+          "index_status",
+          "pages"
+        ],
+        "title": "PolicyVersionSummary"
+      },
+      "SearchHit": {
+        "properties": {
+          "clause": {
+            "$ref": "#/components/schemas/Clause"
+          },
+          "policy_title": {
+            "type": "string",
+            "title": "Policy Title"
+          },
+          "version_label": {
+            "type": "string",
+            "title": "Version Label"
+          },
+          "chunk_id": {
+            "type": "string",
+            "title": "Chunk Id"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score",
+            "description": "Rank-fusion score. A ranking heuristic, not a probability."
+          },
+          "lexical_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lexical Rank"
+          },
+          "dense_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dense Rank"
+          },
+          "citation": {
+            "$ref": "#/components/schemas/Citation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "clause",
+          "policy_title",
+          "version_label",
+          "chunk_id",
+          "score",
+          "lexical_rank",
+          "dense_rank",
+          "citation"
+        ],
+        "title": "SearchHit"
+      },
+      "SearchRequest": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 2,
+            "title": "Question"
+          },
+          "policy_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Ids",
+            "description": "Explicit user-selected scope. Omit to search every policy."
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of",
+            "description": "Selects versions in effect on a date."
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "default": 10
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "SearchRequest"
+      },
+      "SearchResponse": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "policy_snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Snapshot Id"
+          },
+          "hits": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "type": "array",
+            "title": "Hits"
+          },
+          "channels": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "lexical",
+                "dense"
+              ]
+            },
+            "type": "array",
+            "title": "Channels"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "question",
+          "policy_snapshot_id",
+          "hits",
+          "channels",
+          "latency_ms"
+        ],
+        "title": "SearchResponse"
+      },
+      "SourceSpan": {
+        "properties": {
+          "page_index": {
+            "type": "integer",
+            "title": "Page Index"
+          },
+          "page_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Label"
+          },
+          "char_start": {
+            "type": "integer",
+            "title": "Char Start",
+            "description": "Offset into the page's extracted text."
+          },
+          "char_end": {
+            "type": "integer",
+            "title": "Char End"
+          },
+          "text_start": {
+            "type": "integer",
+            "title": "Text Start",
+            "description": "Offset into the clause text."
+          },
+          "text_end": {
+            "type": "integer",
+            "title": "Text End"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "page_index",
+          "page_label",
+          "char_start",
+          "char_end",
+          "text_start",
+          "text_end"
+        ],
+        "title": "SourceSpan"
+      },
+      "SupportState": {
+        "type": "string",
+        "enum": [
+          "validated",
+          "unsupported",
+          "contradicted",
+          "pending"
+        ],
+        "title": "SupportState"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

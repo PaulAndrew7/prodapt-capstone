@@ -1,0 +1,54 @@
+/*
+  Highlighter tokens. Light is the primary theme (daylight offices, projected demo);
+  dark follows the system unless the user pins a theme via [data-theme].
+  --mark is a fill only: never text, border or focus color (fails 3:1 on paper).
+*/
+
+:root {
+  --paper: #f4f6f5;
+  --sheet: #fbfcfb;
+  --ink: #111413;
+  --ink-2: #4a524e;
+  --rule: #d5dad7;
+  --mark: #ddff3c;
+  --on-mark: #111413;
+
+  --violated: #b42318;
+  --unknown: #8a5a00;
+  --met: #1d6b45;
+  --muted: #6b726e;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 160ms;
+  --dur-sweep: 420ms;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1110;
+    --sheet: #151918;
+    --ink: #edf1ee;
+    --ink-2: #a3ada8;
+    --rule: #2a302d;
+    --violated: #ff8a7a;
+    --unknown: #f2b84b;
+    --met: #6fd39b;
+    --muted: #8a938e;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #0e1110;
+  --sheet: #151918;
+  --ink: #edf1ee;
+  --ink-2: #a3ada8;
+  --rule: #2a302d;
+  --violated: #ff8a7a;
+  --unknown: #f2b84b;
+  --met: #6fd39b;
+  --muted: #8a938e;
+  color-scheme: dark;
+}

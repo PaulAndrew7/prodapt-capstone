@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-25T00:00:00Z",
+  "title": "Design System: Clause",
+  "extensions": {
+    "colorMeta": {
+      "mark": { "role": "primary", "displayName": "Highlighter Lime", "canonical": "#ddff3c", "tonalRamp": ["#2a3300", "#445200", "#627600", "#819c00", "#a3c400", "#c4e80f", "#ddff3c", "#f3ffb8"] },
+      "on-mark": { "role": "primary", "displayName": "On-Mark Ink", "canonical": "#111413", "tonalRamp": ["#111413", "#222826", "#363d3a", "#4a524e", "#6b726e", "#8a938e", "#b8bfbb", "#e2e7e4"] },
+      "paper": { "role": "neutral", "displayName": "Cool Paper", "canonical": "#f4f6f5", "tonalRamp": ["#0e1110", "#1f2422", "#3a403d", "#5b625f", "#838a86", "#b3bab6", "#dde2df", "#f4f6f5"] },
+      "sheet": { "role": "neutral", "displayName": "Sheet White", "canonical": "#fbfcfb", "tonalRamp": ["#151918", "#272c2a", "#434946", "#656c69", "#8e9591", "#bcc2bf", "#e6eae8", "#fbfcfb"] },
+      "ink": { "role": "neutral", "displayName": "Graphite Ink", "canonical": "#111413", "tonalRamp": ["#111413", "#222826", "#363d3a", "#4a524e", "#6b726e", "#8a938e", "#b8bfbb", "#e2e7e4"] },
+      "ink-2": { "role": "neutral", "displayName": "Slate Ink", "canonical": "#4a524e", "tonalRamp": ["#1a1e1c", "#2c322f", "#3c4340", "#4a524e", "#646d69", "#838b87", "#a3ada8", "#d0d6d3"] },
+      "rule": { "role": "neutral", "displayName": "Hairline Grey", "canonical": "#d5dad7", "tonalRamp": ["#2a302d", "#414845", "#5b635f", "#78807c", "#979f9b", "#b6bdb9", "#d5dad7", "#eef1ef"] },
+      "muted": { "role": "neutral", "displayName": "Muted Grey", "canonical": "#6b726e", "tonalRamp": ["#1d201f", "#303533", "#474d4a", "#5d6460", "#6b726e", "#8a938e", "#b0b7b3", "#dde1df"] },
+      "violated": { "role": "semantic", "displayName": "Violated Red", "canonical": "#b42318", "tonalRamp": ["#3d0a06", "#62120c", "#8a1a11", "#b42318", "#d9493c", "#ff8a7a", "#ffc0b6", "#ffe8e4"] },
+      "unknown": { "role": "semantic", "displayName": "Unknown Amber", "canonical": "#8a5a00", "tonalRamp": ["#2e1e00", "#4a3000", "#6a4500", "#8a5a00", "#b37a0d", "#f2b84b", "#f8d690", "#fdf0d6"] },
+      "met": { "role": "semantic", "displayName": "Met Green", "canonical": "#1d6b45", "tonalRamp": ["#08241a", "#0f3d2a", "#165437", "#1d6b45", "#2f9463", "#6fd39b", "#abe7c4", "#e0f6ea"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Front-door hero headline only." },
+      "verdict": { "displayName": "Verdict", "purpose": "Assessment result, sentence case with a full stop; words rise out of a line mask." },
+      "headline": { "displayName": "Headline", "purpose": "Front-door section headings." },
+      "title": { "displayName": "Title", "purpose": "App page and workspace titles." },
+      "clause-number": { "displayName": "Clause Number", "purpose": "Section number heading each cited clause in the evidence drawer." },
+      "lead": { "displayName": "Lead", "purpose": "Subtext under display and section headlines, 40 to 50ch, ink-2." },
+      "clause-text": { "displayName": "Clause Text", "purpose": "Reading size for policy clauses carrying the mark, max 62ch." },
+      "body": { "displayName": "Body", "purpose": "Default working UI text." },
+      "label": { "displayName": "Label", "purpose": "Nav, buttons, table heads, metadata, captions. Sentence case." },
+      "tag": { "displayName": "Tag", "purpose": "Fact origin tags and header badges only." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.2, 0.8, 0.2, 1)", "purpose": "Default easing for state changes, the highlighter sweep, stage fills and the drawer." },
+      { "name": "ease-reveal", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Verdict words rising out of their line mask (600ms, 80ms stagger)." },
+      { "name": "dur-fast", "value": "160ms", "purpose": "Button and link colour transitions." },
+      { "name": "dur-sweep", "value": "420ms", "purpose": "Highlighter sweep of --sweep from 0% to 100%." },
+      { "name": "dur-drawer", "value": "280ms", "purpose": "Evidence drawer slide from the right." },
+      { "name": "reduced-motion", "value": "prefers-reduced-motion: reduce", "purpose": "All motion collapses: sweeps land instantly, exhibits show final state, 3D and parallax swap for static rasters." }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default action: ink fill, paper text, square.",
+      "html": "<button class=\"ds-btn-primary\">New case</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; background: var(--ink, #111413); color: var(--paper, #f4f6f5); font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 0.95rem; border: 0; border-radius: 0; cursor: pointer; transition: background-color 150ms cubic-bezier(0.2,0.8,0.2,1), transform 150ms; } .ds-btn-primary:hover { background: color-mix(in srgb, var(--ink, #111413) 88%, transparent); } .ds-btn-primary:focus-visible { outline: 2px solid var(--ink, #111413); outline-offset: 2px; } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Mark Button",
+      "kind": "button",
+      "refersTo": "button-mark",
+      "description": "The one entry action (Enter demo): mark fill with ink text, inverts to ink on hover.",
+      "html": "<button class=\"ds-btn-mark\">Enter demo</button>",
+      "css": ".ds-btn-mark { display: inline-flex; align-items: center; height: 56px; padding: 0 28px; background: var(--mark, #ddff3c); color: var(--on-mark, #111413); font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 1rem; border: 0; border-radius: 0; cursor: pointer; transition: background-color 150ms cubic-bezier(0.2,0.8,0.2,1), color 150ms, transform 150ms; } .ds-btn-mark:hover { background: var(--ink, #111413); color: var(--paper, #f4f6f5); } .ds-btn-mark:focus-visible { outline: 2px solid var(--ink, #111413); outline-offset: 2px; } .ds-btn-mark:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action: 2px ink border, fills ink on hover.",
+      "html": "<button class=\"ds-btn-outline\">See how it works</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; height: 44px; padding: 0 20px; background: transparent; color: var(--ink, #111413); font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 0.95rem; border: 2px solid var(--ink, #111413); border-radius: 0; cursor: pointer; transition: background-color 150ms cubic-bezier(0.2,0.8,0.2,1), color 150ms, transform 150ms; } .ds-btn-outline:hover { background: var(--ink, #111413); color: var(--paper, #f4f6f5); } .ds-btn-outline:focus-visible { outline: 2px solid var(--ink, #111413); outline-offset: 2px; } .ds-btn-outline:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Single-line field: sheet fill, 2px ink border, square.",
+      "html": "<input class=\"ds-input\" placeholder=\"Search cases\" />",
+      "css": ".ds-input { display: block; width: 100%; height: 48px; padding: 0 12px; background: var(--sheet, #fbfcfb); color: var(--ink, #111413); font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 1rem; border: 2px solid var(--ink, #111413); border-radius: 0; } .ds-input::placeholder { color: var(--ink-2, #4a524e); } .ds-input:focus-visible { outline: 2px solid var(--ink, #111413); outline-offset: 2px; }"
+    },
+    {
+      "name": "App Navigation",
+      "kind": "nav",
+      "refersTo": "app-header",
+      "description": "64px ruled header; active item carries a 4px mark underbar.",
+      "html": "<nav class=\"ds-nav\"><span class=\"ds-nav-brand\">Clause</span><a class=\"ds-nav-item is-active\" href=\"#\">Cases</a><a class=\"ds-nav-item\" href=\"#\">Policies</a><a class=\"ds-nav-item\" href=\"#\">Reviews</a></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; height: 64px; padding: 0 32px; background: var(--paper, #f4f6f5); border-bottom: 2px solid var(--ink, #111413); font-family: Switzer, ui-sans-serif, system-ui, sans-serif; } .ds-nav-brand { font-family: 'Clash Display', Switzer, sans-serif; font-weight: 700; font-size: 1.6rem; margin-right: 16px; letter-spacing: -0.01em; } .ds-nav-item { position: relative; display: flex; align-items: center; height: 64px; padding: 0 12px; font-weight: 600; color: var(--ink-2, #4a524e); text-decoration: none; transition: color 150ms; } .ds-nav-item:hover { color: var(--ink, #111413); } .ds-nav-item:focus-visible { outline: 2px solid var(--ink, #111413); outline-offset: 2px; } .ds-nav-item.is-active { color: var(--ink, #111413); } .ds-nav-item.is-active::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; height: 4px; background: var(--mark, #ddff3c); }"
+    },
+    {
+      "name": "Origin Tag",
+      "kind": "chip",
+      "refersTo": "tag-origin",
+      "description": "Fact provenance: solid for provided, dashed for inferred, amber for unknown.",
+      "html": "<span class=\"ds-tag\">Provided</span> <span class=\"ds-tag ds-tag-inferred\">Inferred, unconfirmed</span> <span class=\"ds-tag ds-tag-unknown\">Unknown</span>",
+      "css": ".ds-tag { display: inline-flex; align-items: center; height: 24px; padding: 0 6px; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; color: var(--ink, #111413); border: 1.5px solid var(--ink, #111413); border-radius: 0; } .ds-tag-inferred { border-style: dashed; } .ds-tag-unknown { color: var(--unknown, #8a5a00); border-color: var(--unknown, #8a5a00); }"
+    },
+    {
+      "name": "Highlighter Mark",
+      "kind": "custom",
+      "refersTo": "mark",
+      "description": "Signature span: the exact cited words, swept in mark behind ink, cloned per line.",
+      "html": "<p class=\"ds-clause\">Suppliers handling personal data must <mark class=\"ds-mark\">complete a security assessment before any production data is shared</mark> with them.</p>",
+      "css": ".ds-clause { max-width: 62ch; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 1.125rem; line-height: 1.7; color: var(--ink, #111413); } .ds-mark { background-color: transparent; background-image: linear-gradient(var(--mark, #ddff3c), var(--mark, #ddff3c)); background-repeat: no-repeat; background-position: 0 58%; background-size: var(--sweep, 100%) 88%; -webkit-box-decoration-break: clone; box-decoration-break: clone; color: var(--on-mark, #111413); padding-inline: 0.08em; }"
+    },
+    {
+      "name": "Status Word",
+      "kind": "custom",
+      "refersTo": "violated",
+      "description": "Status always as a word plus a bold icon in its tone.",
+      "html": "<span class=\"ds-status ds-status-violated\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 256 256\" aria-hidden=\"true\"><circle cx=\"128\" cy=\"128\" r=\"96\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"24\"/><path d=\"M160 96l-64 64M96 96l64 64\" stroke=\"currentColor\" stroke-width=\"24\" stroke-linecap=\"round\"/></svg>Violated</span>",
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 6px; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-weight: 600; } .ds-status-violated { color: var(--violated, #b42318); }"
+    },
+    {
+      "name": "Verdict Headline",
+      "kind": "custom",
+      "refersTo": "verdict",
+      "description": "The result set large in Clash Display; no score, no dial.",
+      "html": "<h2 class=\"ds-verdict\">Non-compliant.</h2>",
+      "css": ".ds-verdict { margin: 0; font-family: 'Clash Display', Switzer, ui-sans-serif, sans-serif; font-weight: 700; font-size: clamp(2.75rem, 4.8vw, 5.25rem); line-height: 1.05; letter-spacing: -0.01em; word-spacing: 0.045em; color: var(--ink, #111413); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Highlighter",
+    "overview": "Clause is a stack of cool paper worked over with one fluorescent pen. Everything the user reads is ink on paper or sheet, ruled with heavy 2px ink lines, square at every corner, with nothing floating above anything else. The single highlighter colour does one job: it sits behind ink to say \"these are the words that matter\". A verdict is set large in Clash Display; the clause behind it is set in readable Switzer with the cited words swept in mark.\n\nThe system is dense where the work is (the case workspace is a 38/62 split of conversation and assessment, ruled into panes) and generous where the story is told (the front door runs 112 to 160px section rhythm around large display headlines and scaled product exhibits). Depth is never shadow; on the front door it comes from parallax layers and a Three.js stack of policy sheets, and inside the app it does not exist at all beyond drawers sliding over ruled panes.\n\nThe build refuses two worlds by name: the dark AI dashboard with a score dial, and the cream editorial serif workspace. The palette is cool and neutral, the type is grotesque, and no status is ever a percentage or a gauge.",
+    "keyCharacteristics": [
+      "Cool paper and sheet surfaces with near-black ink; one fluorescent mark used only as a fill behind ink.",
+      "2px ink rules as the structural line; 0px radius everywhere; no drop shadows.",
+      "Clash Display for headlines, verdicts and clause numbers; Switzer for all working UI.",
+      "The highlighter sweep is the signature motion, and it only ever marks exact stored quote text.",
+      "Status is always a word plus a bold Phosphor icon, never colour alone.",
+      "Light theme is primary; dark follows the system or a pinned `data-theme`."
+    ],
+    "rules": [
+      { "name": "The Fill-Only Rule", "body": "The mark is never a text colour, border colour, outline or focus colour; it fails 3:1 on paper. It appears only as a fill with on-mark ink on top of it.", "section": "colors" },
+      { "name": "The One Pen Rule", "body": "There is one highlighter. No second accent, no gradients of it, no tints of it as a background wash. Rarity is what makes a marked span read as evidence.", "section": "colors" },
+      { "name": "The Word-and-Icon Rule", "body": "Every status is a label plus a bold Phosphor icon in the status tone. Colour alone never carries meaning, and no status is ever expressed as a score, percentage or dial.", "section": "colors" },
+      { "name": "The Two Faces Rule", "body": "Clash Display is for headlines, verdicts, clause numbers and the wordmark; everything a user operates is Switzer. Never set a control, label or paragraph in Clash Display.", "section": "typography" },
+      { "name": "The Sentence Case Rule", "body": "No uppercase tracked labels anywhere. Headings, labels and verdicts are sentence case; verdicts end with a full stop.", "section": "typography" },
+      { "name": "The Tabular Evidence Rule", "body": "Clause numbers, page numbers, dates, version labels and request IDs use tabular figures.", "section": "typography" },
+      { "name": "The Flat Paper Rule", "body": "No `box-shadow`, no `drop-shadow`, no blurred glow, anywhere. If something needs to feel above, give it sheet, a 2px ink border, or a place in the parallax.", "section": "elevation" },
+      { "name": "The Front Door Only Rule", "body": "Parallax, smooth scroll and 3D belong to the front door. The working app never moves the page for effect.", "section": "elevation" }
+    ],
+    "dos": [
+      "**Do** put on-mark ink (#111413) on every mark fill, in both themes.",
+      "**Do** separate surfaces with paper versus sheet and 2px ink rules.",
+      "**Do** pair every status with its word and a bold Phosphor icon.",
+      "**Do** mark only exact stored quote substrings; render the clause unmarked if the quote does not match.",
+      "**Do** use function-form `useTransform` for scroll-linked opacity so Motion does not hand it to a mismatched native ViewTimeline.",
+      "**Do** collapse all motion under `prefers-reduced-motion`: sweeps land instantly, exhibits show their final state, 3D and parallax are replaced by static rasters.",
+      "**Do** capture fallback rasters from the project's own 3D scenes and keep their provenance next to them.",
+      "**Do** open Clash Display word spacing (0.045em) wherever it is set."
+    ],
+    "donts": [
+      "**Don't** use the mark as text, border, outline or focus colour.",
+      "**Don't** round a corner or add a shadow, glow or blur to lift a surface.",
+      "**Don't** show status as a score, percentage, gauge or dial, or by colour alone.",
+      "**Don't** build a dark AI dashboard or a cream editorial serif workspace.",
+      "**Don't** set controls, labels or body copy in Clash Display.",
+      "**Don't** add uppercase tracked kickers or eyebrows above headings.",
+      "**Don't** bring Lenis, parallax or WebGL into the app; it keeps native scroll.",
+      "**Don't** fake an exhibit with a screenshot or mock markup when the real component can be rendered."
+    ]
+  }
+}
