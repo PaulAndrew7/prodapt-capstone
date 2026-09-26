@@ -559,7 +559,7 @@ All work starts unassigned and at zero. Estimated effort is intentionally approx
 
 | ID | Feature | Tier | Depends on | Suggested lane | Status | Owner | Progress | PR / evidence |
 |---|---|---|---|---|---|---|---|---|
-| F00 | Repository, contracts, CI skeleton | B | — | Integration | IN_REVIEW | Claude Code (backend lane) | 4/5 | [F00](docs/tasks/F00.md); CI not yet run (no Git repo) |
+| F00 | Repository, contracts, CI skeleton | B | — | Integration | IN_REVIEW | Claude Code (backend lane) | 5/5 | [F00](docs/tasks/F00.md); [CI green](https://github.com/PaulAndrew7/prodapt-capstone/actions/runs/36236160176) |
 | F01 | Corpus and scenario specification | B | F00 | Data/evaluation | IN_PROGRESS | Claude Code (backend lane) | 3/5 | [F01](docs/tasks/F01.md); 11 policies, 13 dev scenarios |
 | F02 | Schema and versioned persistence | B | F00 | Backend | IN_PROGRESS | Claude Code (backend lane) | 3/5 | [F02](docs/tasks/F02.md); migration 0001 |
 | F03 | PDF ingestion and indexing | B | F01,F02 | Data | IN_PROGRESS | Claude Code (backend lane) | 1/5 | [F03](docs/tasks/F03.md); 111/111 clauses exact |
@@ -1528,7 +1528,7 @@ The deadline is five days. The user explicitly prefers a complete ambitious plan
 
 | Gate | Deliverable | Required evidence | Status |
 |---|---|---|---|
-| G0 Contracts frozen | F00; initial F01/F02 | Fixture renders; schemas and ownership agreed | IN_REVIEW: contracts, fixtures, schema and task records exist; CI pending first run |
+| G0 Contracts frozen | F00; initial F01/F02 | Fixture renders; schemas and ownership agreed | IN_REVIEW: contracts, fixtures, schema and task records exist; first CI run green |
 | G1 Evidence path | F03–F06 plus source UI slice | PDF → clause → search → cited answer → source page | IN_PROGRESS: PDF → clause → hybrid search → citation → source page works; cited answer (F06) not started |
 | G2 Complete assessment | F07–F11 plus F12/F13 slice | All five roles; unknown/violation/conflict paths | TODO |
 | G3 Submission baseline | F14–F18 and baseline hardening | Evaluation results, report, setup exercise, exported diagram | TODO |

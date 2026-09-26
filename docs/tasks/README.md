@@ -4,7 +4,7 @@ One file per feature package (plan §8.4). Generated 2026-09-26 from IMPLEMENTAT
 
 | ID | Feature | Status | Progress |
 |---|---|---|---|
-| [F00](F00.md) | Repository, contracts, CI skeleton | IN_REVIEW | 4/5 |
+| [F00](F00.md) | Repository, contracts, CI skeleton | IN_REVIEW | 5/5 |
 | [F01](F01.md) | Corpus and scenario specification | IN_PROGRESS | 3/5 |
 | [F02](F02.md) | Schema and versioned persistence | IN_PROGRESS | 3/5 |
 | [F03](F03.md) | PDF ingestion and indexing | IN_PROGRESS | 1/5 |
