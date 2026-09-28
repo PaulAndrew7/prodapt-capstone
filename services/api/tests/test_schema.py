@@ -135,3 +135,14 @@ def test_audit_log_is_append_only(db: Session) -> None:
     for stmt in ("UPDATE audit_events SET action = 'x'", "DELETE FROM audit_events"):
         with pytest.raises(DBAPIError, match="append-only"), db.begin_nested():
             db.execute(text(stmt))
+
+
+def test_vector_distance_runs_at_embedding_width(db: Session) -> None:
+    # pgvector only takes its SIMD path for longer vectors; a build that needs CPU
+    # instructions this machine lacks crashes the whole server there (seen with Windows
+    # pixeltable-pgserver 0.6.0 on a CPU without AVX-512).
+    distance = db.scalar(
+        text("SELECT array_fill(1, ARRAY[:n])::vector <=> array_fill(2, ARRAY[:n])::vector"),
+        {"n": m.EMBEDDING_DIMENSION},
+    )
+    assert distance == pytest.approx(0.0)

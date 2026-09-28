@@ -6,8 +6,8 @@ Visuals: [architecture-system.jpg](../architecture/architecture-system.jpg), [ar
 
 ## Before the session (allow 20 minutes)
 
-1. Start Docker Desktop, then `docker compose up -d db`.
-2. `cd services/api`, then `uv run python -m app.cli migrate` and `uv run python -m app.cli seed-demo`.
+1. `cd services/api`, then `uv run python -m app.cli db-start` (the database runs in the background; no Docker).
+2. `uv run python -m app.cli migrate` and `uv run python -m app.cli seed-demo`.
 3. Put the organizers' gateway settings in `.env` and run `uv run python -m app.cli check-model`. It must print `OK`; note the served model and response time.
 4. Start the API with `uv run uvicorn app.main:app --port 8000`. In a second terminal, from the repo root, run `VITE_API_MODE=http corepack pnpm --dir apps/web dev`.
 5. **Saved fallback:** run the demo scenario once end to end, and keep that completed case. If the live run is slow or the gateway fails during the talk, open this case instead and say so.
@@ -51,7 +51,7 @@ Each answer should point at code you can open.
 | Does validation guarantee correctness? | No. It proves the quote exists; whether it supports the conclusion is a model check plus evaluation, and some interpretations will still be wrong. | `analysis.md` failures |
 | What if facts are missing? | Up to three questions, one round. Unanswered facts stay unknown, and unknown leads to "insufficient information", never "compliant". | `app/workflow/outcome.py` |
 | Why no LangGraph or agent framework? | The flow is fixed with one pause; plain functions are easier to test and explain. | `orchestrator.py` |
-| Why one database and one API? | The demo fits one machine; Postgres does both records and vector search. | `compose.yaml`; system diagram |
+| Why one database and one API? | The demo fits one machine; Postgres does both records and vector search. It installs with the Python dependencies, so there is no Docker to set up. | `app/localdb.py`; system diagram |
 | What happens after a restart? | Completed results stay saved. A run in progress is marked failed ("interrupted") on startup and must be started again. | `fail_interrupted_runs` in `orchestrator.py` |
 | How do you know it works? | Automated tests with a scripted model, a fresh-setup check, and the held-out evaluation with its failures. The sample is small. | `services/api/tests/`; `docs/evaluation/` |
 | Did you train a model? | No. The work is the corpus, ingestion, retrieval, workflow, validation, evaluation and the app around an existing model. | — |

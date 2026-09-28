@@ -15,6 +15,12 @@ Downloaded from the Fontshare CDN on 2026-09-25 and self-hosted as woff2.
 |---|---|---|
 | Phosphor Icons (`@phosphor-icons/react`) | https://phosphoricons.com | MIT |
 
+## Database
+
+| Asset | Source | License | Used in |
+|---|---|---|---|
+| PostgreSQL 16 and pgvector 0.8.1, as prebuilt binaries in the `pixeltable-pgserver` 0.5.1 wheel | https://github.com/pixeltable/pixeltable-pgserver | pixeltable-pgserver: Apache-2.0; PostgreSQL: PostgreSQL License; pgvector: PostgreSQL License | Installed by `uv sync` into `services/api/.venv`; started by `services/api/app/localdb.py` |
+
 ## Models
 
 | Asset | Source | License | Used in |

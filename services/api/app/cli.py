@@ -1,5 +1,8 @@
 """Operational commands (plan §15.4).
 
+python -m app.cli db-start         start the local PostgreSQL (created on first use)
+python -m app.cli db-stop          stop it
+python -m app.cli db-status        show whether it is running
 python -m app.cli migrate          apply database migrations (explicit; never on startup)
 python -m app.cli seed-demo        ingest the fictional demo corpus and create its snapshot
 python -m app.cli search "text"    run evidence search as the demo admin
@@ -17,6 +20,18 @@ import time
 from app.config import REPO_ROOT, get_settings
 
 API_ROOT = REPO_ROOT / "services" / "api"
+
+
+def cmd_db(args: argparse.Namespace) -> int:
+    from app import localdb
+
+    action = {"db-start": localdb.start, "db-stop": localdb.stop, "db-status": localdb.status}
+    try:
+        print(action[args.command]())
+    except localdb.LocalDbError as exc:
+        print(exc)
+        return 1
+    return 0
 
 
 def cmd_migrate(_: argparse.Namespace) -> int:
@@ -95,18 +110,15 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
         print(f"Cannot evaluate: {exc}")
         return 1
 
-    from sqlalchemy import create_engine, text
     from sqlalchemy.engine import make_url
+
+    from app.persistence.db import ensure_database
 
     base = make_url(get_settings().database_url)
     if not args.same_database:
-        name = f"{base.database}_eval"
-        admin = create_engine(base.set(database="postgres"), isolation_level="AUTOCOMMIT")
-        with admin.connect() as conn:
-            if not conn.scalar(text("SELECT 1 FROM pg_database WHERE datname = :n"), {"n": name}):
-                conn.execute(text(f'CREATE DATABASE "{name}"'))
-        admin.dispose()
-        os.environ["DATABASE_URL"] = base.set(database=name).render_as_string(hide_password=False)
+        eval_url = base.set(database=f"{base.database}_eval")
+        ensure_database(eval_url)
+        os.environ["DATABASE_URL"] = eval_url.render_as_string(hide_password=False)
         get_settings.cache_clear()
     cmd_migrate(args)
     cmd_seed_demo(args)
@@ -162,6 +174,8 @@ def cmd_check_model(_: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="command", required=True)
+    for name in ("db-start", "db-stop", "db-status"):
+        sub.add_parser(name).set_defaults(fn=cmd_db)
     sub.add_parser("migrate").set_defaults(fn=cmd_migrate)
     sub.add_parser("seed-demo").set_defaults(fn=cmd_seed_demo)
     p = sub.add_parser("search")

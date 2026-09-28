@@ -29,6 +29,8 @@ class Settings(BaseSettings):
 
     app_env: Literal["development", "test", "production"] = "development"
     database_url: str = DEV_DATABASE_URL
+    # Data directory of the local PostgreSQL that `python -m app.cli db-start` runs.
+    local_db_dir: Path = REPO_ROOT / "var" / "postgres"
     session_secret: SecretStr = SecretStr(DEV_SESSION_SECRET)
     # "demo" resolves every request to the seeded demo admin. Production requires "session".
     auth_mode: Literal["demo", "session"] = "demo"

@@ -24,6 +24,12 @@ Each entry gives the choice, the main alternative, what it costs, and the eviden
 **Handoffs are typed application messages, not the Agent2Agent protocol.** Each stage saves a progress event and a handoff record (sender, receiver, message type, summary, payload), which the trace view shows.
 - Revisit if: the assessor requires the standardized protocol (plan F28).
 
+**PostgreSQL comes from a Python package, not Docker.** `python -m app.cli db-start` (`app/localdb.py`) runs PostgreSQL 16 with pgvector from the `pixeltable-pgserver` wheel that `uv sync` installs, on port 5433 with its data in `var/postgres`. CI starts the database the same way.
+- Instead of: Docker Compose (used until 29 September 2026), or a native PostgreSQL install, which on Windows means building pgvector by hand.
+- Cost: the database version is whatever the pinned wheel ships (0.5.1: PostgreSQL 16, pgvector 0.8.1; the 0.6.0 Windows build of pgvector crashes on CPUs without AVX-512). The server is a background process rather than a service, so it has to be started again after the computer restarts.
+- Evidence: the backend tests pass against it on Windows and Linux, and the 13 development scenarios return the same top-10 search results as on the earlier Docker database.
+- Revisit if: the app moves to a shared server, where a managed PostgreSQL fits better.
+
 ## Retrieval and evidence
 
 **Search runs inside PostgreSQL.** Full-text ranking and pgvector similarity are fused by reciprocal rank fusion; the score is an ordering, not a confidence.

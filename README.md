@@ -24,8 +24,7 @@ These steps take a fresh laptop to the running app. They were written on Windows
 | Tool | What it is for | Get it |
 |---|---|---|
 | Git | Clone the repository | <https://git-scm.com/downloads> |
-| Docker Desktop | Runs PostgreSQL 17 with pgvector | <https://www.docker.com/products/docker-desktop/> (on Windows it sets up WSL 2 and may ask for a restart) |
-| uv | Installs Python 3.12 and the API's dependencies; you do not need to install Python yourself | Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 \| iex"`<br>macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| uv | Installs Python 3.12 and the API's dependencies, including the PostgreSQL 16 database with pgvector; you do not need to install Python, PostgreSQL or Docker yourself | Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 \| iex"`<br>macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
 | Node.js 22 | Runs the web app; includes corepack, which provides the pinned pnpm 10 | <https://nodejs.org/en/download> (choose v22) |
 | Google Chrome | Only for the browser tests (Playwright uses the installed Chrome) | <https://www.google.com/chrome/> |
 
@@ -33,7 +32,6 @@ Open a **new** terminal so the tools are on your PATH, then check them:
 
 ```bash
 git --version
-docker --version
 uv --version
 node --version        # v22.x
 corepack --version
@@ -60,22 +58,21 @@ cp .env.example .env             # macOS/Linux
 
 The defaults work as they are. `.env` is git-ignored, so the model key never travels with the repository; to use a model, add the key yourself (see [Connect the language model](#connect-the-language-model)).
 
-### 4. Start the database
-
-Start Docker Desktop and wait until it reports that the engine is running. Then, from the repository root:
-
-```bash
-docker compose up -d db
-docker compose ps                # after a few seconds the db service shows "healthy"
-```
-
-Postgres listens on host port **5433** so it does not clash with a local Postgres on 5432. The data lives in a Docker volume and survives restarts.
-
-### 5. Set up and start the API (terminal 1)
+### 4. Install the API and start the database
 
 ```bash
 cd services/api
 uv sync                                  # downloads Python 3.12 if needed; creates services/api/.venv
+uv run python -m app.cli db-start        # the first run creates the database in var/postgres
+```
+
+PostgreSQL 16 with pgvector comes with the Python dependencies (the `pixeltable-pgserver` package), so there is nothing else to install. `db-start` runs it in the background on port **5433** (so it does not clash with another Postgres on 5432), listening on this computer only. It keeps running after the command returns, until you run `uv run python -m app.cli db-stop` or restart the computer; `db-status` shows whether it is running. The data lives in `var/postgres` and survives restarts.
+
+### 5. Set up and start the API (terminal 1)
+
+In the same terminal, still in `services/api`:
+
+```bash
 uv run python -m app.cli migrate         # creates the schema; the API never migrates on startup
 uv run python -m app.cli seed-demo       # ingests the demo policy PDFs; the first run downloads a ~70 MB embedding model
 uv run uvicorn app.main:app --port 8000
@@ -109,17 +106,12 @@ Without `VITE_API_MODE`, the web app runs on built-in fixture data and needs nei
 
 The install, migrate and seed steps are one-offs. To start working again:
 
-1. Start Docker Desktop, then `docker compose up -d db` from the repository root.
-2. Terminal 1: `cd services/api`, then `uv run uvicorn app.main:app --port 8000`.
-3. Terminal 2: the live-mode Vite command from step 6.
+1. Terminal 1: `cd services/api`, then `uv run python -m app.cli db-start` (it says so if the database is already running) and `uv run uvicorn app.main:app --port 8000`.
+2. Terminal 2: the live-mode Vite command from step 6.
 
 After a `git pull`, run `uv sync`, `uv run python -m app.cli migrate` and `corepack pnpm install` again; each does nothing if nothing changed. `seed-demo` is also safe to repeat, since it skips policy versions that are already loaded.
 
-To stop, press Ctrl+C in both terminals and run `docker compose stop`. To start over with an empty database, run `docker compose down -v` (this deletes the database volume), then repeat steps 4 and 5.
-
-### Run the API in Docker instead
-
-If you would rather not install uv, the API also runs in a container: `docker compose up --build -d`, then `docker compose run --rm api python -m app.cli migrate` and `docker compose run --rm api python -m app.cli seed-demo`. The web app still runs with step 6.
+To stop, press Ctrl+C in both terminals and run `uv run python -m app.cli db-stop` in `services/api`. To start over with an empty database, run `db-stop`, delete the `var/postgres` folder, then repeat steps 4 and 5.
 
 ## Connect the language model
 
@@ -223,12 +215,14 @@ Model requests have no hidden SDK retries. Failed requests count against the att
 
 | Symptom | Likely cause and fix |
 |---|---|
-| `docker` fails with `error during connect` or `cannot find the file specified` (`dockerDesktopLinuxEngine`) | Docker Desktop is not running. Start it, wait for the engine, and retry. |
-| `docker compose up` fails with `port is already allocated` | Something else uses port 5433 (or 8000). Stop it, or change the host port in `compose.yaml` and `DATABASE_URL` in `.env` to match. |
+| `db-start` says port 5433 is already in use | Another program holds the port, often the Docker database from an earlier version of this setup (stop or delete the `clause-db-1` container in Docker Desktop) or another Postgres. Stop it, or change the port in `DATABASE_URL` in `.env`. |
+| `db-start` says the database did not start | The message ends with the last lines of `var/postgres.log`. If the log says the data directory is from another PostgreSQL version or is damaged, and you do not need its data, delete `var/postgres` and run `db-start` again. |
+| Search fails with "server closed the connection unexpectedly" and `var/postgres.log` shows `terminated by exception 0xC000001D` | The pgvector build uses CPU instructions this computer lacks. Run `uv sync`: `pyproject.toml` pins `pixeltable-pgserver` 0.5.1 because 0.6.0 crashes on CPUs without AVX-512. |
+| Port 8000 is already in use | Stop the other program, or start the API with another `--port` (for example 8001) and start Vite with `VITE_API_PROXY=http://localhost:8001` as well. |
 | `uv`, `node` or `corepack` is not recognized | Open a new terminal after installing. If `corepack` is missing (Node 25 and later no longer bundle it), run `npm install -g corepack`. |
 | PowerShell: "running scripts is disabled on this system" | Run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, then open a new terminal. |
 | `seed-demo` fails while downloading the embedding model | The first run needs internet access to fetch BAAI/bge-small-en-v1.5 into `var/models`. Retry on a working connection; set `EMBEDDINGS_ENABLED=false` in `.env` for lexical-only search. |
-| `curl localhost:8000/health/ready` reports `database: unavailable` | The database container is not running: `docker compose up -d db` (host port 5433). On Windows, start Docker Desktop first. |
+| `curl localhost:8000/health/ready` reports `database: unavailable` | The database is not running (for example after a restart of the computer): `uv run python -m app.cli db-start` in `services/api`. |
 | `migrations: pending` | Run `uv run python -m app.cli migrate`; the API never migrates on startup. |
 | Search returns nothing, or `demo_not_seeded` | Run `uv run python -m app.cli seed-demo`. The first run downloads the ~70 MB embedding model into `var/models`. |
 | `model_not_configured` when starting a case or asking a question | Set `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY` in `.env` and restart the API. |

@@ -12,17 +12,6 @@ concurrency:
 jobs:
   api:
     runs-on: ubuntu-latest
-    services:
-      db:
-        image: pgvector/pgvector:0.8.0-pg17
-        env:
-          POSTGRES_DB: clause
-          POSTGRES_USER: clause
-          POSTGRES_PASSWORD: clause
-        ports: ["5433:5432"]
-        options: >-
-          --health-cmd "pg_isready -U clause -d clause"
-          --health-interval 2s --health-timeout 3s --health-retries 30
     defaults:
       run:
         working-directory: services/api
@@ -35,6 +24,8 @@ jobs:
         with:
           version: "0.11.18"
       - run: uv sync --frozen
+      - name: Start PostgreSQL (installed with the Python dependencies, as on a laptop)
+        run: uv run python -m app.cli db-start
       - name: Lint
         run: uv run ruff check app tests ../../scripts && uv run ruff format --check app tests ../../scripts
       - name: Typecheck

@@ -27,7 +27,7 @@ Updated 26 September 2026 after the gateway-client, evaluation-data and document
 | Backend | Five-role workflow (`services/api/app/workflow/`), case/run/resume/cancel/SSE endpoints, cited lookup answers, startup handling of interrupted runs. Model client targets GPT-4o mini through an OpenAI-compatible gateway at `LLM_BASE_URL`, checked against a local stub server; `python -m app.cli check-model` sends one test request. 164 backend tests pass, including Postgres integration tests. | Confirm gateway details with `check-model` when access arrives, then run real scenarios |
 | Persistence | Cases, messages, scenario revisions, facts, runs with the final assessment JSON, progress events and handoff records | Nothing required; normalized finding tables stay unused |
 | Evaluation | `python -m app.cli evaluate` in a separate database. Dev labels reviewed against clause text (4 corrected); retrieval on 13 dev scenarios: hybrid Recall@10 0.839, keyword-only 0.704, evidence-bundle recall 0.856. 20 held-out scenarios authored and checked against the corpus by a test, not yet run. | Owner review and freeze of the held-out labels; run assessments with a model |
-| Operations | Docker Compose, CI checks. README with model setup, architecture, limitations and troubleshooting. Fresh setup verified from a clean database without a model (about 1.5 minutes of commands). Architecture diagram exported to PDF and JPEG; decisions page and presentation runbook written. | Repeat the fresh setup with a key; saved real result, recording and timed rehearsal |
+| Operations | Local PostgreSQL 16 + pgvector installed with the Python dependencies and started by `python -m app.cli db-start` (Docker removed 2026-09-29; CI uses the same command). CI checks. README with model setup, architecture, limitations and troubleshooting. Fresh setup verified from a clean database without a model (about 1.5 minutes of commands). Architecture diagram exported to PDF and JPEG; decisions page and presentation runbook written. | Repeat the fresh setup with a key; saved real result, recording and timed rehearsal |
 
 Keep the working foundations. Do not spend the remaining schedule replacing the database, redesigning the UI or deleting unused schema merely to make the repository smaller.
 
@@ -98,7 +98,7 @@ Existing fixture pages may remain in the repository. Hide them from live submiss
 | Workflow | Ordinary Python functions in a fixed sequence | Easy to follow, debug and explain |
 | Runtime model | GPT-4o mini using the organizers' forthcoming API key and expected gateway URL; exact endpoint/authentication details pending | Separate role prompts use the same model; one helper handles requests, schema checks and limits |
 | Progress | Existing HTTP/SSE client contract | Reuse the frontend and show real stage completion |
-| Setup | Existing Docker Compose for database/API; Vite for web | Reproduce the demonstration on one machine |
+| Setup | PostgreSQL from a Python package (`db-start`), uv for the API, Vite for web; no Docker | Reproduce the demonstration on one machine with only uv and Node.js installed |
 
 LangGraph is in the earlier design but is not an installed backend dependency. Do not add it for this fixed workflow. Retain the current embedding implementation instead of starting a model-selection project.
 
