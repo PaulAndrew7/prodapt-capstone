@@ -81,17 +81,49 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Highlighter span. Width is driven by --sweep (0% to 100%) so multi-line spans sweep per line. */
+  /* Static marks use ordinary text over a yellow fill. */
   .mark-span {
     background-image: linear-gradient(var(--mark), var(--mark));
     background-repeat: no-repeat;
     background-position: 0 58%;
-    background-size: var(--sweep, 100%) 88%;
+    background-size: 100% 88%;
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
-    /* Text on the mark is always dark ink, in both themes. */
     color: var(--on-mark);
     padding-inline: 0.08em;
+  }
+
+  .mark-sweep {
+    color: var(--ink);
+    padding-inline: 0.08em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  .mark-word {
+    position: relative;
+    display: inline-block;
+    white-space: pre;
+  }
+
+  .mark-word-overlay {
+    position: absolute;
+    inset: 0;
+    /* Overlap adjoining fills so scaling does not leave hairline seams. */
+    right: -1px;
+    pointer-events: none;
+    user-select: none;
+    color: var(--on-mark);
+    background-image: linear-gradient(var(--mark), var(--mark));
+    background-repeat: no-repeat;
+    background-position: 0 58%;
+    background-size: 100% 88%;
+    /* Keep descenders outside tight headline line boxes visible. */
+    clip-path: inset(-0.2em clamp(0%, calc(100% - (var(--sweep, 0%) - var(--word-start)) * var(--word-scale)), 100%) -0.2em 0);
+  }
+
+  .mark-word-overlay::before {
+    content: attr(data-text);
   }
 
   /* Wordmark bar: overlaps the letters in light; in dark it sits under them so the name stays legible. */

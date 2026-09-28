@@ -8,9 +8,9 @@ fixture in `packages/contracts/fixtures/`.
 
 from datetime import date, datetime
 from enum import StrEnum
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 SCHEMA_VERSION: Literal["1.0"] = "1.0"
 
@@ -325,6 +325,50 @@ class CaseSummary(Contract):
     updated_at: datetime
 
 
+class NewCaseRequest(Contract):
+    text: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
+        min_length=20, max_length=4000
+    )
+    business_area: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
+        min_length=1, max_length=120
+    )
+    as_of: date
+
+
+class NewMessageRequest(Contract):
+    text: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
+        min_length=1, max_length=4000
+    )
+
+
+class ResumeRequest(Contract):
+    """Clarification answers keyed by question ID; `null` means "I don't know"."""
+
+    answers: dict[
+        Annotated[str, Field(min_length=1, max_length=128)],
+        Annotated[str, Field(max_length=4000)] | None,
+    ] = Field(max_length=3)
+
+
+class RunError(Contract):
+    code: str
+    message: str
+    retryable: bool
+
+
+class RunStatus(Contract):
+    run_id: str
+    case_id: str
+    state: RunState
+    result_status: AssessmentStatus | None
+    assessment: Assessment | None
+    pending_questions: list[ClarificationQuestion]
+    error: RunError | None
+    created_at: datetime
+    started_at: datetime | None
+    finished_at: datetime | None
+
+
 class CaseDetail(CaseSummary):
     as_of: date
     scope: str
@@ -342,7 +386,9 @@ class CaseDetail(CaseSummary):
 
 
 class SearchRequest(Contract):
-    question: str = Field(min_length=2, max_length=2000)
+    question: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
+        min_length=2, max_length=2000
+    )
     policy_ids: list[str] | None = Field(
         default=None, description="Explicit user-selected scope. Omit to search every policy."
     )

@@ -40,8 +40,9 @@ type RunStore = {
 export const useRunStore = create<RunStore>((set, get) => ({
   runs: {},
   ingest: (event) => {
+    if (!Number.isSafeInteger(event.sequence) || event.sequence < 1) return false;
     const current = get().runs[event.run_id] ?? { events: [], lastSequence: 0, seen: new Set<string>() };
-    if (current.seen.has(event.event_id)) return false;
+    if (current.seen.has(event.event_id) || current.events.some((e) => e.sequence === event.sequence)) return false;
     const seen = new Set(current.seen);
     seen.add(event.event_id);
     const events = [...current.events, event].sort((a, b) => a.sequence - b.sequence);
@@ -80,16 +81,18 @@ export function derivePhase(events: RunEvent[]): RunPhase {
   }
 }
 
-/* Stage status from real events only. A resumed run re-opens analysis. */
+/* Stage status from actual completion events. Clarification restarts every stage. */
 export function deriveStages(events: RunEvent[]): Record<AgentRole, StageStatus> {
   const status = Object.fromEntries(STAGES.map((s) => [s.role, "pending"])) as Record<AgentRole, StageStatus>;
   let cursor = -1;
   for (const e of events) {
-    if (e.type === "run.started") cursor = 0;
-    if (e.type === "run.resumed") cursor = 1;
+    if (e.type === "run.started" || e.type === "run.resumed") {
+      STAGES.forEach((s) => { status[s.role] = "pending"; });
+      cursor = 0;
+    }
     const idx = STAGES.findIndex((s) => s.done === e.type);
     if (idx >= 0) {
-      for (let i = 0; i <= idx; i++) status[STAGES[i].role] = "done";
+      status[STAGES[idx].role] = "done";
       cursor = idx + 1;
     }
     if (e.type === "clarification.required") cursor = -1;

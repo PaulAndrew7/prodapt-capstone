@@ -1,53 +1,13 @@
-import { Component, lazy, Suspense, useEffect, useReducer, useState, type ReactNode } from "react";
-import { useReducedMotion } from "motion/react";
+import { useEffect, useReducer } from "react";
 import type { RunPhase } from "@/lib/events/runStore";
 import { avatarReducer, initialAvatarState, modeCaption, type AvatarMode } from "./controller";
 import { useAvatarPref } from "./avatarPref";
+import AvatarFigure from "./AvatarFigure";
 
-const AvatarFigure = lazy(() => import("./AvatarFigure"));
-
-class FigureBoundary extends Component<{ fallback: ReactNode; onError: () => void; children: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  componentDidCatch() {
-    this.props.onError();
-  }
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
-
-export function hasWebGL() {
-  try {
-    const c = document.createElement("canvas");
-    return Boolean(c.getContext("webgl2") || c.getContext("webgl"));
-  } catch {
-    return false;
-  }
-}
-
-/* Still image of the same figure, used without WebGL, with reduced motion, and on small screens. */
-export function AvatarStill({ className }: { className?: string }) {
-  return <img src="/avatar/still.png" alt="" width={240} height={240} className={className} />;
-}
-
-export function AvatarView({ mode, size, onFailure }: { mode: AvatarMode; size: number; onFailure: () => void }) {
-  const reduce = useReducedMotion();
-  const [capable] = useState(() => hasWebGL() && window.matchMedia("(min-width: 768px)").matches);
-  const still = <AvatarStill className="size-full object-contain" />;
+export function AvatarView({ mode, size }: { mode: AvatarMode; size: number }) {
   return (
     <div className="shrink-0" style={{ width: size, height: size }}>
-      {!capable || reduce || mode === "unavailable" ? (
-        still
-      ) : (
-        <FigureBoundary fallback={still} onError={onFailure}>
-          <Suspense fallback={still}>
-            <AvatarFigure mode={mode} onFailure={onFailure} />
-          </Suspense>
-        </FigureBoundary>
-      )}
+      <AvatarFigure mode={mode} />
     </div>
   );
 }
@@ -100,7 +60,7 @@ export function AvatarPanel({
 
   return (
     <div className="flex items-center gap-4 border-t-2 border-ink px-4 py-2 md:px-8">
-      <AvatarView mode={state.mode} size={88} onFailure={() => dispatch({ type: "render_failed" })} />
+      <AvatarView mode={state.mode} size={88} />
       <div className="min-w-0 flex-1">
         <p className="font-semibold" aria-live="polite">
           {modeCaption[state.mode]}

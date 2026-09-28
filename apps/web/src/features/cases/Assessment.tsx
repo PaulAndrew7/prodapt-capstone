@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { ArrowRight, CaretDown } from "@phosphor-icons/react";
@@ -6,12 +6,7 @@ import clsx from "clsx";
 import type { AgentMessage, Assessment, Citation, Fact, Finding } from "@/lib/api/types";
 import { RequirementStatusWord, VerdictHeadline } from "@/components/Status";
 import { Button } from "@/components/Button";
-import { policyVersions } from "@/fixtures/policies";
-
-export function citationRef(c: Pick<Citation, "section_path" | "policy_version_id">) {
-  const label = policyVersions[c.policy_version_id]?.label ?? "";
-  return `§${c.section_path[c.section_path.length - 1]} ${label}`.trim();
-}
+import { useSectionRef } from "@/features/policies/useSectionRef";
 
 function CitationButtons({
   finding,
@@ -22,6 +17,7 @@ function CitationButtons({
   citations: Map<string, Citation>;
   onOpen: (findingId: string, citationId: string) => void;
 }) {
+  const citationRef = useSectionRef();
   return (
     <span className="flex flex-wrap justify-end gap-x-3 gap-y-1">
       {finding.citation_ids.map((id) => {
@@ -103,15 +99,17 @@ function FindingRow({
             <div className="grid gap-5 pb-6 pl-[3.5rem] md:pl-[4rem] lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
               <div>
                 <p className="max-w-[60ch] leading-relaxed">{finding.rationale}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-4"
-                  onClick={() => onOpen(finding.id, finding.citation_ids[0])}
-                  icon={<ArrowRight size={16} aria-hidden />}
-                >
-                  Open evidence
-                </Button>
+                {finding.citation_ids.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-4"
+                    onClick={() => onOpen(finding.id, finding.citation_ids[0])}
+                    icon={<ArrowRight size={16} aria-hidden />}
+                  >
+                    Open evidence
+                  </Button>
+                )}
               </div>
               <div className="space-y-3 text-sm">
                 <div>
@@ -137,9 +135,7 @@ function FindingRow({
                     </ul>
                   </div>
                 )}
-                <p className="text-ink-2">
-                  Evidence check: {finding.support === "validated" ? "cited text supports this finding" : finding.support}
-                </p>
+                <p className="text-ink-2">Evidence check: {supportText[finding.support]}</p>
               </div>
             </div>
           </motion.div>
@@ -148,6 +144,13 @@ function FindingRow({
     </li>
   );
 }
+
+const supportText: Record<Finding["support"], string> = {
+  validated: "cited text supports this finding",
+  unsupported: "not confirmed by the cited text, so it did not decide the result",
+  contradicted: "disputed by the validation stage, so it did not decide the result",
+  pending: "not checked, so it did not decide the result",
+};
 
 const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 } as const;
 const severityLabel = { critical: "Critical", high: "High", medium: "Medium", low: "Low" } as const;
@@ -170,6 +173,7 @@ export function AssessmentBody({
   onOpenEvidence: (findingId: string, citationId: string) => void;
 }) {
   const [open, setOpen] = useState<string | null>(assessment.findings[0]?.id ?? null);
+  const citationRef = useSectionRef();
   const citations = new Map(assessment.citations.map((c) => [c.id, c]));
   const factMap = new Map(facts.map((f) => [f.id, f]));
   const findingIndex = new Map(assessment.findings.map((f, i) => [f.id, i + 1]));
@@ -358,21 +362,27 @@ export function RunTimeline({ messages }: { messages: AgentMessage[] }) {
     <div>
       <p className="text-sm text-ink-2">Recorded exchanges from this run, in order.</p>
       <ol className="mt-4 border-l-2 border-ink">
-        {messages.map((m) => (
-          <li key={m.message_id} className="relative grid gap-1 py-3 pl-6 md:grid-cols-[5rem_minmax(0,1fr)] md:gap-4">
-            <span aria-hidden className={clsx("absolute -left-[5px] top-[1.15rem] size-2 bg-ink", m.type === "evidence_request" && "bg-mark outline-2 outline-ink")} />
-            <span className="tnum text-sm text-ink-2">{(m.at_ms / 1000).toFixed(1)}s</span>
-            <div>
-              <p className="font-semibold">
-                {roleLabel[m.sender]} <ArrowRight size={14} className="inline -translate-y-px" aria-label="to" />{" "}
-                {roleLabel[m.recipient]}
-              </p>
-              <p className="text-ink-2">{m.summary}</p>
-              {m.type === "evidence_request" && (
-                <p className="mt-1 text-sm font-semibold">Repair loop: validation asked retrieval for more evidence</p>
-              )}
-            </div>
-          </li>
+        {messages.map((m, i) => (
+          <Fragment key={m.message_id}>
+            {/* Times restart when the run is assessed again with clarification answers. */}
+            {i > 0 && m.at_ms < messages[i - 1].at_ms && (
+              <li className="py-3 pl-6 text-sm font-semibold">Assessed again with your answers</li>
+            )}
+            <li className="relative grid gap-1 py-3 pl-6 md:grid-cols-[5rem_minmax(0,1fr)] md:gap-4">
+              <span aria-hidden className={clsx("absolute -left-[5px] top-[1.15rem] size-2 bg-ink", m.type === "evidence_request" && "bg-mark outline-2 outline-ink")} />
+              <span className="tnum text-sm text-ink-2">{(m.at_ms / 1000).toFixed(1)}s</span>
+              <div>
+                <p className="font-semibold">
+                  {roleLabel[m.sender]} <ArrowRight size={14} className="inline -translate-y-px" aria-label="to" />{" "}
+                  {roleLabel[m.recipient]}
+                </p>
+                <p className="text-ink-2">{m.summary}</p>
+                {m.type === "evidence_request" && (
+                  <p className="mt-1 text-sm font-semibold">Repair loop: validation asked retrieval for more evidence</p>
+                )}
+              </div>
+            </li>
+          </Fragment>
         ))}
       </ol>
     </div>

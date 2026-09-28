@@ -10,7 +10,6 @@ import type { MotionValue } from "motion/react";
 import * as THREE from "three";
 import { easing } from "maath";
 import { policyVersions } from "@/fixtures/policies";
-import { vendorCitations } from "@/fixtures/vendorCase";
 import type { Clause } from "@/lib/api/types";
 
 const PAPER = "#FBFCFB";
@@ -130,22 +129,32 @@ function drawPage(p: Page, scale: number) {
   return { tex, rects };
 }
 
-/* The exact words finding 1 cites. The hero marks these and nothing else, same as the evidence drawer. */
-const CITED = vendorCitations.find((c) => c.id === "cite_1")!.quote;
+/* Highlight the core requirement verbatim; the full clause keeps its timing and recordkeeping context. */
+const CITED = "requires written approval from the data owner";
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const smooth = (v: number) => v * v * (3 - 2 * v);
+
+const CAMERA_Z = 7;
+const FOV = 30;
+const TAN_HALF_FOV = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+/* How fast each sheet lifts off the page once the pin releases, on top of riding the scroll. */
+const LIFT = [1.35, 0.7, 1.6, 0.95, 1.1, 0.6, 1.45, 0.85, 1.2];
+/* Lift ramps in over roughly this many scrolled pixels, so sheets peel off the page instead of jumping. */
+const LIFT_RAMP = 140;
 
 function Sheet({
   page,
   index,
   targetIndex,
   progress,
+  exit,
 }: {
   page: Page;
   index: number;
   targetIndex: number;
   progress: MotionValue<number>;
+  exit: MotionValue<number>;
 }) {
   const group = useRef<THREE.Group>(null);
   const marks = useRef<(THREE.Mesh | null)[]>([]);
@@ -160,6 +169,8 @@ function Sheet({
     }),
     [offset],
   );
+  // The damped scroll pose. The exit lift is added on top undamped, so sheets stay locked to the scroll.
+  const pose = useMemo(() => ({ pos: rest.pos.clone(), rot: rest.rot.clone() }), [rest]);
 
   useFrame((state, delta) => {
     const g = group.current;
@@ -169,8 +180,8 @@ function Sheet({
     const drift = Math.sin(t * 0.5 + index * 0.9) * 0.025;
     if (page.target) {
       const k = smooth(clamp01((p - 0.16) / 0.4));
-      easing.damp3(g.position, [rest.pos.x * (1 - k), rest.pos.y * (1 - k) + drift * (1 - k), rest.pos.z * (1 - k) + 1.75 * k], 0.12, delta);
-      easing.dampE(g.rotation, [rest.rot.x * (1 - k), rest.rot.y * (1 - k), rest.rot.z * (1 - k)], 0.14, delta);
+      easing.damp3(pose.pos, [rest.pos.x * (1 - k), rest.pos.y * (1 - k) + drift * (1 - k), rest.pos.z * (1 - k) + 1.75 * k], 0.12, delta);
+      easing.dampE(pose.rot, [rest.rot.x * (1 - k), rest.rot.y * (1 - k), rest.rot.z * (1 - k)], 0.14, delta);
       marks.current.forEach((m, i) => {
         if (!m) return;
         const s = smooth(clamp01((p - 0.6 - i * 0.07) / 0.12));
@@ -180,13 +191,24 @@ function Sheet({
     } else {
       const spread = smooth(clamp01((p - 0.14) / 0.45));
       easing.damp3(
-        g.position,
+        pose.pos,
         [rest.pos.x + offset * 0.75 * spread, rest.pos.y + drift - Math.sign(offset) * 0.45 * spread, rest.pos.z - 2.2 * spread],
         0.15,
         delta,
       );
-      easing.dampE(g.rotation, [rest.rot.x, rest.rot.y - 0.25 * spread * Math.sign(offset || 1), rest.rot.z], 0.18, delta);
+      easing.dampE(pose.rot, [rest.rot.x, rest.rot.y - 0.25 * spread * Math.sign(offset || 1), rest.rot.z], 0.18, delta);
     }
+
+    // After the pin releases the canvas already scrolls away with the page. Each sheet also lifts off it
+    // at its own rate, converted from scrolled pixels to world units at the sheet's depth.
+    const scrolled = exit.get() * window.innerHeight;
+    const liftPx = LIFT[index % LIFT.length] * (scrolled - LIFT_RAMP * (1 - Math.exp(-scrolled / LIFT_RAMP)));
+    const unitsPerPx = (2 * (CAMERA_Z - pose.pos.z) * TAN_HALF_FOV) / state.size.height;
+    const e = smooth(clamp01(scrolled / 700));
+    const side = page.target ? 0 : Math.sign(offset);
+    const spin = index % 2 ? 1 : -1;
+    g.position.set(pose.pos.x + side * 0.6 * e, pose.pos.y + liftPx * unitsPerPx, pose.pos.z + (page.target ? 0.35 * e : 0));
+    g.rotation.set(pose.rot.x - 0.45 * e, pose.rot.y + side * 0.2 * e, pose.rot.z + spin * (page.target ? 0.1 : 0.28) * e);
   });
 
   const px = (x: number) => (x / BASE_W) * SHEET_W - SHEET_W / 2;
@@ -244,6 +266,17 @@ function MarkLine({
   );
 }
 
+/* Reports once, on the first frame drawn with the pages in, so the intro can wait for a finished hero. */
+function FirstFrame({ onReady }: { onReady?: () => void }) {
+  const done = useRef(false);
+  useFrame(() => {
+    if (done.current) return;
+    done.current = true;
+    onReady?.();
+  });
+  return null;
+}
+
 function Rig({ children }: { children: React.ReactNode }) {
   const g = useRef<THREE.Group>(null);
   const { pointer } = useThree();
@@ -254,7 +287,20 @@ function Rig({ children }: { children: React.ReactNode }) {
   return <group ref={g}>{children}</group>;
 }
 
-export default function PolicyStack({ progress, active }: { progress: MotionValue<number>; active: boolean }) {
+export default function PolicyStack({
+  progress,
+  exit,
+  active,
+  eventSource,
+  onReady,
+}: {
+  progress: MotionValue<number>;
+  exit: MotionValue<number>;
+  active: boolean;
+  /* The canvas ignores the pointer so it can float over the next section; the tilt listens here instead. */
+  eventSource: React.RefObject<HTMLElement | null>;
+  onReady?: () => void;
+}) {
   const [ready, setReady] = useState(false);
   const pages = useMemo(() => (ready ? corpusPages() : []), [ready]);
   const targetIndex = pages.findIndex((p) => p.target);
@@ -275,13 +321,23 @@ export default function PolicyStack({ progress, active }: { progress: MotionValu
     <Canvas
       dpr={[1, 1.5]}
       frameloop={active ? "always" : "never"}
-      camera={{ position: [0, 0, 7], fov: 30 }}
+      camera={{ position: [0, 0, CAMERA_Z], fov: FOV }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      eventSource={eventSource as React.RefObject<HTMLElement>}
+      eventPrefix="client"
       aria-hidden
     >
+      {pages.length > 0 && <FirstFrame onReady={onReady} />}
       <Rig>
         {pages.map((p, i) => (
-          <Sheet key={`${p.title}-${p.label}-${p.page}`} page={p} index={i} targetIndex={targetIndex} progress={progress} />
+          <Sheet
+            key={`${p.title}-${p.label}-${p.page}`}
+            page={p}
+            index={i}
+            targetIndex={targetIndex}
+            progress={progress}
+            exit={exit}
+          />
         ))}
       </Rig>
     </Canvas>

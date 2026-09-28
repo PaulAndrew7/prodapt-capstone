@@ -7,7 +7,7 @@ import type { Citation, RequirementStatus } from "@/lib/api/types";
 import { api } from "@/lib/api";
 import { MarkedText } from "@/components/HighlightMark";
 import { RequirementStatusWord } from "@/components/Status";
-import { Skeleton } from "@/components/Feedback";
+import { ErrorNotice, Skeleton } from "@/components/Feedback";
 import { formatDate } from "@/lib/format";
 
 /*
@@ -79,11 +79,18 @@ export function EvidenceDrawer({
         <ol className="space-y-10">
           {ordered.map((c, i) => {
             const version = byId.get(c.policy_version_id);
+            const query = versions[versionIds.indexOf(c.policy_version_id)];
             const clause = version?.clauses.find((cl) => cl.id === c.clause_id);
             const number = c.section_path[c.section_path.length - 1];
             return (
               <li key={c.id}>
-                {!version ? (
+                {query.isError ? (
+                  <ErrorNotice
+                    title="This evidence could not be loaded"
+                    body="The saved finding is unchanged. Retry to read its policy source."
+                    onRetry={() => query.refetch()}
+                  />
+                ) : !version ? (
                   <div className="space-y-3">
                     <Skeleton className="h-4 w-2/3" />
                     <Skeleton className="h-14 w-24" />
@@ -92,6 +99,11 @@ export function EvidenceDrawer({
                   </div>
                 ) : (
                   <article aria-label={`${version.policy_title} clause ${number}`}>
+                    {!clause && (
+                      <p role="status" className="mb-4 border-2 border-ink p-3 text-sm">
+                        This clause is missing from the policy version. The saved quote below could not be checked against the current source.
+                      </p>
+                    )}
                     <p className="font-semibold">{version.policy_title}</p>
                     <p className="tnum text-sm text-ink-2">
                       {version.label}, effective {formatDate(version.effective_from)}

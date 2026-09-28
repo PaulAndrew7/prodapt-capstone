@@ -8,12 +8,12 @@ web
 
 ## Stack
 
-React + TypeScript + Vite frontend (`apps/web`), FastAPI + Pydantic backend (`services/api`), PostgreSQL + pgvector, LangGraph workflow, Docker Compose. FastAPI is user-confirmed; the frontend stack was proposed in IMPLEMENTATION_PLAN.md §4.1 and approved with the frontend plan (docs/design/FRONTEND_PLAN.md).
+React + TypeScript + Vite frontend (`apps/web`), FastAPI + Pydantic backend (`services/api`), PostgreSQL + pgvector and Docker Compose. The revised implementation plan uses ordinary Python functions for the five-role workflow in one API process; that workflow remains to be implemented. FastAPI is user-confirmed; the frontend stack was approved with the frontend plan (docs/design/FRONTEND_PLAN.md).
 
 ## Users
 
 - **Primary: requesters.** Employees and business teams who describe a planned activity (for example sharing customer records with a new vendor) and need to know whether it complies with internal policy, what is missing, and what to do next.
-- **Secondary: reviewers and admins.** Reviewers record dispositions on assessments; admins upload, version and publish policies.
+- **Submission operator:** the student seeds the curated policy corpus through the CLI. Reviewer dispositions and upload/publishing administration remain future features; existing fixture screens do not establish live support.
 - **Evaluation audience:** the capstone panel, who watch an 8-minute demo plus 2 minutes of Q&A and judge retrieval, the five-agent workflow, evidence traceability, evaluation and the UI.
 
 ## Product Purpose
@@ -26,14 +26,14 @@ Every verdict is pinned to its clause. Findings are structured records, not pros
 
 ## Operating Context
 
-- Case workflow: describe the activity, answer at most three prioritized clarifying questions (with an "I don't know" option), read the verdict, open the evidence, optionally branch a hypothetical, export a report.
+- Planned submission workflow: describe the activity, answer one round of at most three clarifying questions (with an "I don't know" option), read the result and open its evidence. Reuse JSON export if time permits. Changed facts start a new assessment; a hypothetical branching engine is deferred.
 - Result statuses: non_compliant, conflicting_policy, insufficient_information, compliant_within_scope, out_of_scope. Requirement statuses: met, violated, unknown, not_applicable, conflict.
 - Policies have versions and effective dates; assessments pin an immutable snapshot.
-- Live progress arrives as server-sent events from real workflow stages.
+- Planned live progress uses server-sent events from real workflow stages. Completed results are saved; an API restart interrupts active work and requires a new run. Exact-stage recovery is deferred.
 
 ## Capabilities and Constraints
 
-- Corpus is a synthetic, fictional organization's policies until the assessor supplies real documents; the UI must label it ("Demo corpus: fictional policies").
+- Corpus is the fictional Kestrel Mutual policy collection, confirmed by the user on 2026-09-26 for development, evaluation and the submission demonstration. It remains Kestrel unless the user explicitly requests a change. The UI must label it ("Demo corpus: fictional policies").
 - Mock or fixture behavior must be visibly labeled and never presented as a live result.
 - No compliance percentages, probability-of-compliance scores or invented confidence numbers.
 - No invented evaluation metrics; only measured results from the evaluation harness may be shown.
@@ -47,7 +47,7 @@ Every verdict is pinned to its clause. Findings are structured records, not pros
 
 ## Evidence on Hand
 
-- IMPLEMENTATION_PLAN.md: domain model, API contracts, the §5.3 assessment fixture and the §10 vendor-sharing worked scenario.
+- IMPLEMENTATION_PLAN.md: authoritative reduced submission scope, core contracts in §5 and the vendor-sharing example in §10. Earlier task checklists and design briefs must be read against this revision.
 - No real customers, testimonials, benchmarks or evaluation results exist yet; none may be fabricated.
 
 ## Product Principles

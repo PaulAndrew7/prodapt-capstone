@@ -9,6 +9,7 @@ const routes = [
   "/app/cases/case_pricing_training",
   "/app/policies",
   "/app/policies/ds/versions/ds_v1",
+  "/app/ask",
   "/app/reviews",
   "/app/reports",
   "/app/evaluation",

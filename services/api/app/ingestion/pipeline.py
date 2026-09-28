@@ -59,6 +59,12 @@ def ingest_version(
     storage: Storage,
     embedder: Embedder | None,
 ) -> IngestResult:
+    settings = get_settings()
+    if len(data) > settings.max_upload_bytes:
+        raise IngestionError(
+            "file_too_large",
+            f"The PDF exceeds the {settings.max_upload_bytes}-byte limit. Use a smaller file.",
+        )
     sha = hashlib.sha256(data).hexdigest()
     existing = session.scalar(
         select(m.PolicyVersion).where(
@@ -74,7 +80,7 @@ def ingest_version(
             )
         return IngestResult(existing, False, len(existing.clauses), 0, [])
 
-    pages = extract_pages(data, max_pages=get_settings().max_pdf_pages)
+    pages = extract_pages(data, max_pages=settings.max_pdf_pages)
     seg = segment(pages)
     if not seg.clauses:
         raise IngestionError("no_clauses", "; ".join(seg.warnings) or "No clauses found.")

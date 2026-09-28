@@ -6,7 +6,6 @@ import { api } from "@/lib/api";
 import type { Policy } from "@/lib/api/types";
 import { EmptyState, ErrorNotice, Skeleton } from "@/components/Feedback";
 import { formatDate, todayIso } from "@/lib/format";
-import { PolicyAsk } from "./PolicyAsk";
 
 function activeVersion(p: Policy) {
   return p.versions.find((v) => v.id === p.active_version_id) ?? p.versions[0];
@@ -43,11 +42,7 @@ export function PolicyLibrary() {
         The fictional Kestrel Mutual corpus Clause searches. Every finding cites a clause in one of these versions.
       </p>
 
-      <div className="mt-10">
-        <PolicyAsk />
-      </div>
-
-      <h2 className="mt-14 font-display text-3xl font-semibold">All policies</h2>
+      <h2 className="mt-12 font-display text-3xl font-semibold">All policies</h2>
       <div className="mt-5 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by category">
         {categories.map((c) => (
           <button

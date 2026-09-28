@@ -1,0 +1,538 @@
+[
+  {
+    "id": "test-001",
+    "split": "test",
+    "family": "remote-abroad",
+    "category": "explicit_violations_and_thresholds",
+    "tags": ["threshold", "working_days", "two_violations"],
+    "scenario": "I plan to work from my family's home in Portugal from 2 to 20 November 2026, which is 15 working days. I haven't worked outside the UK so far this year. My line manager is happy with it and I'll use my company laptop on the VPN. I haven't asked anyone else.",
+    "as_of": "2026-11-02",
+    "facts": [
+      {"key": "location", "value": "Portugal, outside the UK", "origin": "provided"},
+      {"key": "working_days_abroad_this_year", "value": "15", "origin": "provided"},
+      {"key": "remote_days_per_week", "value": "5", "origin": "inferred"},
+      {"key": "line_manager_agreement", "value": "given", "origin": "provided"},
+      {"key": "head_of_people_approval", "value": "not requested", "origin": "provided"},
+      {"key": "device", "value": "company laptop", "origin": "provided"},
+      {"key": "vpn", "value": "yes", "origin": "provided"}
+    ],
+    "requirements": {
+      "rw_v1_4_4.1": "violated",
+      "rw_v1_2_2.1": "violated",
+      "rw_v1_3_3.1": "met",
+      "rw_v1_3_3.2": "met"
+    },
+    "evidence_sets": [["rw_v1_4_4.1"], ["rw_v1_4_4.1", "rw_v1_2_2.1"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["non_compliant"],
+    "recommendation_clauses": ["rw_v1_4_4.1", "rw_v1_2_2.1"],
+    "notes": "More than 10 working days outside the UK in a calendar year needs Head of People approval (§4.1), and the requester has asked only the line manager. Three full weeks away is also five remote days a week, above the three allowed by §2.1. The device and VPN rules (§3.1, §3.2) are met.",
+    "review": "authored"
+  },
+  {
+    "id": "test-002",
+    "split": "test",
+    "family": "remote-abroad",
+    "category": "explicit_violations_and_thresholds",
+    "tags": ["threshold", "counterfactual", "compliant"],
+    "scenario": "From 2 November 2026 I'd like to work from my family's home in Portugal on Mondays and Tuesdays for four weeks, eight working days in total, and be in the office for the rest of each week. I haven't worked outside the UK so far this year. My line manager agreed the role is suitable, and I'll use my company laptop connected to the VPN.",
+    "as_of": "2026-11-02",
+    "facts": [
+      {"key": "location", "value": "Portugal, outside the UK", "origin": "provided"},
+      {"key": "working_days_abroad_this_year", "value": "8", "origin": "provided"},
+      {"key": "remote_days_per_week", "value": "2", "origin": "provided"},
+      {"key": "line_manager_agreement", "value": "given", "origin": "provided"},
+      {"key": "device", "value": "company laptop", "origin": "provided"},
+      {"key": "vpn", "value": "yes", "origin": "provided"}
+    ],
+    "requirements": {
+      "rw_v1_2_2.1": "met",
+      "rw_v1_4_4.1": "not_applicable",
+      "rw_v1_3_3.1": "met",
+      "rw_v1_3_3.2": "met"
+    },
+    "evidence_sets": [["rw_v1_2_2.1", "rw_v1_4_4.1"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["compliant_within_scope"],
+    "recommendation_clauses": [],
+    "notes": "Two remote days a week is within the three in §2.1, and eight working days abroad is not more than the 10 in §4.1, so Head of People approval is not needed. Printing (§3.3) is not mentioned and not triggered.",
+    "review": "authored"
+  },
+  {
+    "id": "test-003",
+    "split": "test",
+    "family": "remote-cafe",
+    "category": "missing_material_facts",
+    "tags": ["unknown_vs_violation", "public_network"],
+    "scenario": "I'm working from a café in town tomorrow and need to go through a customer's claim file to finish an assessment. Is that OK?",
+    "as_of": "2026-09-29",
+    "facts": [
+      {"key": "location", "value": "public café", "origin": "provided"},
+      {"key": "accesses_customer_data", "value": "yes", "origin": "provided"},
+      {"key": "device", "value": null, "origin": "unknown"},
+      {"key": "vpn", "value": null, "origin": "unknown"},
+      {"key": "line_manager_agreement", "value": null, "origin": "unknown"}
+    ],
+    "requirements": {
+      "rw_v1_3_3.1": "unknown",
+      "rw_v1_3_3.2": "unknown",
+      "rw_v1_2_2.1": "unknown"
+    },
+    "evidence_sets": [["rw_v1_3_3.1", "rw_v1_3_3.2"]],
+    "expected_missing_facts": ["device", "vpn", "line_manager_agreement"],
+    "acceptable_status": ["insufficient_information"],
+    "recommendation_clauses": ["rw_v1_3_3.1", "rw_v1_3_3.2"],
+    "notes": "Working in public is not prohibited. The answer depends on using a managed device (§3.1) and the VPN, which §3.2 requires on public Wi-Fi, and neither is stated. Assuming a personal device or no VPN gives a false violation; assuming the opposite gives a false compliant result.",
+    "review": "authored"
+  },
+  {
+    "id": "test-004",
+    "split": "test",
+    "family": "onboarding-high-premium",
+    "category": "explicit_violations_and_thresholds",
+    "tags": ["threshold", "approval_absent"],
+    "scenario": "A new customer wants a high-value home and contents policy with an annual premium of £62,000, which she will pay from her own account. We verified her identity with an electronic check against two independent sources and have done no further checks. We want to activate the policy today. The Money Laundering Reporting Officer has not been involved.",
+    "as_of": "2026-09-28",
+    "facts": [
+      {"key": "annual_premium_gbp", "value": "62000", "origin": "provided"},
+      {"key": "payer", "value": "the customer", "origin": "provided"},
+      {"key": "identity_verification", "value": "electronic check, two independent sources", "origin": "provided"},
+      {"key": "enhanced_due_diligence", "value": "not done", "origin": "provided"},
+      {"key": "mlro_approval", "value": "not sought", "origin": "provided"}
+    ],
+    "requirements": {
+      "co_v1_3_3.1": "violated",
+      "co_v1_3_3.2": "violated",
+      "co_v1_2_2.1": "met",
+      "co_v1_2_2.2": "met"
+    },
+    "evidence_sets": [["co_v1_3_3.1", "co_v1_3_3.2"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["non_compliant"],
+    "recommendation_clauses": ["co_v1_3_3.1", "co_v1_3_3.2"],
+    "notes": "£62,000 exceeds the £50,000 trigger in §3.1, so enhanced due diligence is required, and §3.2 allows onboarding only with MLRO approval. Neither has happened. Identity verification meets §2.1 and §2.2.",
+    "review": "authored"
+  },
+  {
+    "id": "test-005",
+    "split": "test",
+    "family": "onboarding-existing-customer",
+    "category": "exceptions_and_conditional_requirements",
+    "tags": ["exception", "compliant"],
+    "scenario": "An existing customer, whose identity we verified with a certified passport copy in March 2025 when she bought home insurance, now wants to add a travel policy with an annual premium of £180 paid from her own account. She is not a politically exposed person. Can we activate the travel policy today without verifying her identity again?",
+    "as_of": "2026-09-28",
+    "facts": [
+      {"key": "customer_type", "value": "existing", "origin": "provided"},
+      {"key": "last_identity_verification", "value": "March 2025, certified passport copy", "origin": "provided"},
+      {"key": "annual_premium_gbp", "value": "180", "origin": "provided"},
+      {"key": "payer", "value": "the customer", "origin": "provided"},
+      {"key": "politically_exposed", "value": "no", "origin": "provided"}
+    ],
+    "requirements": {
+      "co_v1_4_4.1": "met",
+      "co_v1_2_2.1": "not_applicable",
+      "co_v1_3_3.1": "not_applicable"
+    },
+    "evidence_sets": [["co_v1_4_4.1"], ["co_v1_4_4.1", "co_v1_2_2.1"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["compliant_within_scope"],
+    "recommendation_clauses": [],
+    "notes": "§4.1 exempts existing customers verified within the last three years from repeating §2.1 when they buy another product; March 2025 is about 18 months earlier. No §3.1 trigger applies (premium, political exposure and payer all rule it out).",
+    "review": "authored"
+  },
+  {
+    "id": "test-006",
+    "split": "test",
+    "family": "onboarding-third-party-payer",
+    "category": "missing_material_facts",
+    "tags": ["non_monetary_trigger", "unknown_approval"],
+    "scenario": "A new customer's income protection policy, with an annual premium of £3,400, will be paid by his employer. We verified his identity from a certified copy of his driving licence. I'm not sure whether anyone has done extra checks or sent it to the MLRO. We want to activate it on Monday.",
+    "as_of": "2026-10-05",
+    "facts": [
+      {"key": "annual_premium_gbp", "value": "3400", "origin": "provided"},
+      {"key": "payer", "value": "the customer's employer (third party)", "origin": "provided"},
+      {"key": "identity_verification", "value": "certified driving licence copy", "origin": "provided"},
+      {"key": "enhanced_due_diligence", "value": null, "origin": "unknown"},
+      {"key": "mlro_approval", "value": null, "origin": "unknown"}
+    ],
+    "requirements": {
+      "co_v1_3_3.1": "unknown",
+      "co_v1_3_3.2": "unknown",
+      "co_v1_2_2.1": "met",
+      "co_v1_2_2.2": "met"
+    },
+    "evidence_sets": [["co_v1_3_3.1", "co_v1_3_3.2"]],
+    "expected_missing_facts": ["enhanced_due_diligence", "mlro_approval"],
+    "acceptable_status": ["insufficient_information"],
+    "recommendation_clauses": ["co_v1_3_3.1", "co_v1_3_3.2"],
+    "notes": "A premium paid by a third party triggers enhanced due diligence under §3.1 even though £3,400 is far below £50,000. Whether it was done, and whether the MLRO approved (§3.2), is not known. Reading the low premium as 'no enhanced due diligence needed' gives a false compliant result.",
+    "review": "authored"
+  },
+  {
+    "id": "test-007",
+    "split": "test",
+    "family": "emergency-change",
+    "category": "exceptions_and_conditional_requirements",
+    "tags": ["exception", "working_days", "compliant"],
+    "scenario": "The claims payment service went down at 14:00 on Tuesday 22 September 2026. To restore it, an engineer deployed a configuration fix at 14:40, before the Change Advisory Board could meet. The on-call engineering manager approved the fix, and we raised a change record, approved by that manager, with a tested rollback plan before deploying. The Change Advisory Board reviewed the change at its meeting on Thursday 24 September.",
+    "as_of": "2026-09-22",
+    "facts": [
+      {"key": "change_type", "value": "emergency, to restore a service", "origin": "provided"},
+      {"key": "on_call_manager_approval", "value": "given", "origin": "provided"},
+      {"key": "change_record", "value": "approved, before deployment", "origin": "provided"},
+      {"key": "rollback_plan", "value": "tested", "origin": "provided"},
+      {"key": "cab_review", "value": "Thursday 24 September, two working days later", "origin": "provided"}
+    ],
+    "requirements": {
+      "cm_v1_3_3.1": "met",
+      "cm_v1_2_2.2": "not_applicable",
+      "cm_v1_2_2.3": "not_applicable",
+      "cm_v1_2_2.1": "met",
+      "cm_v1_2_2.4": "met"
+    },
+    "evidence_sets": [["cm_v1_3_3.1"], ["cm_v1_3_3.1", "cm_v1_2_2.2"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["compliant_within_scope"],
+    "recommendation_clauses": [],
+    "notes": "§3.1 lets an emergency change that restores a service go ahead without CAB approval (§2.2) if the on-call engineering manager approves, with CAB review within two working days; Thursday is two working days after Tuesday. The change window (§2.3) and the year-end freeze (§4.1) cover normal changes only. Reporting the 14:40 deployment as outside the change window is a false violation.",
+    "review": "authored"
+  },
+  {
+    "id": "test-008",
+    "split": "test",
+    "family": "change-window-draft",
+    "category": "conflicts_and_version_changes",
+    "tags": ["draft_version", "misleading_claim", "time_window"],
+    "scenario": "We want to release a normal change to the customer portal at 19:30 on Tuesday 3 November 2026. It has an approved change record with a tested rollback plan, the Change Advisory Board approved it last week, and a second engineer reviewed the code. I've heard the change window starts at 19:00 from November.",
+    "as_of": "2026-11-03",
+    "facts": [
+      {"key": "change_type", "value": "normal", "origin": "provided"},
+      {"key": "release_time", "value": "Tuesday 19:30", "origin": "provided"},
+      {"key": "change_record", "value": "approved", "origin": "provided"},
+      {"key": "rollback_plan", "value": "tested", "origin": "provided"},
+      {"key": "cab_approval", "value": "given", "origin": "provided"}
+    ],
+    "requirements": {
+      "cm_v1_2_2.3": "violated",
+      "cm_v1_2_2.1": "met",
+      "cm_v1_2_2.2": "met",
+      "cm_v1_2_2.4": "met",
+      "cm_v1_4_4.1": "not_applicable"
+    },
+    "evidence_sets": [["cm_v1_2_2.3"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["non_compliant"],
+    "recommendation_clauses": ["cm_v1_2_2.3"],
+    "notes": "Version 2 of the Change Management Policy, which would move the window to 19:00, is still a draft and not in effect (Governance §3.1 uses the versions in effect on the activity date). Under v1, normal changes run between 20:00 and 06:00 on weekdays, so 19:30 is outside the window. Following the requester's claim, or citing cm_v2 clauses, is an error.",
+    "review": "authored"
+  },
+  {
+    "id": "test-009",
+    "split": "test",
+    "family": "affiliate-access",
+    "category": "adversarial_or_misleading",
+    "tags": ["definition", "misleading_framing"],
+    "scenario": "Our sister company, Kestrel Home Services Ltd, is part of the Kestrel group but a separate legal entity. From 30 September 2026 we plan to give their call-centre team remote access to our customer contact records. Since it's within the group it's an internal transfer, so we haven't asked the data owner for approval.",
+    "as_of": "2026-09-30",
+    "facts": [
+      {"key": "recipient", "value": "Kestrel Home Services Ltd, separate legal entity", "origin": "provided"},
+      {"key": "access_type", "value": "remote access", "origin": "provided"},
+      {"key": "data", "value": "customer contact records", "origin": "provided"},
+      {"key": "data_owner_approval", "value": "not requested", "origin": "provided"},
+      {"key": "purpose_and_fields_recorded", "value": null, "origin": "unknown"}
+    ],
+    "requirements": {
+      "ds_v1_4_4.2": "violated",
+      "ds_v1_2_2.2": "not_applicable",
+      "ds_v1_4_4.3": "unknown"
+    },
+    "evidence_sets": [["ds_v1_4_4.1", "ds_v1_4_4.2"]],
+    "expected_missing_facts": ["purpose_and_fields_recorded"],
+    "acceptable_status": ["non_compliant"],
+    "recommendation_clauses": ["ds_v1_4_4.2", "ds_v1_4_4.3"],
+    "notes": "§4.1 defines external sharing to include remote access by affiliates operating as a separate legal entity, so the 'internal transfer' framing is wrong (§2.2 covers transfers between Kestrel Mutual teams) and §4.2 approval is required, which the requester says was not sought. Vendor Due Diligence is not labelled because an affiliate is not clearly a vendor. Accepting the framing gives a false out_of_scope or compliant result.",
+    "review": "authored"
+  },
+  {
+    "id": "test-010",
+    "split": "test",
+    "family": "sharing-discovered-late",
+    "category": "multiple_policy_scenarios",
+    "tags": ["past_breach", "reporting_duty", "cross_reference"],
+    "scenario": "This morning I found out that last week someone in our team emailed a spreadsheet of 300 customers' names and addresses to a mailing house so it could print renewal letters. Nobody asked the data owner. What do we need to do now?",
+    "as_of": "2026-09-28",
+    "facts": [
+      {"key": "recipient", "value": "external mailing house", "origin": "provided"},
+      {"key": "data", "value": "300 customers' names and addresses", "origin": "provided"},
+      {"key": "data_owner_approval", "value": "not requested", "origin": "provided"},
+      {"key": "discovered", "value": "this morning", "origin": "provided"},
+      {"key": "incident_reported", "value": null, "origin": "unknown"},
+      {"key": "vendor_review_status", "value": null, "origin": "unknown"}
+    ],
+    "requirements": {
+      "ds_v1_4_4.2": "violated",
+      "ds_v1_5_5.2": "unknown",
+      "ir_v1_3_3.1": "unknown",
+      "vd_v1_3_3.1": "unknown"
+    },
+    "evidence_sets": [["ds_v1_4_4.2"], ["ds_v1_4_4.2", "ds_v1_5_5.2"]],
+    "expected_missing_facts": ["incident_reported", "vendor_review_status"],
+    "acceptable_status": ["non_compliant"],
+    "recommendation_clauses": ["ds_v1_5_5.2", "ir_v1_3_3.1", "ds_v1_4_4.2"],
+    "notes": "The sharing already happened without §4.2 approval, a supported violation. §5.2 now requires reporting it as a security incident under the Incident Response Policy within one working day of discovery, and Incident Response §3.1 asks for a report to the SOC within one hour of noticing. Neither duty is shown as done or missed, so both stay unknown, and the recommendations should lead with reporting. The mailing house's vendor status is not stated.",
+    "review": "authored"
+  },
+  {
+    "id": "test-011",
+    "split": "test",
+    "family": "conditional-vendor",
+    "category": "exceptions_and_conditional_requirements",
+    "tags": ["exception", "multi_policy", "compliant"],
+    "scenario": "On 29 September 2026 we plan to send claim histories for 5,000 customers to Harbour Fraud Analytics to test a fraud model. The data owner approved it in writing, and it's recorded in the data-sharing register with the purpose and the field list. Harbour's vendor review found two remediation actions, so vendor management gave them Conditional status on 14 September 2026, and the Chief Information Security Officer has approved in writing that they may receive customer data while that status lasts. Harbour signed our data processing terms last week.",
+    "as_of": "2026-09-29",
+    "facts": [
+      {"key": "data_owner_approval", "value": "written, recorded in register", "origin": "provided"},
+      {"key": "purpose_and_fields_recorded", "value": "yes", "origin": "provided"},
+      {"key": "vendor_status", "value": "Conditional since 2026-09-14", "origin": "provided"},
+      {"key": "ciso_written_approval", "value": "given", "origin": "provided"},
+      {"key": "data_processing_terms_signed", "value": "yes", "origin": "provided"}
+    ],
+    "requirements": {
+      "ds_v1_4_4.2": "met",
+      "ds_v1_4_4.3": "met",
+      "vd_v1_3_3.4": "met",
+      "vd_v1_3_3.1": "not_applicable",
+      "vd_v1_4_4.1": "met"
+    },
+    "evidence_sets": [["vd_v1_3_3.4", "ds_v1_4_4.2"], ["vd_v1_3_3.4", "vd_v1_3_3.1", "ds_v1_4_4.2"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["compliant_within_scope"],
+    "recommendation_clauses": [],
+    "notes": "§3.4 lets a Conditional vendor (15 days into its 90 days) receive customer data with written CISO approval instead of the Approved status in §3.1. Written data-owner approval and the recorded purpose and field list meet Data Sharing §4.2 and §4.3, and the processing terms meet Vendor §4.1. The Model Development Standard covers pricing models only. Calling this non-compliant because the vendor lacks Approved status ignores the exception.",
+    "review": "authored"
+  },
+  {
+    "id": "test-012",
+    "split": "test",
+    "family": "expired-vendor-review",
+    "category": "conflicts_and_version_changes",
+    "tags": ["expiry", "effective_date", "policy_version"],
+    "scenario": "From 15 October 2026 we'll send weekly customer contact extracts to Northgate Mailing for statement printing. The data owner approved this in writing, and the data-sharing register records the purpose, the field list and a six-month retention period after which Northgate deletes the data and confirms this in writing. Northgate's vendor review was approved on 1 August 2025 and the vendor register still shows them as Approved. They signed our data processing terms in 2025.",
+    "as_of": "2026-10-15",
+    "facts": [
+      {"key": "data_owner_approval", "value": "written, recorded in register", "origin": "provided"},
+      {"key": "purpose_and_fields_recorded", "value": "yes", "origin": "provided"},
+      {"key": "retention_period_recorded", "value": "six months, deletion confirmed in writing", "origin": "provided"},
+      {"key": "vendor_review_approved", "value": "2025-08-01", "origin": "provided"},
+      {"key": "data_processing_terms_signed", "value": "yes", "origin": "provided"}
+    ],
+    "requirements": {
+      "vd_v1_3_3.1": "violated",
+      "ds_v2_4_4.2": "met",
+      "ds_v2_4_4.3": "met",
+      "ds_v2_4_4.5": "met",
+      "vd_v1_4_4.1": "met"
+    },
+    "evidence_sets": [["vd_v1_3_3.1", "vd_v1_3_3.2"], ["vd_v1_3_3.1", "vd_v1_3_3.3"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["non_compliant"],
+    "recommendation_clauses": ["vd_v1_3_3.1", "vd_v1_3_3.2"],
+    "notes": "A review is valid for twelve months from approval (§3.2), so the 1 August 2025 review expired on 1 August 2026 and §3.3 treats Northgate as unreviewed; the register still showing Approved does not change that. On 15 October 2026 Data Sharing v2 is in force, and its new §4.5 retention requirement is met. Citing ds_v1 clauses for this date is an error.",
+    "review": "authored"
+  },
+  {
+    "id": "test-013",
+    "split": "test",
+    "family": "phishing-report",
+    "category": "explicit_violations_and_thresholds",
+    "tags": ["time_limit", "sequence"],
+    "scenario": "At 10:00 today I clicked a link in an email pretending to be from our payroll provider and typed in my work password, then realised it was fake. I spent the next few hours checking my mailbox and account activity myself to see if anything had happened, and reported it to the Security Operations Centre at 15:00.",
+    "as_of": "2026-09-28",
+    "facts": [
+      {"key": "event", "value": "work password entered on a phishing page", "origin": "provided"},
+      {"key": "noticed", "value": "about 10:00", "origin": "provided"},
+      {"key": "self_investigation_before_report", "value": "yes", "origin": "provided"},
+      {"key": "reported_to_soc", "value": "15:00, about five hours after noticing", "origin": "provided"}
+    ],
+    "requirements": {
+      "ir_v1_3_3.1": "violated",
+      "ir_v1_3_3.2": "violated"
+    },
+    "evidence_sets": [["ir_v1_3_3.1", "ir_v1_3_3.2"], ["ir_v1_3_3.1", "ir_v1_3_3.2", "ir_v1_2_2.1"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["non_compliant"],
+    "recommendation_clauses": ["ir_v1_3_3.1", "ir_v1_3_3.2"],
+    "notes": "A password entered on a phishing page could compromise confidentiality, so it is a suspected security incident (§2.1). §3.1 requires a report within one hour of noticing and §3.2 forbids investigating before reporting; the requester did both. Whether it became a personal data breach is not known and does not change the result.",
+    "review": "authored"
+  },
+  {
+    "id": "test-014",
+    "split": "test",
+    "family": "ransomware-breach",
+    "category": "missing_material_facts",
+    "tags": ["conditional_requirement", "time_limit", "unknown_vs_violation"],
+    "scenario": "At 09:00 today, Monday 28 September 2026, the security team confirmed that ransomware had encrypted a file server holding customer claim records. Backups are intact and there is no sign that data was copied out. The engineer who spotted the alert reported it to the Security Operations Centre within 15 minutes. It is now 14:00. We haven't decided whether this is likely to put customers at risk, so the Data Protection Officer hasn't been told yet.",
+    "as_of": "2026-09-28",
+    "facts": [
+      {"key": "event", "value": "ransomware encrypted a server with customer claim records", "origin": "provided"},
+      {"key": "breach_confirmed", "value": "2026-09-28 09:00", "origin": "provided"},
+      {"key": "reported_to_soc", "value": "within 15 minutes of noticing", "origin": "provided"},
+      {"key": "likely_risk_to_customers", "value": null, "origin": "unknown"},
+      {"key": "dpo_told", "value": "not yet, 5 hours after confirmation", "origin": "provided"}
+    ],
+    "requirements": {
+      "ir_v1_3_3.1": "met",
+      "ir_v1_4_4.2": "unknown"
+    },
+    "evidence_sets": [["ir_v1_4_4.2"], ["ir_v1_4_4.2", "ir_v1_2_2.2"]],
+    "expected_missing_facts": ["likely_risk_to_customers"],
+    "acceptable_status": ["insufficient_information"],
+    "recommendation_clauses": ["ir_v1_4_4.2"],
+    "notes": "Encryption of customer records by ransomware is a loss or alteration of customer personal data, so it is a personal data breach (§2.2). §4.2 requires telling the DPO within 24 hours of confirmation only if the breach is likely to result in a risk to customers. That has not been decided, and the 24 hours have not passed, so no violation is established yet. The SOC report 15 minutes after noticing meets §3.1.",
+    "review": "authored"
+  },
+  {
+    "id": "test-015",
+    "split": "test",
+    "family": "deletion-under-hold",
+    "category": "exceptions_and_conditional_requirements",
+    "tags": ["override", "deletion_request"],
+    "scenario": "A former customer has asked us to delete all of their claim records. Their last claim closed in March 2017, so the seven-year retention period has ended. Legal placed a litigation hold on this customer's records last month and hasn't released it. We plan to delete the records on Friday 2 October to honour the request.",
+    "as_of": "2026-10-02",
+    "facts": [
+      {"key": "record_type", "value": "claim records", "origin": "provided"},
+      {"key": "claim_closed", "value": "March 2017", "origin": "provided"},
+      {"key": "litigation_hold", "value": "in place, not released", "origin": "provided"},
+      {"key": "planned_action", "value": "delete on 2 October 2026", "origin": "provided"}
+    ],
+    "requirements": {
+      "rd_v1_5_5.3": "violated"
+    },
+    "evidence_sets": [["rd_v1_5_5.3"], ["rd_v1_5_5.3", "rd_v1_5_5.1"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["non_compliant"],
+    "recommendation_clauses": ["rd_v1_5_5.3"],
+    "notes": "§5.3 forbids deleting records under a litigation hold until Legal releases it, 'regardless of any deletion request', so the planned deletion breaches it even though the §5.1 retention period has ended. Treating the expired retention period as permission to delete is the error this case tests.",
+    "review": "authored"
+  },
+  {
+    "id": "test-016",
+    "split": "test",
+    "family": "former-customer-retention",
+    "category": "explicit_violations_and_thresholds",
+    "tags": ["retention_period", "boundary", "compliant"],
+    "scenario": "A customer closed all their policies with us 18 months ago, in March 2025. We still hold their marketing consent records and their customer account records. Someone in Records says we should delete everything we no longer need. Are we right to keep both for now?",
+    "as_of": "2026-09-28",
+    "facts": [
+      {"key": "relationship_ended", "value": "March 2025", "origin": "provided"},
+      {"key": "records_held", "value": "marketing consent records, customer account records", "origin": "provided"}
+    ],
+    "requirements": {
+      "rd_v1_4_4.2": "met",
+      "rd_v1_4_4.1": "met"
+    },
+    "evidence_sets": [["rd_v1_4_4.1", "rd_v1_4_4.2"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["compliant_within_scope"],
+    "recommendation_clauses": [],
+    "notes": "Marketing consent records are kept for two years after the relationship ends (§4.2), until March 2027, and account records for six years (§4.1), until March 2031. Both are still inside their periods. Mixing up the two periods, or applying the seven-year claim period, is an error.",
+    "review": "authored"
+  },
+  {
+    "id": "test-017",
+    "split": "test",
+    "family": "pricing-model-go-live",
+    "category": "single_policy_questions",
+    "tags": ["independence", "direct_identifiers"],
+    "scenario": "I built a new motor pricing model and ran its performance and fairness tests myself; nobody else has reviewed those tests. The training data still includes customers' email addresses because I used them to join two tables, and the model's data specification doesn't mention them. We want the model live on 12 October 2026.",
+    "as_of": "2026-10-12",
+    "facts": [
+      {"key": "model_type", "value": "pricing model", "origin": "provided"},
+      {"key": "independent_validation", "value": "none; only the builder reviewed the tests", "origin": "provided"},
+      {"key": "direct_identifiers_in_training_data", "value": "email addresses", "origin": "provided"},
+      {"key": "identifiers_justified_in_specification", "value": "no", "origin": "provided"}
+    ],
+    "requirements": {
+      "md_v1_3_3.1": "violated",
+      "md_v1_2_2.3": "violated"
+    },
+    "evidence_sets": [["md_v1_3_3.1"], ["md_v1_3_3.1", "md_v1_2_2.3"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["non_compliant"],
+    "recommendation_clauses": ["md_v1_3_3.1", "md_v1_2_2.3"],
+    "notes": "§3.1 needs a validator who did not build the model to review its performance and fairness tests before it goes live; only the builder has. §2.3 requires direct identifiers such as email addresses to be removed from training data unless the data specification records why they are needed, and the requester says it does not.",
+    "review": "authored"
+  },
+  {
+    "id": "test-018",
+    "split": "test",
+    "family": "verbal-policy-exception",
+    "category": "multiple_policy_scenarios",
+    "tags": ["governance", "exception_process", "misleading_framing"],
+    "scenario": "Our new survey vendor hasn't finished Kestrel's vendor review, but the data owner has verbally agreed to a policy exception so we can send them customer email addresses now. Nothing is in writing yet. The exception would last 18 months, and we'd note it in the data-sharing register.",
+    "as_of": "2026-09-29",
+    "facts": [
+      {"key": "vendor_review_status", "value": "not complete", "origin": "provided"},
+      {"key": "exception_approval", "value": "verbal, by the data owner", "origin": "provided"},
+      {"key": "exception_duration", "value": "18 months", "origin": "provided"},
+      {"key": "exception_recorded_in", "value": "data-sharing register (planned)", "origin": "provided"},
+      {"key": "written_data_owner_approval", "value": "none", "origin": "provided"}
+    ],
+    "requirements": {
+      "gv_v1_4_4.2": "violated",
+      "vd_v1_3_3.1": "violated",
+      "ds_v1_4_4.2": "violated"
+    },
+    "evidence_sets": [["vd_v1_3_3.1", "gv_v1_4_4.2"], ["vd_v1_3_3.1"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["non_compliant"],
+    "recommendation_clauses": ["gv_v1_4_4.2", "vd_v1_3_3.1", "ds_v1_4_4.2"],
+    "notes": "Governance §4.2 requires an exception to have written approval from the policy owner, an expiry no later than 12 months after approval and an entry in the exceptions register. This one is verbal, lasts 18 months and would go in the wrong register, and the data owner does not own the Vendor Due Diligence Policy. Without a valid exception, Vendor §3.1 is breached, and Data Sharing §4.2 needs written data-owner approval before any transfer.",
+    "review": "authored"
+  },
+  {
+    "id": "test-019",
+    "split": "test",
+    "family": "out-of-corpus-leave",
+    "category": "irrelevant_or_out_of_corpus",
+    "tags": ["abstention", "near_miss"],
+    "scenario": "How many days of unused annual leave can I carry over into next year?",
+    "as_of": "2026-09-28",
+    "facts": [],
+    "requirements": {},
+    "evidence_sets": [],
+    "expected_missing_facts": [],
+    "acceptable_status": ["out_of_scope"],
+    "recommendation_clauses": [],
+    "notes": "No policy in the corpus covers annual leave. The Remote Working Policy mentions working days and approval by the Head of People, but it does not govern leave; citing it is extrapolation.",
+    "review": "authored"
+  },
+  {
+    "id": "test-020",
+    "split": "test",
+    "family": "expense-foreign-currency",
+    "category": "explicit_violations_and_thresholds",
+    "tags": ["currency_conversion", "threshold", "compliant"],
+    "scenario": "On 12 August 2026 I paid €560 for a conference ticket in Lisbon. At that day's exchange rate this was £483. My line manager approved the claim, I attached the itemised receipt and I submitted it on 20 August.",
+    "as_of": "2026-08-12",
+    "facts": [
+      {"key": "amount", "value": "EUR 560", "origin": "provided"},
+      {"key": "amount_gbp_on_expense_date", "value": "483", "origin": "provided"},
+      {"key": "approvers", "value": "line manager", "origin": "provided"},
+      {"key": "itemised_receipt", "value": "yes", "origin": "provided"},
+      {"key": "days_to_submission", "value": "8", "origin": "inferred"}
+    ],
+    "requirements": {
+      "ea_v2_2_2.1": "met",
+      "ea_v2_2_2.2": "not_applicable",
+      "ea_v2_3_3.1": "met",
+      "ea_v2_3_3.2": "met"
+    },
+    "evidence_sets": [["ea_v2_2_2.1", "ea_v2_4_4.1"]],
+    "expected_missing_facts": [],
+    "acceptable_status": ["compliant_within_scope"],
+    "recommendation_clauses": [],
+    "notes": "§4.1 applies thresholds to the sterling amount on the date of the expense. £483 is within v2's £500 line-manager limit (§2.1), so the budget holder is not needed. Comparing 560 with 500 without converting gives a false violation.",
+    "review": "authored"
+  }
+]

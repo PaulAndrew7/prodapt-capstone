@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "e2e": "playwright test",
-    "contracts:fixtures": "vitest run src/fixtures/contracts.test.ts -u"
+    "contracts:fixtures": "vitest run src/fixtures/contracts.test.ts -u",
+    "export:architecture": "node scripts/export-architecture.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

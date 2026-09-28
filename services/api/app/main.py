@@ -1,17 +1,36 @@
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import health, policies, search
+from app.api import cases, health, policies, search
 from app.api.errors import RequestIdMiddleware, install_error_handlers
 from app.config import get_settings
+from app.persistence.db import new_session
+from app.workflow.orchestrator import fail_interrupted_runs
+
+log = logging.getLogger("clause.api")
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    # Runs execute inside this process, so any still marked active died with the last one.
+    try:
+        failed = fail_interrupted_runs(new_session)
+        if failed:
+            log.warning("Marked %d interrupted run(s) as failed", failed)
+    except Exception as exc:  # the database may be down; /health/ready reports that
+        log.warning("Could not check for interrupted runs: %s", type(exc).__name__)
+    yield
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
     app = FastAPI(
+        lifespan=lifespan,
         title="Clause compliance API",
         version="0.1.0",
         description=(
@@ -33,6 +52,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(policies.router)
     app.include_router(search.router)
+    app.include_router(cases.router)
     return app
 
 

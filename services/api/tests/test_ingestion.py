@@ -1,10 +1,13 @@
 import hashlib
+import io
 from datetime import date
 
 import pytest
+from pypdf import PdfReader, PdfWriter
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.domain.contracts import IndexStatus, PolicyVersionStatus
 from app.ingestion.pdf import IngestionError
 from app.ingestion.pipeline import VersionInput, ingest_version
@@ -14,6 +17,32 @@ from app.storage import get_storage
 from tests.pdfs import blank_pdf, make_pdf
 
 pytestmark = pytest.mark.db
+
+
+@pytest.mark.parametrize("failure", ["file_too_large", "too_many_pages", "encrypted_pdf"])
+def test_ingestion_limits_publish_nothing(
+    db: Session, monkeypatch: pytest.MonkeyPatch, failure: str
+) -> None:
+    data = make_pdf([["A sufficiently long first page of policy text."], ["Second page."]])
+    settings = get_settings()
+    if failure == "file_too_large":
+        monkeypatch.setattr(settings, "max_upload_bytes", len(data) - 1)
+    elif failure == "too_many_pages":
+        monkeypatch.setattr(settings, "max_pdf_pages", 1)
+    else:
+        writer = PdfWriter()
+        writer.append(PdfReader(io.BytesIO(data)))
+        writer.encrypt("test-password")
+        output = io.BytesIO()
+        writer.write(output)
+        data = output.getvalue()
+    storage = get_storage()
+    before = set(storage.root.rglob("*.pdf"))
+    with pytest.raises(IngestionError) as exc:
+        _ingest(db, data, _spec(_policy(db)))
+    assert exc.value.category == failure
+    assert db.scalar(select(func.count()).where(m.PolicyVersion.policy_id == "tp")) == 0
+    assert set(storage.root.rglob("*.pdf")) == before
 
 
 def _spec(policy: m.Policy, label: str = "v1") -> VersionInput:

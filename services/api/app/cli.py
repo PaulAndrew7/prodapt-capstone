@@ -4,11 +4,15 @@ python -m app.cli migrate          apply database migrations (explicit; never on
 python -m app.cli seed-demo        ingest the fictional demo corpus and create its snapshot
 python -m app.cli search "text"    run evidence search as the demo admin
 python -m app.cli export-openapi   write packages/contracts/openapi.json
+python -m app.cli evaluate         measure retrieval (and assessments, if a model is set)
+python -m app.cli check-model      send one small request to the configured model gateway
 """
 
 import argparse
 import json
+import os
 import sys
+import time
 
 from app.config import REPO_ROOT, get_settings
 
@@ -80,6 +84,81 @@ def cmd_export_openapi(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_evaluate(args: argparse.Namespace) -> int:
+    """Runs against `<database>_eval` (created, migrated and seeded here) so evaluation cases
+    never appear in the demo database."""
+    from app.evaluation import select_scenarios
+
+    try:
+        select_scenarios(args.split, args.limit)
+    except (ValueError, FileNotFoundError) as exc:
+        print(f"Cannot evaluate: {exc}")
+        return 1
+
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.engine import make_url
+
+    base = make_url(get_settings().database_url)
+    if not args.same_database:
+        name = f"{base.database}_eval"
+        admin = create_engine(base.set(database="postgres"), isolation_level="AUTOCOMMIT")
+        with admin.connect() as conn:
+            if not conn.scalar(text("SELECT 1 FROM pg_database WHERE datname = :n"), {"n": name}):
+                conn.execute(text(f'CREATE DATABASE "{name}"'))
+        admin.dispose()
+        os.environ["DATABASE_URL"] = base.set(database=name).render_as_string(hide_password=False)
+        get_settings.cache_clear()
+    cmd_migrate(args)
+    cmd_seed_demo(args)
+
+    from app.evaluation import evaluate, write_report
+    from app.retrieval.embeddings import get_embedder
+    from app.workflow.llm import get_model_client
+
+    model = None if args.retrieval_only else get_model_client()
+    summary, results = evaluate(args.split, model=model, embedder=get_embedder(), limit=args.limit)
+    report, raw = write_report(summary, results)
+    print(f"Wrote {report.relative_to(REPO_ROOT)} and {raw.relative_to(REPO_ROOT)}")
+    return 0
+
+
+def cmd_check_model(_: argparse.Namespace) -> int:
+    """One small structured request through the same client the workflow uses, to confirm
+    the gateway URL, key, model alias and JSON mode before running an assessment."""
+    from pydantic import BaseModel
+
+    from app.workflow.llm import SETUP_HINT, CallBudget, ModelError, get_model_client
+
+    class Ping(BaseModel):
+        reply: str
+
+    model = get_model_client()
+    if model is None:
+        print(f"No language model is configured. {SETUP_HINT}")
+        return 1
+    s = get_settings()
+    print(f"Model {model.name} at {s.llm_base_url} (JSON mode {s.llm_json_mode})")
+    budget = CallBudget(model, max_calls=2, deadline_seconds=s.run_deadline_seconds)
+    started = time.monotonic()
+    try:
+        out = budget.structured(
+            "connection_check",
+            "You are a connection test. Reply in JSON.",
+            'Set "reply" to the word ok.',
+            Ping,
+        )
+    except ModelError as exc:
+        print(f"Failed: {exc.code}: {exc.message}")
+        return 1
+    usage = budget.usage()
+    print(
+        f"OK in {time.monotonic() - started:.1f}s: reply={out.reply!r} "
+        f"served_model={usage['served_model'] or 'not reported'} calls={usage['model_calls']} "
+        f"tokens_in={usage['input_tokens']} tokens_out={usage['output_tokens']}"
+    )
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -92,6 +171,13 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("export-openapi")
     p.add_argument("--check", action="store_true", help="fail if the committed file is stale")
     p.set_defaults(fn=cmd_export_openapi)
+    p = sub.add_parser("evaluate")
+    p.add_argument("--split", default="dev", choices=["dev", "test"])
+    p.add_argument("--limit", type=int, default=None, help="only the first N scenarios")
+    p.add_argument("--retrieval-only", action="store_true", help="skip model calls")
+    p.add_argument("--same-database", action="store_true", help="use DATABASE_URL as is")
+    p.set_defaults(fn=cmd_evaluate)
+    sub.add_parser("check-model").set_defaults(fn=cmd_check_model)
     args = parser.parse_args(argv)
     get_settings()  # fail fast on invalid configuration
     code: int = args.fn(args)

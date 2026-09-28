@@ -301,7 +301,10 @@ Sheet panel with a 2px ink left rule sliding in over 280ms. Per citation: policy
 On the front door, product explanations are real app components rendered at a fixed logical size (1280 by 800 by default), scaled to fit, framed in a 1.5px ink border on paper, and made inert and hidden from assistive tech; the figure label describes them. Exhibits step through states while 40% in view, pause offscreen, show the final state under reduced motion, and offer a Replay link.
 
 ### Avatar
-An unlit sheet-white figure with an ink inverted-hull outline and a mark collar; features are ink, turning muted grey when unavailable. It is optional: every task works without it.
+A small anime girl drawn as flat SVG parts in the product's own finish: ink outlines, flat fills, indigo hair with a zig-zag shine, green irises with a mark glow, and the mark only as a fill on her two hair clips and sailor bow. Each mode has its own expression (eyes, mouth, brows, head tilt, gaze) plus at most one small accessory (typing dots, a question mark, sparkles, a heart, or z's when unavailable, which also greys her out). One frame loop drives breathing, the head spring, gaze and blinks; it idles offscreen and holds the expression still under reduced motion. Accessory ink uses currentColor so it reads on paper and on mark. It is optional: every task works without it.
+
+### Intro
+The front door opens once per page load on the wordmark set across the screen, its mark bar filling as the display face, fonts, window load and the hero's first frame arrive (at least 1.3s, at most 6s). The wordmark then flies into the nav's logo slot while a paper curtain edged with a 2px ink rule lifts off the page and the hero rises in behind it. Under reduced motion the letters do not rise and the intro fades out instead of flying.
 
 ## Do's and Don'ts
 

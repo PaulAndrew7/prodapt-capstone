@@ -35,15 +35,22 @@ def source_url(policy_version_id: str, page_index: int) -> str:
     return f"/api/v1/policy-versions/{policy_version_id}/source?page={page_index + 1}"
 
 
+def quote_page(
+    clause_text: str, quote: str, page_start: int, spans: list[tuple[int, int, int]]
+) -> int:
+    """Page where the quote starts. `spans` holds (text_start, text_end, page_index)."""
+    start = canonical(clause_text).find(canonical(quote))
+    for text_start, text_end, page_index in spans:
+        if text_start <= start < text_end:
+            return page_index
+    return page_start
+
+
 def citation_for(citation_id: str, clause: m.Clause, quote: str) -> Citation:
     if not quote_in_clause(quote, clause.text):
         raise ValueError(f"Quote is not part of clause {clause.id}")
-    start = canonical(clause.text).find(canonical(quote))
-    page = clause.page_start
-    for span in clause.spans:  # page of the span that contains the quote start
-        if span.text_start <= start < span.text_end:
-            page = span.page_index
-            break
+    spans = [(s.text_start, s.text_end, s.page_index) for s in clause.spans]
+    page = quote_page(clause.text, quote, clause.page_start, spans)
     return Citation(
         id=citation_id,
         policy_version_id=clause.policy_version_id,

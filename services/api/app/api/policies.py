@@ -165,6 +165,16 @@ def list_clauses(
     ]
 
 
+@router.get("/clauses/{clause_id}", response_model=Clause)
+def get_clause(clause_id: str, session: DbSession, principal: CurrentPrincipal) -> Clause:
+    """One clause, e.g. the clause a clarification question refers to."""
+    clause = session.get(m.Clause, clause_id)
+    if clause is None:
+        raise not_found("Clause")
+    _version_for(session, principal, clause.policy_version_id)  # organization and draft checks
+    return clause_contract(clause)
+
+
 @router.get("/policy-versions/{version_id}/pages/{page_index}", response_model=PageText)
 def get_page_text(
     version_id: str, page_index: int, session: DbSession, principal: CurrentPrincipal

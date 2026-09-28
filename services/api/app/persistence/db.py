@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from functools import lru_cache
 
 from sqlalchemy import Engine, create_engine
@@ -28,3 +28,9 @@ def get_session() -> Iterator[Session]:
         yield session
     finally:
         session.close()
+
+
+def get_session_factory() -> Callable[[], Session]:
+    """FastAPI dependency for work that outlives a request (background runs, event streams).
+    Tests override it so that work shares the test transaction."""
+    return new_session

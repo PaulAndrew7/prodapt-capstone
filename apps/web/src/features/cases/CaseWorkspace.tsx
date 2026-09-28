@@ -5,7 +5,7 @@ import { AnimatePresence } from "motion/react";
 import { DownloadSimple, Flask, Stop } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { api } from "@/lib/api";
-import type { CaseDetail } from "@/lib/api/types";
+import type { CaseDetail, Clause } from "@/lib/api/types";
 import { Button } from "@/components/Button";
 import { EmptyState, ErrorNotice, Skeleton } from "@/components/Feedback";
 import { StageTrack } from "@/components/StageTrack";
@@ -16,8 +16,8 @@ import { ClarificationBlock, Composer, FactList, Transcript } from "./Conversati
 import { AssessmentView } from "./Assessment";
 import { EvidenceDrawer } from "./EvidenceDrawer";
 import { HypotheticalPanel } from "./Hypothetical";
-import { clauseById } from "@/fixtures/policies";
 import { exportReport } from "@/lib/exportReport";
+import { PrintReport } from "./PrintReport";
 import { STAGES } from "@/lib/events/runStore";
 import { AvatarPanel } from "@/features/avatar/AvatarPanel";
 
@@ -77,9 +77,14 @@ export function CaseHeader({
               Cancel run
             </Button>
           )}
-          {detail.assessment && phase === "completed" && detail.assessment.status === "non_compliant" && !hypotheticalOpen && detail.facts.some((f) => f.key === "data_owner_approval") && (
+          {api.mode === "fixture" && detail.assessment && phase === "completed" && detail.assessment.status === "non_compliant" && !hypotheticalOpen && detail.facts.some((f) => f.key === "data_owner_approval") && (
             <Button variant="outline" size="sm" onClick={onHypothetical} icon={<Flask size={16} aria-hidden />}>
               Try a hypothetical
+            </Button>
+          )}
+          {detail.assessment && phase === "completed" && (
+            <Button variant="outline" size="sm" onClick={() => window.print()}>
+              Print report
             </Button>
           )}
           {detail.assessment && phase === "completed" && (
@@ -99,7 +104,7 @@ export function CaseWorkspace() {
   const qc = useQueryClient();
   const query = useQuery({ queryKey: ["case", caseId], queryFn: () => api.getCase(caseId), enabled: Boolean(caseId) });
   const detail = query.data;
-  const { phase, stages } = useCaseRun(detail);
+  const { phase, stages, events } = useCaseRun(detail);
   const [evidence, setEvidence] = useState<Evidence>(null);
   const [hypothetical, setHypothetical] = useState(false);
   const [pane, setPane] = useState<"conversation" | "assessment">("conversation");
@@ -149,11 +154,10 @@ export function CaseWorkspace() {
     requestAnimationFrame(() => lastTrigger.current?.focus());
   }, []);
 
-  const [clausePreview, setClausePreview] = useState<string | null>(null);
-  const openClause = (clauseId: string) => {
-    if (!clauseById(clauseId)) return;
+  const [previewClause, setPreviewClause] = useState<Clause | null>(null);
+  const openClause = (clause: Clause) => {
     lastTrigger.current = document.activeElement as HTMLElement | null;
-    setClausePreview(clauseId);
+    setPreviewClause(clause);
   };
 
   if (query.isPending) {
@@ -178,12 +182,13 @@ export function CaseWorkspace() {
 
   const assessment = detail.assessment;
   const activeFinding = evidence && assessment?.findings.find((f) => f.id === evidence.findingId);
-  const previewClause = clausePreview ? clauseById(clausePreview) : null;
+  const failure = [...events].reverse().find((e) => e.type === "run.failed")?.payload.message;
   const running = phase === "queued" || phase === "running";
   const waiting = phase === "waiting_for_user";
 
   return (
     <div className="mx-auto flex max-w-[1600px] flex-col lg:h-[calc(100dvh-4rem)]">
+      {detail.assessment && phase === "completed" && <PrintReport detail={detail} />}
       <CaseHeader
         detail={detail}
         phase={phase}
@@ -242,7 +247,7 @@ export function CaseWorkspace() {
             <AvatarPanel
               phase={phase}
               composerFocused={composerFocused}
-              evidenceOpen={Boolean(evidence || clausePreview)}
+              evidenceOpen={Boolean(evidence || previewClause)}
               ackKey={ackKey}
               stageLabel={STAGES.find((s) => stages[s.role] === "active")?.label ?? null}
             />
@@ -343,9 +348,18 @@ export function CaseWorkspace() {
                 {phase === "failed" && (
                   <ErrorNotice
                     title="The run failed before a result"
-                    body="A failed run is not a compliance verdict. Start a new run; nothing was recorded as a result."
+                    body={`${typeof failure === "string" ? `${failure} ` : ""}A failed run is not a compliance verdict. Start a new run; nothing was recorded as a result.`}
                     onRetry={() => start.mutate()}
                   />
+                )}
+                {start.isError && (
+                  <div className="mt-6">
+                    <ErrorNotice
+                      title="The assessment did not start"
+                      body={start.error.message}
+                      onRetry={() => start.mutate()}
+                    />
+                  </div>
                 )}
               </>
             )}
@@ -379,7 +393,7 @@ export function CaseWorkspace() {
                 ]}
                 focusCitationId="preview"
                 onClose={() => {
-                  setClausePreview(null);
+                  setPreviewClause(null);
                   requestAnimationFrame(() => lastTrigger.current?.focus());
                 }}
               />

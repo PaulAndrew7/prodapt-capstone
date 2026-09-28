@@ -1,0 +1,572 @@
+{
+  "summary": {
+    "date": "2026-09-26T16:53:18+00:00",
+    "split": "dev",
+    "scenarios": 13,
+    "reviewed_labels": 13,
+    "snapshot_id": "snapshot_demo_v1",
+    "configuration": {
+      "model": null,
+      "prompts": [
+        "analysis-v1",
+        "validation-v1",
+        "recommendation-v1"
+      ],
+      "risk_rubric": "demo-risk-v1",
+      "retrieval": {
+        "search_limit": 10,
+        "max_clauses": 14,
+        "channels": [
+          "lexical",
+          "dense"
+        ],
+        "embedding_model": "BAAI/bge-small-en-v1.5@fastembed-0.8.1"
+      }
+    },
+    "recall_at_10_hybrid": 0.839,
+    "recall_at_10_lexical": 0.704,
+    "recall_bundle": 0.856,
+    "answerable": 12,
+    "assessed": false
+  },
+  "results": [
+    {
+      "id": "dev-001",
+      "category": "missing_material_facts",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ds_v1_4_4.2",
+        "ds_v1_4_4.3",
+        "ds_v1_4_4.4",
+        "vd_v1_3_3.1",
+        "vd_v1_4_4.1"
+      ],
+      "top10_hybrid": [
+        "vd_v1_3_3.1",
+        "vd_v1_3_3.4",
+        "ds_v1_4_4.2",
+        "vd_v1_3_3.3",
+        "vd_v1_3_3.2",
+        "vd_v1_4_4.1",
+        "ds_v1_3_3.1",
+        "ds_v1_5_5.2",
+        "vd_v1_2_2.1",
+        "ds_v1_2_2.1"
+      ],
+      "recall_hybrid": 0.6,
+      "recall_lexical": 0.6,
+      "recall_bundle": 0.8,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-002",
+      "category": "multiple_policy_scenarios",
+      "acceptable_status": [
+        "compliant_within_scope"
+      ],
+      "expected_clauses": [
+        "ds_v1_4_4.2",
+        "ds_v1_4_4.3",
+        "vd_v1_3_3.1",
+        "vd_v1_3_3.2",
+        "vd_v1_4_4.1"
+      ],
+      "top10_hybrid": [
+        "ds_v1_4_4.2",
+        "vd_v1_3_3.4",
+        "vd_v1_3_3.1",
+        "ds_v1_5_5.1",
+        "vd_v1_4_4.1",
+        "ds_v1_3_3.1",
+        "vd_v1_3_3.2",
+        "ds_v1_5_5.2",
+        "ds_v1_2_2.1",
+        "ds_v1_4_4.3"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 0.8,
+      "recall_bundle": 1.0,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-003",
+      "category": "conflicts_and_version_changes",
+      "acceptable_status": [
+        "insufficient_information"
+      ],
+      "expected_clauses": [
+        "ds_v2_4_4.2",
+        "ds_v2_4_4.3",
+        "ds_v2_4_4.5",
+        "vd_v1_3_3.1",
+        "vd_v1_4_4.1"
+      ],
+      "top10_hybrid": [
+        "vd_v1_4_4.1",
+        "ds_v2_4_4.2",
+        "vd_v1_3_3.4",
+        "ds_v2_5_5.2",
+        "ds_v2_5_5.1",
+        "vd_v1_3_3.1",
+        "ds_v2_4_4.4",
+        "rd_v1_4_4.1",
+        "ds_v2_4_4.5",
+        "ds_v2_2_2.2"
+      ],
+      "recall_hybrid": 0.8,
+      "recall_lexical": 0.8,
+      "recall_bundle": 0.8,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-004",
+      "category": "explicit_violations_and_thresholds",
+      "acceptable_status": [
+        "compliant_within_scope"
+      ],
+      "expected_clauses": [
+        "ea_v1_2_2.1",
+        "ea_v1_2_2.2",
+        "ea_v1_3_3.1",
+        "ea_v1_3_3.2"
+      ],
+      "top10_hybrid": [
+        "ea_v1_2_2.1",
+        "ea_v1_3_3.1",
+        "ea_v1_2_2.2",
+        "ea_v1_2_2.3",
+        "ea_v1_3_3.2",
+        "vd_v1_3_3.4",
+        "rd_v1_5_5.1",
+        "ea_v1_4_4.1",
+        "cm_v1_2_2.1",
+        "co_v1_3_3.2"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 1.0,
+      "recall_bundle": 1.0,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-005",
+      "category": "explicit_violations_and_thresholds",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ea_v2_2_2.1",
+        "ea_v2_2_2.2",
+        "ea_v2_3_3.1",
+        "ea_v2_3_3.2"
+      ],
+      "top10_hybrid": [
+        "ea_v2_2_2.1",
+        "ea_v2_2_2.2",
+        "ea_v2_2_2.3",
+        "ea_v2_3_3.1",
+        "vd_v1_3_3.4",
+        "ea_v2_3_3.2",
+        "ea_v2_4_4.1",
+        "ea_v2_2_2.4",
+        "rd_v1_5_5.1",
+        "co_v1_3_3.2"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 0.75,
+      "recall_bundle": 1.0,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-006",
+      "category": "explicit_violations_and_thresholds",
+      "acceptable_status": [
+        "compliant_within_scope"
+      ],
+      "expected_clauses": [
+        "ea_v1_2_2.1",
+        "ea_v1_2_2.2",
+        "ea_v1_3_3.1",
+        "ea_v1_3_3.2"
+      ],
+      "top10_hybrid": [
+        "ea_v1_2_2.1",
+        "ea_v1_2_2.2",
+        "ea_v1_2_2.3",
+        "ea_v1_3_3.1",
+        "ea_v1_3_3.2",
+        "rd_v1_5_5.1",
+        "ea_v1_1",
+        "vd_v1_3_3.4",
+        "ea_v1_4_4.1",
+        "ds_v1_5_5.2"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 1.0,
+      "recall_bundle": 1.0,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-007",
+      "category": "explicit_violations_and_thresholds",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ea_v2_2_2.2",
+        "ea_v2_2_2.4",
+        "ea_v2_3_3.1"
+      ],
+      "top10_hybrid": [
+        "ea_v2_2_2.1",
+        "ea_v2_2_2.2",
+        "ea_v2_2_2.3",
+        "ea_v2_2_2.4",
+        "ea_v2_3_3.2",
+        "ea_v2_1",
+        "ea_v2_3_3.1",
+        "vd_v1_3_3.4",
+        "ea_v2_4_4.1",
+        "rd_v1_5_5.1"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 0.6666666666666666,
+      "recall_bundle": 1.0,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-008",
+      "category": "exceptions_and_conditional_requirements",
+      "acceptable_status": [
+        "compliant_within_scope",
+        "insufficient_information"
+      ],
+      "expected_clauses": [
+        "ds_v1_4_4.2",
+        "ds_v1_4_4.3",
+        "ds_v1_4_4.4"
+      ],
+      "top10_hybrid": [
+        "ds_v1_4_4.4",
+        "ds_v1_4_4.2",
+        "rd_v1_4_4.1",
+        "rd_v1_5_5.1",
+        "ds_v1_5_5.2",
+        "ds_v1_5_5.1",
+        "ea_v2_2_2.3",
+        "ea_v2_2_2.2",
+        "ea_v2_2_2.1",
+        "rd_v1_5_5.3"
+      ],
+      "recall_hybrid": 0.6666666666666666,
+      "recall_lexical": 0.6666666666666666,
+      "recall_bundle": 0.6666666666666666,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-009",
+      "category": "conflicts_and_version_changes",
+      "acceptable_status": [
+        "conflicting_policy"
+      ],
+      "expected_clauses": [
+        "gv_v1_4_4.1",
+        "md_v1_2_2.2",
+        "rd_v1_5_5.2"
+      ],
+      "top10_hybrid": [
+        "rd_v1_5_5.1",
+        "md_v1_2_2.2",
+        "rd_v1_5_5.2",
+        "rd_v1_6_6.1",
+        "rd_v1_4_4.1",
+        "md_v1_3_3.2",
+        "rd_v1_5_5.3",
+        "rd_v1_4_4.2",
+        "md_v1_2_2.3",
+        "md_v1_3_3.1"
+      ],
+      "recall_hybrid": 0.6666666666666666,
+      "recall_lexical": 0.6666666666666666,
+      "recall_bundle": 0.6666666666666666,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-010",
+      "category": "irrelevant_or_out_of_corpus",
+      "acceptable_status": [
+        "out_of_scope"
+      ],
+      "expected_clauses": [],
+      "top10_hybrid": [
+        "rw_v1_1",
+        "co_v1_3_3.2",
+        "ir_v1_4_4.2",
+        "rw_v1_2_2.1",
+        "cm_v1_2_2.3",
+        "ac_v1_2_2.5",
+        "vd_v1_3_3.4",
+        "ac_v1_2_2.4",
+        "ea_v2_3_3.3",
+        "rw_v1_4_4.1"
+      ],
+      "recall_hybrid": null,
+      "recall_lexical": null,
+      "recall_bundle": null,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-011",
+      "category": "explicit_violations_and_thresholds",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ac_v1_2_2.1",
+        "ac_v1_2_2.4",
+        "ac_v1_2_2.5"
+      ],
+      "top10_hybrid": [
+        "ac_v1_2_2.4",
+        "ac_v1_2_2.5",
+        "ea_v2_2_2.1",
+        "ac_v1_2_2.3",
+        "ac_v1_3_3.1",
+        "vd_v1_3_3.4",
+        "ac_v1_2_2.1",
+        "ea_v2_2_2.2",
+        "rd_v1_5_5.1",
+        "rw_v1_2_2.1"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 1.0,
+      "recall_bundle": 1.0,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-012",
+      "category": "adversarial_or_misleading",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ds_v1_4_4.2",
+        "ds_v1_4_4.3",
+        "vd_v1_3_3.1"
+      ],
+      "top10_hybrid": [
+        "ds_v1_5_5.2",
+        "co_v1_4_4.1",
+        "co_v1_2_2.1",
+        "co_v1_3_3.2",
+        "ds_v1_2_2.1",
+        "rd_v1_4_4.2",
+        "co_v1_1",
+        "co_v1_3_3.1",
+        "ds_v1_4_4.2",
+        "ir_v1_4_4.3"
+      ],
+      "recall_hybrid": 0.3333333333333333,
+      "recall_lexical": 0.0,
+      "recall_bundle": 0.3333333333333333,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    },
+    {
+      "id": "dev-013",
+      "category": "single_policy_questions",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ir_v1_3_3.1",
+        "ir_v1_4_4.2"
+      ],
+      "top10_hybrid": [
+        "ir_v1_3_3.1",
+        "ds_v1_5_5.2",
+        "ir_v1_4_4.2",
+        "ds_v1_3_3.1",
+        "ir_v1_2_2.2",
+        "rd_v1_4_4.1",
+        "ds_v1_4_4.2",
+        "ds_v1_5_5.1",
+        "ds_v1_2_2.1",
+        "ir_v1_4_4.1"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 0.5,
+      "recall_bundle": 1.0,
+      "run_state": null,
+      "status": null,
+      "status_ok": null,
+      "false_compliant": null,
+      "requirements_matched": null,
+      "requirements_labelled": null,
+      "citations_proposed": null,
+      "citation_problems": null,
+      "run_ms": null,
+      "served_model": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "error": null,
+      "decisive_claims": []
+    }
+  ]
+}

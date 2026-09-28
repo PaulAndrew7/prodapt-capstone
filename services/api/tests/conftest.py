@@ -8,7 +8,7 @@ skipped when Postgres is unreachable.
 
 import os
 import tempfile
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 os.environ["APP_ENV"] = "test"
@@ -85,14 +85,35 @@ def db(migrated_engine: object) -> Iterator[Session]:
 
 
 @pytest.fixture
-def client(db: Session) -> Iterator[TestClient]:
+def session_factory(db: Session) -> Callable[[], Session]:
+    """Sessions for background work and event streams, inside the test transaction."""
+    return lambda: Session(bind=db.connection(), join_transaction_mode="create_savepoint")
+
+
+@pytest.fixture
+def client(db: Session, session_factory: Callable[[], Session]) -> Iterator[TestClient]:
     from app.main import app
-    from app.persistence.db import get_session
+    from app.persistence.db import get_session, get_session_factory
+    from app.workflow.llm import get_model_client
 
     app.dependency_overrides[get_session] = lambda: db
+    app.dependency_overrides[get_session_factory] = lambda: session_factory
+    # No provider by default; tests that need one install a ScriptedModel.
+    app.dependency_overrides[get_model_client] = lambda: None
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def use_model(client: TestClient) -> Callable[[object], None]:
+    from app.main import app
+    from app.workflow.llm import get_model_client
+
+    def install(model: object) -> None:
+        app.dependency_overrides[get_model_client] = lambda: model
+
+    return install
 
 
 @pytest.fixture

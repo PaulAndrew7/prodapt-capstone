@@ -42,7 +42,19 @@ export function ClauseBody({
         <p className="mt-2 max-w-[68ch] text-[1.125rem] leading-[1.7]">
           <MarkedText text={c.text} quote={quote} play={play} delay={0.35} />
         </p>
-        <p className="tnum mt-2 text-sm text-ink-2">Page {c.page_index + 1}</p>
+        <p className="tnum mt-2 text-sm text-ink-2">
+          {api.mode === "http" ? (
+            <a
+              href={`/api/v1/policy-versions/${encodeURIComponent(c.policy_version_id)}/source?page=${c.page_index + 1}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4"
+              aria-label={`Open original PDF page ${c.page_index + 1} for clause ${c.section_path.join(" / ")} (new tab)`}
+            >
+              Page {c.page_index + 1} · Original PDF
+            </a>
+          ) : `Page ${c.page_index + 1}`}
+        </p>
       </div>
     </>
   );
@@ -50,7 +62,7 @@ export function ClauseBody({
 
 export function PolicyDetail() {
   const { policyId = "", versionId = "" } = useParams();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const linked = params.get("clause");
   const quote = params.get("q");
@@ -122,7 +134,13 @@ export function PolicyDetail() {
                       href={`#${c.id}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        clauseRefs.current.get(c.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        const next = new URLSearchParams(params);
+                        next.set("clause", c.id);
+                        next.delete("q");
+                        setParams(next, { replace: true });
+                        const target = clauseRefs.current.get(c.id);
+                        target?.scrollIntoView({ block: "start" });
+                        target?.focus({ preventScroll: true });
                       }}
                       className={clsx(
                         "tnum -ml-[2px] block border-l-2 py-1 pl-4 text-sm",
@@ -137,13 +155,24 @@ export function PolicyDetail() {
             </nav>
 
             <article aria-label={`${v.policy_title} ${v.label}`} className="min-w-0">
+              {linked && !v.clauses.some((c) => c.id === linked) && (
+                <p role="status" className="mb-8 border-2 border-ink p-4">
+                  The linked clause is not present in this policy version. Check the version or choose a section below.
+                </p>
+              )}
               {compareId && (
                 <section aria-labelledby="diff-h" className="mb-12">
                   <h2 id="diff-h" className="font-display text-3xl font-semibold">
                     What changed
                   </h2>
                   <div className="mt-4">
-                    {compare.data ? (
+                    {compare.isError ? (
+                      <ErrorNotice
+                        title="The comparison version could not be loaded"
+                        body="It may have been removed or you may not have access. The current policy is still available below."
+                        onRetry={() => compare.refetch()}
+                      />
+                    ) : compare.data ? (
                       compare.data.effective_from < v.effective_from ? (
                         <VersionDiff from={compare.data} to={v} />
                       ) : (
@@ -200,6 +229,16 @@ export function PolicyDetail() {
             </article>
 
             <aside aria-label="Version details" className="lg:sticky lg:top-24 lg:self-start">
+              {api.mode === "http" && (
+                <a
+                  href={`/api/v1/policy-versions/${encodeURIComponent(v.id)}/source`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mb-6 flex min-h-11 items-center justify-center border-2 border-ink px-3 font-semibold underline underline-offset-4"
+                >
+                  Open original PDF (new tab)
+                </a>
+              )}
               <div className="space-y-2">
                 <label htmlFor="version" className="font-semibold">
                   Version

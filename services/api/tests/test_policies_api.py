@@ -45,6 +45,44 @@ def test_requesters_do_not_see_drafts(client: TestClient) -> None:
     assert client.get("/api/v1/policy-versions/cm_v2").status_code == 404
 
 
+@pytest.mark.parametrize("suffix", ["/source", "/source?page=1", "/clauses", "/pages/0"])
+def test_requesters_cannot_read_draft_sources(client: TestClient, suffix: str) -> None:
+    app.dependency_overrides[get_principal] = lambda: Principal(
+        "user_priya", DEMO_ORG_ID, Role.REQUESTER
+    )
+    response = client.get(f"/api/v1/policy-versions/cm_v2{suffix}", follow_redirects=False)
+    assert response.status_code == 404
+    assert response.json()["code"] == "not_found"
+
+
+def test_requesters_cannot_read_draft_clause_by_id(client: TestClient, db: Session) -> None:
+    from sqlalchemy import select
+
+    clause = db.scalars(select(m.Clause).where(m.Clause.policy_version_id == "cm_v2")).first()
+    assert clause is not None
+    app.dependency_overrides[get_principal] = lambda: Principal(
+        "user_priya", DEMO_ORG_ID, Role.REQUESTER
+    )
+    assert client.get(f"/api/v1/clauses/{clause.id}").status_code == 404
+
+
+def test_missing_source_returns_actionable_error(client: TestClient, db: Session) -> None:
+    version = db.get_one(m.PolicyVersion, "ds_v1")
+    version.storage_key = "originals/missing-test-file.pdf"
+    db.flush()
+    response = client.get("/api/v1/policy-versions/ds_v1/source")
+    assert response.status_code == 410
+    assert response.json()["code"] == "source_missing"
+    assert response.json()["retryable"] is False
+    assert "originals/" not in response.text
+
+
+@pytest.mark.parametrize("page", ["0", "-1", "999", "text"])
+def test_invalid_source_pages_are_rejected(client: TestClient, page: str) -> None:
+    response = client.get(f"/api/v1/policy-versions/ds_v1/source?page={page}")
+    assert response.status_code == 422
+
+
 def test_version_detail_matches_web_contract(client: TestClient) -> None:
     body = client.get("/api/v1/policy-versions/ds_v1").json()
     assert body["policy_title"] == "Customer Data Sharing Policy"
@@ -145,7 +183,8 @@ def test_search_respects_effective_dates_and_scope(client: TestClient) -> None:
     assert scoped and all(h["clause"]["policy_id"] == "rd" for h in scoped)
 
 
-def test_lookup_is_explicitly_not_implemented(client: TestClient) -> None:
-    r = client.post("/api/v1/lookup", json={"question": "Who approves external sharing?"})
-    assert r.status_code == 501
-    assert r.json()["code"] == "not_implemented"
+def test_clause_lookup_is_organization_scoped(client: TestClient) -> None:
+    r = client.get("/api/v1/clauses/vd_v1_3_3.1")
+    assert r.status_code == 200
+    assert r.json()["policy_version_id"] == "vd_v1" and r.json()["section_path"][-1] == "3.1"
+    assert client.get("/api/v1/clauses/nope").status_code == 404

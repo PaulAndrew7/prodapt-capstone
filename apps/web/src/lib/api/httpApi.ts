@@ -8,6 +8,7 @@ import type {
   ApiError,
   Assessment,
   CaseDetail,
+  Clause,
   CaseSummary,
   LookupAnswer,
   Policy,
@@ -34,6 +35,8 @@ async function request<T>(path: string, init?: RequestInit & { idempotencyKey?: 
   return (await res.json()) as T;
 }
 
+const TERMINAL = new Set<RunEvent["type"]>(["run.completed", "run.failed", "run.canceled"]);
+
 const EVENT_TYPES: RunEvent["type"][] = [
   "run.queued",
   "run.started",
@@ -48,6 +51,17 @@ const EVENT_TYPES: RunEvent["type"][] = [
   "run.failed",
   "run.canceled",
 ];
+
+function isRunEvent(value: unknown, runId: string): value is RunEvent {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const event = value as Partial<RunEvent>;
+  return event.schema_version === "1.0" && event.run_id === runId
+    && typeof event.event_id === "string" && event.event_id.trim().length > 0
+    && Number.isSafeInteger(event.sequence) && event.sequence! > 0
+    && typeof event.occurred_at === "string" && Number.isFinite(Date.parse(event.occurred_at))
+    && EVENT_TYPES.includes(event.type!)
+    && event.payload !== null && typeof event.payload === "object" && !Array.isArray(event.payload);
+}
 
 export class HttpApi implements ComplianceApi {
   readonly mode = "http" as const;
@@ -74,16 +88,22 @@ export class HttpApi implements ComplianceApi {
       body: JSON.stringify({}),
     });
   }
-  subscribeRun(runId: string, onEvent: (e: RunEvent) => void) {
-    const source = new EventSource(`${BASE}/runs/${encodeURIComponent(runId)}/events`, {
-      withCredentials: true,
-    });
+  subscribeRun(runId: string, onEvent: (e: RunEvent) => void, afterSequence = 0) {
+    const source = new EventSource(
+      `${BASE}/runs/${encodeURIComponent(runId)}/events?after=${afterSequence}`,
+      { withCredentials: true },
+    );
     const handler = (msg: MessageEvent<string>) => {
+      let event: unknown;
       try {
-        onEvent(JSON.parse(msg.data) as RunEvent);
+        event = JSON.parse(msg.data);
       } catch {
-        /* Malformed event: ignore; status reconciliation happens via getCase. */
+        return; /* Malformed event: do not corrupt the progress store. */
       }
+      if (!isRunEvent(event, runId) || event.type !== msg.type) return;
+      onEvent(event);
+      /* A finished run sends nothing more; closing stops the browser reconnecting. */
+      if (TERMINAL.has(event.type)) source.close();
     };
     EVENT_TYPES.forEach((t) => source.addEventListener(t, handler as EventListener));
     return () => source.close();
@@ -114,6 +134,9 @@ export class HttpApi implements ComplianceApi {
   }
   getPolicyVersion(versionId: string) {
     return request<PolicyVersion>(`/policy-versions/${encodeURIComponent(versionId)}`);
+  }
+  getClause(clauseId: string) {
+    return request<Clause>(`/clauses/${encodeURIComponent(clauseId)}`);
   }
   lookup(question: string) {
     /* Evidence search is POST /search; the cited answer is POST /lookup (F06). */

@@ -5,7 +5,7 @@
 import type { ComplianceApi, NewCaseInput, ReviewInput } from "./client";
 import type { Assessment, CaseDetail, CaseSummary, RunEvent } from "./types";
 import { caseDetails, caseSummaries } from "@/fixtures/cases";
-import { policies, policyVersions, SNAPSHOT_ID } from "@/fixtures/policies";
+import { clauseById, policies, policyVersions, SNAPSHOT_ID } from "@/fixtures/policies";
 import { lookupAnswer } from "@/fixtures/lookup";
 import {
   vendorAgentMessages,
@@ -224,6 +224,13 @@ export class FixtureApi implements ComplianceApi {
     if (!p || !summary) throw Object.assign(new Error("Policy version not found"), { code: "not_found", retryable: false });
     // Listed in the demo corpus, but its clause text is not authored yet.
     return { ...structuredClone(summary), policy_id: p.id, policy_title: p.title, clauses: [], extraction_warnings: [] };
+  }
+
+  async getClause(clauseId: string) {
+    await delay(80);
+    const c = clauseById(clauseId);
+    if (!c) throw Object.assign(new Error("Clause not found"), { code: "not_found", retryable: false });
+    return structuredClone(c);
   }
 
   async lookup(question: string) {

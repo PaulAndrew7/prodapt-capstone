@@ -71,10 +71,17 @@ def _eligible_chunks(
 
 
 def search(
-    session: Session, organization_id: str, req: SearchRequest, embedder: Embedder | None
+    session: Session,
+    organization_id: str,
+    req: SearchRequest,
+    embedder: Embedder | None,
+    *,
+    snapshot_id: str | None = None,
 ) -> SearchResponse:
+    """Search one snapshot. Assessments pass their run's snapshot so a clarified rerun reads
+    the same policy versions; standalone search uses the latest snapshot."""
     started = time.perf_counter()
-    snapshot_id = latest_snapshot_id(session, organization_id)
+    snapshot_id = snapshot_id or latest_snapshot_id(session, organization_id)
     if snapshot_id is None:
         return SearchResponse(
             question=req.question, policy_snapshot_id=None, hits=[], channels=[], latency_ms=0

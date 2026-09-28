@@ -1,0 +1,23 @@
+.assessment-print { display: none; }
+
+@media print {
+  @page { margin: 16mm; }
+  body:has(> .assessment-print) { background: white; color: black; }
+  body:has(> .assessment-print) > :not(.assessment-print) { display: none !important; }
+  .assessment-print {
+    display: block;
+    font: 11pt/1.45 Arial, sans-serif;
+    overflow-wrap: anywhere;
+  }
+  .assessment-print h1 { font-size: 22pt; font-weight: bold; margin: 0 0 12pt; }
+  .assessment-print h2 { font-size: 16pt; font-weight: bold; margin: 18pt 0 8pt; border-bottom: 1px solid; }
+  .assessment-print h3 { font-size: 12pt; font-weight: bold; margin-top: 12pt; }
+  .assessment-print :is(h1, h2, h3) { break-after: avoid; }
+  .assessment-print :is(p, blockquote, li) { orphans: 3; widows: 3; }
+  .assessment-print p { margin: 6pt 0; white-space: pre-wrap; }
+  .assessment-print dl > div { display: flex; gap: 10pt; }
+  .assessment-print dt { font-weight: bold; min-width: 90pt; }
+  .assessment-print dd { margin: 0; }
+  .assessment-print ul { list-style: disc; padding-left: 18pt; }
+  .assessment-print blockquote { border-left: 2px solid; padding-left: 10pt; margin: 8pt 0; white-space: pre-wrap; }
+}

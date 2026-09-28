@@ -213,6 +213,49 @@
         }
       }
     },
+    "/api/v1/clauses/{clause_id}": {
+      "get": {
+        "tags": [
+          "policies"
+        ],
+        "summary": "Get Clause",
+        "description": "One clause, e.g. the clause a clarification question refers to.",
+        "operationId": "get_clause_api_v1_clauses__clause_id__get",
+        "parameters": [
+          {
+            "name": "clause_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Clause Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Clause"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/policy-versions/{version_id}/pages/{page_index}": {
       "get": {
         "tags": [
@@ -371,7 +414,7 @@
           "search"
         ],
         "summary": "Grounded Lookup",
-        "description": "Cited natural-language answer (F06). Needs the runtime model provider.",
+        "description": "A short answer that cites the retrieved clauses it relies on (F06).",
         "operationId": "grounded_lookup_api_v1_lookup_post",
         "requestBody": {
           "content": {
@@ -394,8 +437,427 @@
               }
             }
           },
-          "501": {
-            "description": "F06"
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases": {
+      "get": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "List Cases",
+        "operationId": "list_cases_api_v1_cases_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_CaseSummary_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Create Case",
+        "operationId": "create_case_api_v1_cases_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewCaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}": {
+      "get": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Get Case",
+        "operationId": "get_case_api_v1_cases__case_id__get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/messages": {
+      "post": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Add Message",
+        "description": "A follow-up detail. It takes effect when the next run starts.",
+        "operationId": "add_message_api_v1_cases__case_id__messages_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewMessageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/runs": {
+      "post": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Start Run",
+        "description": "Create a run and start it. Repeating the same Idempotency-Key returns the same run.",
+        "operationId": "start_run_api_v1_cases__case_id__runs_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "idempotency-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 128
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Get Run",
+        "operationId": "get_run_api_v1_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/resume": {
+      "post": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Resume Run",
+        "description": "Save clarification answers and assess again with them. Only a waiting run resumes, so\na repeated request cannot launch a second attempt.",
+        "operationId": "resume_run_api_v1_runs__run_id__resume_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResumeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/cancel": {
+      "post": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Cancel Run",
+        "description": "Stop further stages. A stage already waiting on the model may still finish, but its\nresult is never published. Canceling a finished run changes nothing.",
+        "operationId": "cancel_run_api_v1_runs__run_id__cancel_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/events": {
+      "get": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Run Events",
+        "description": "Server-sent events. Replays events after `after` (or the Last-Event-ID a reconnecting\nbrowser sends), then streams new ones until the run ends. A 204 tells the browser the run\nhas ended and there is nothing more, so it stops reconnecting.",
+        "operationId": "run_events_api_v1_runs__run_id__events_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "After"
+            }
+          },
+          {
+            "name": "last-event-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/event-stream": {}
+            }
+          },
+          "204": {
+            "description": "Run ended"
           },
           "422": {
             "description": "Validation Error",
@@ -413,6 +875,401 @@
   },
   "components": {
     "schemas": {
+      "AgentMessage": {
+        "properties": {
+          "message_id": {
+            "type": "string",
+            "title": "Message Id"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/AgentRole"
+          },
+          "recipient": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentRole"
+              },
+              {
+                "type": "string",
+                "const": "gate"
+              }
+            ],
+            "title": "Recipient"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "causal_parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Causal Parent Id"
+          },
+          "at_ms": {
+            "type": "integer",
+            "title": "At Ms"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "message_id",
+          "sender",
+          "recipient",
+          "type",
+          "summary",
+          "causal_parent_id",
+          "at_ms"
+        ],
+        "title": "AgentMessage",
+        "description": "Public, sanitized view of one agent-to-agent exchange for the trace UI."
+      },
+      "AgentRole": {
+        "type": "string",
+        "enum": [
+          "retrieval",
+          "analysis",
+          "risk",
+          "validation",
+          "recommendation"
+        ],
+        "title": "AgentRole"
+      },
+      "Assessment": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "case_revision_id": {
+            "type": "string",
+            "title": "Case Revision Id"
+          },
+          "policy_snapshot_id": {
+            "type": "string",
+            "title": "Policy Snapshot Id"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AssessmentStatus"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "type": "array",
+            "title": "Findings"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "risks": {
+            "items": {
+              "$ref": "#/components/schemas/Risk"
+            },
+            "type": "array",
+            "title": "Risks"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/Recommendation"
+            },
+            "type": "array",
+            "title": "Recommendations"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          },
+          "review_state": {
+            "$ref": "#/components/schemas/ReviewState"
+          },
+          "hypothetical": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hypothetical"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id",
+          "case_revision_id",
+          "policy_snapshot_id",
+          "as_of",
+          "status",
+          "scope",
+          "summary",
+          "findings",
+          "citations",
+          "risks",
+          "recommendations",
+          "limitations",
+          "review_state"
+        ],
+        "title": "Assessment"
+      },
+      "AssessmentStatus": {
+        "type": "string",
+        "enum": [
+          "non_compliant",
+          "conflicting_policy",
+          "insufficient_information",
+          "compliant_within_scope",
+          "out_of_scope"
+        ],
+        "title": "AssessmentStatus",
+        "description": "Displayed result, chosen by the ordered rules in §5.2 (first match wins)."
+      },
+      "CaseDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "owner": {
+            "type": "string",
+            "title": "Owner"
+          },
+          "business_area": {
+            "type": "string",
+            "title": "Business Area"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssessmentStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "run_state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unresolved_facts": {
+            "type": "integer",
+            "title": "Unresolved Facts"
+          },
+          "review_state": {
+            "$ref": "#/components/schemas/ReviewState"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "scenario_text": {
+            "type": "string",
+            "title": "Scenario Text"
+          },
+          "policy_snapshot_id": {
+            "type": "string",
+            "title": "Policy Snapshot Id"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            },
+            "type": "array",
+            "title": "Messages"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/Fact"
+            },
+            "type": "array",
+            "title": "Facts"
+          },
+          "latest_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Run Id"
+          },
+          "assessment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Assessment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pending_questions": {
+            "items": {
+              "$ref": "#/components/schemas/ClarificationQuestion"
+            },
+            "type": "array",
+            "title": "Pending Questions"
+          },
+          "agent_messages": {
+            "items": {
+              "$ref": "#/components/schemas/AgentMessage"
+            },
+            "type": "array",
+            "title": "Agent Messages"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "owner",
+          "business_area",
+          "status",
+          "run_state",
+          "unresolved_facts",
+          "review_state",
+          "updated_at",
+          "as_of",
+          "scope",
+          "scenario_text",
+          "policy_snapshot_id",
+          "messages",
+          "facts",
+          "latest_run_id",
+          "assessment",
+          "pending_questions",
+          "agent_messages"
+        ],
+        "title": "CaseDetail"
+      },
+      "CaseSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "owner": {
+            "type": "string",
+            "title": "Owner"
+          },
+          "business_area": {
+            "type": "string",
+            "title": "Business Area"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssessmentStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "run_state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unresolved_facts": {
+            "type": "integer",
+            "title": "Unresolved Facts"
+          },
+          "review_state": {
+            "$ref": "#/components/schemas/ReviewState"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "owner",
+          "business_area",
+          "status",
+          "run_state",
+          "unresolved_facts",
+          "review_state",
+          "updated_at"
+        ],
+        "title": "CaseSummary"
+      },
       "Citation": {
         "properties": {
           "id": {
@@ -460,6 +1317,63 @@
         ],
         "title": "Citation",
         "description": "Built by the backend from stored clause records; models only select allowed IDs."
+      },
+      "ClarificationQuestion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "clause_ref": {
+            "type": "string",
+            "title": "Clause Ref"
+          },
+          "fact_key": {
+            "type": "string",
+            "title": "Fact Key"
+          },
+          "answer_kind": {
+            "type": "string",
+            "enum": [
+              "choice",
+              "text"
+            ],
+            "title": "Answer Kind"
+          },
+          "choices": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Choices"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "question",
+          "reason",
+          "clause_ref",
+          "fact_key",
+          "answer_kind"
+        ],
+        "title": "ClarificationQuestion"
       },
       "Clause": {
         "properties": {
@@ -606,6 +1520,133 @@
         ],
         "title": "ClauseWithSource"
       },
+      "Fact": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/FactOrigin"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed"
+          },
+          "source_message_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Message Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "key",
+          "label",
+          "value",
+          "origin",
+          "confirmed"
+        ],
+        "title": "Fact"
+      },
+      "FactOrigin": {
+        "type": "string",
+        "enum": [
+          "provided",
+          "inferred",
+          "unknown"
+        ],
+        "title": "FactOrigin",
+        "description": "An absent fact stays `unknown`; it never becomes a negative assertion."
+      },
+      "Finding": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "requirement_id": {
+            "type": "string",
+            "title": "Requirement Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RequirementStatus"
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale"
+          },
+          "fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fact Ids"
+          },
+          "citation_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Citation Ids"
+          },
+          "support": {
+            "$ref": "#/components/schemas/SupportState"
+          },
+          "missing_facts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Facts"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "requirement_id",
+          "title",
+          "status",
+          "rationale",
+          "fact_ids",
+          "citation_ids",
+          "support",
+          "missing_facts"
+        ],
+        "title": "Finding"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -655,6 +1696,16 @@
         ],
         "title": "IndexStatus"
       },
+      "Likelihood": {
+        "type": "string",
+        "enum": [
+          "unknown",
+          "low",
+          "medium",
+          "high"
+        ],
+        "title": "Likelihood"
+      },
       "LookupAnswer": {
         "properties": {
           "question": {
@@ -690,6 +1741,85 @@
           "snapshot_id"
         ],
         "title": "LookupAnswer"
+      },
+      "Message": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "text",
+          "created_at"
+        ],
+        "title": "Message"
+      },
+      "NewCaseRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 20,
+            "title": "Text"
+          },
+          "business_area": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Business Area"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "business_area",
+          "as_of"
+        ],
+        "title": "NewCaseRequest"
+      },
+      "NewMessageRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "NewMessageRequest"
       },
       "PageText": {
         "properties": {
@@ -753,6 +1883,34 @@
           "spans"
         ],
         "title": "PageText"
+      },
+      "Page_CaseSummary_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CaseSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "Page[CaseSummary]"
       },
       "Page_Policy_": {
         "properties": {
@@ -973,6 +2131,288 @@
         ],
         "title": "PolicyVersionSummary"
       },
+      "Recommendation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "finding_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Finding Ids"
+          },
+          "citation_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Citation Ids"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "suggested_role": {
+            "type": "string",
+            "title": "Suggested Role"
+          },
+          "completion_criteria": {
+            "type": "string",
+            "title": "Completion Criteria"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/RecommendationKind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "finding_ids",
+          "citation_ids",
+          "action",
+          "suggested_role",
+          "completion_criteria",
+          "kind"
+        ],
+        "title": "Recommendation"
+      },
+      "RecommendationKind": {
+        "type": "string",
+        "enum": [
+          "mandatory",
+          "optional"
+        ],
+        "title": "RecommendationKind"
+      },
+      "RequirementStatus": {
+        "type": "string",
+        "enum": [
+          "met",
+          "violated",
+          "unknown",
+          "not_applicable",
+          "conflict"
+        ],
+        "title": "RequirementStatus"
+      },
+      "ResumeRequest": {
+        "properties": {
+          "answers": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "propertyNames": {
+              "maxLength": 128,
+              "minLength": 1
+            },
+            "type": "object",
+            "maxProperties": 3,
+            "title": "Answers"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "answers"
+        ],
+        "title": "ResumeRequest",
+        "description": "Clarification answers keyed by question ID; `null` means \"I don't know\"."
+      },
+      "ReviewState": {
+        "type": "string",
+        "enum": [
+          "unreviewed",
+          "accepted",
+          "challenged",
+          "information_requested"
+        ],
+        "title": "ReviewState"
+      },
+      "Risk": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "finding_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Finding Ids"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          },
+          "likelihood": {
+            "$ref": "#/components/schemas/Likelihood"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "rubric_version": {
+            "type": "string",
+            "title": "Rubric Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "finding_ids",
+          "severity",
+          "likelihood",
+          "description",
+          "rubric_version"
+        ],
+        "title": "Risk"
+      },
+      "RunError": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "retryable": {
+            "type": "boolean",
+            "title": "Retryable"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "retryable"
+        ],
+        "title": "RunError"
+      },
+      "RunState": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "running",
+          "waiting_for_user",
+          "completed",
+          "failed",
+          "canceled"
+        ],
+        "title": "RunState",
+        "description": "Workflow state. A timeout is `failed`, never a compliance verdict."
+      },
+      "RunStatus": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "state": {
+            "$ref": "#/components/schemas/RunState"
+          },
+          "result_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssessmentStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assessment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Assessment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pending_questions": {
+            "items": {
+              "$ref": "#/components/schemas/ClarificationQuestion"
+            },
+            "type": "array",
+            "title": "Pending Questions"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunError"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id",
+          "case_id",
+          "state",
+          "result_status",
+          "assessment",
+          "pending_questions",
+          "error",
+          "created_at",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "RunStatus"
+      },
       "SearchHit": {
         "properties": {
           "clause": {
@@ -1136,6 +2576,16 @@
           "latency_ms"
         ],
         "title": "SearchResponse"
+      },
+      "Severity": {
+        "type": "string",
+        "enum": [
+          "critical",
+          "high",
+          "medium",
+          "low"
+        ],
+        "title": "Severity"
       },
       "SourceSpan": {
         "properties": {

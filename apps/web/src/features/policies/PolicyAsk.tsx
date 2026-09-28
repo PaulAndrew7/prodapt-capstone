@@ -23,18 +23,35 @@ export function LookupAnswerView({ answer, play = true }: { answer: LookupAnswer
     <div>
       <p className="max-w-[60ch] text-xl leading-snug">{answer.answer}</p>
       <p className="mt-2 text-sm text-ink-2">
-        {answer.support === "validated" ? "Every sentence is supported by the clauses below." : "Some statements could not be supported."}{" "}
+        {answer.support === "validated"
+          ? "Each quote below was matched to the stored policy text. Read the clauses to confirm the answer."
+          : answer.citations.length
+            ? "Some citations could not be matched to the policy text; treat this answer with care."
+            : "No policy text supports an answer to this question."}{" "}
         <span className="tnum">Snapshot {answer.snapshot_id}.</span>
       </p>
       <ol className="mt-6 grid gap-6 md:grid-cols-2">
         {answer.citations.map((c, i) => {
           const v = byId.get(c.policy_version_id);
+          const query = versions[versionIds.indexOf(c.policy_version_id)];
           const clause = v?.clauses.find((x) => x.id === c.clause_id);
           const number = c.section_path[c.section_path.length - 1];
           return (
             <li key={c.id} className="bg-sheet p-5">
-              {!v || !clause ? (
+              {query.isError ? (
+                <ErrorNotice
+                  title="This citation could not be loaded"
+                  body="Retry to read the policy text behind this answer."
+                  onRetry={() => query.refetch()}
+                />
+              ) : !v ? (
                 <Skeleton className="h-28" />
+              ) : !clause ? (
+                <div role="status">
+                  <p>This clause is missing from the policy version. The saved quote could not be checked against the current source.</p>
+                  <blockquote className="mt-3">{c.quote}</blockquote>
+                  <Link to={`/app/policies/${v.policy_id}/versions/${v.id}`} className="mt-3 inline-block underline">Open policy version</Link>
+                </div>
               ) : (
                 <>
                   <p className="text-sm font-semibold">{v.policy_title}</p>
@@ -79,7 +96,7 @@ export function PolicyAsk() {
         className="mt-4 flex flex-col gap-3 sm:flex-row"
         onSubmit={(e) => {
           e.preventDefault();
-          if (q.trim().length > 5) ask.mutate(q.trim());
+          if (!ask.isPending && q.trim().length >= 2 && q.trim().length <= 2000) ask.mutate(q.trim());
         }}
       >
         <label htmlFor="ask" className="sr-only">
@@ -89,13 +106,14 @@ export function PolicyAsk() {
           <MagnifyingGlass size={18} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-2" />
           <input
             id="ask"
+            maxLength={2000}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={LOOKUP_EXAMPLE}
             className="h-12 w-full border-2 border-ink bg-sheet pl-10 pr-3 placeholder:text-ink-2"
           />
         </div>
-        <Button type="submit" size="lg" className="h-12" loading={ask.isPending}>
+        <Button type="submit" size="lg" className="h-12" loading={ask.isPending} disabled={q.trim().length < 2}>
           Ask
         </Button>
       </form>
@@ -115,7 +133,7 @@ export function PolicyAsk() {
             </div>
           </div>
         )}
-        {ask.isError && <ErrorNotice title="No answer this time" body="The question was not processed. Try again." onRetry={() => ask.mutate(q)} />}
+        {ask.isError && <ErrorNotice title="No answer this time" body={ask.error.message} onRetry={() => ask.mutate(ask.variables!)} />}
         {ask.data && <LookupAnswerView answer={ask.data} />}
       </div>
     </section>

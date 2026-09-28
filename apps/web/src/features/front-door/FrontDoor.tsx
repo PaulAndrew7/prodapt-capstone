@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { lazy, memo, Suspense, useCallback, useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import { Link } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactLenis, useLenis } from "lenis/react";
@@ -36,6 +36,7 @@ import {
 import { Exhibit } from "./Exhibit";
 import { Skeleton } from "@/components/Feedback";
 import { AvatarExhibit } from "./AvatarExhibit";
+import { IntroLoader } from "./IntroLoader";
 
 const PolicyStack = lazy(() => import("./PolicyStack"));
 
@@ -86,7 +87,7 @@ function Lead({ children, className }: { children: ReactNode; className?: string
   return <p className={clsx("mt-5 max-w-[50ch] text-lg leading-relaxed text-ink-2 md:text-xl", className)}>{children}</p>;
 }
 
-function FrontNav() {
+function FrontNav({ markRef, markHidden }: { markRef: Ref<HTMLSpanElement>; markHidden: boolean }) {
   const scrollTo = useScrollTo();
   const links = [
     ["product", "Product"],
@@ -97,7 +98,8 @@ function FrontNav() {
     <header className="sticky top-0 z-10 border-b-2 border-ink bg-paper">
       <div className="mx-auto flex h-[72px] max-w-[1400px] items-center gap-8 px-4 md:px-8">
         <Link to="/" aria-label="Clause home">
-          <Wordmark />
+          {/* The intro's wordmark lands on this one; it shows the moment the intro leaves. */}
+          <Wordmark ref={markRef} className={clsx(markHidden && "opacity-0")} />
         </Link>
         <nav aria-label="Sections" className="hidden items-center gap-7 md:flex">
           {links.map(([id, label]) => (
@@ -122,10 +124,22 @@ function FrontNav() {
   );
 }
 
-function Hero() {
+const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+function Hero({ revealed, onReady }: { revealed: boolean; onReady: () => void }) {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const scrollTo = useScrollTo();
+  // Rise in behind the intro's lifting curtain; when there is no intro, just be there.
+  const [entrance] = useState(() => !revealed && !reduce);
+  const rise = (delay: number) =>
+    entrance
+      ? {
+          initial: { opacity: 0, y: 56 },
+          animate: revealed ? { opacity: 1, y: 0 } : undefined,
+          transition: { duration: 1, delay, ease: EASE_OUT_EXPO },
+        }
+      : {};
   // Decided once, before first paint, so the pinned layout never changes height after mount.
   const [pinned] = useState(() => can3D());
   const [mount3d, setMount3d] = useState(false);
@@ -136,7 +150,8 @@ function Hero() {
   const textOpacity = useTransform(() => 1 - Math.min(1, Math.max(0, (scrollYProgress.get() - 0.02) / 0.13)));
   const textY = useTransform(scrollYProgress, [0, 0.16], [0, -70]);
   const ctaPointer = useTransform(() => (textOpacity.get() > 0.5 ? "auto" : "none"));
-  const canvasOpacity = useTransform(() => 1 - Math.min(1, Math.max(0, (scrollYProgress.get() - 0.93) / 0.07)));
+  // 0 until the pin releases, then 1 once the section's bottom reaches the top of the viewport.
+  const { scrollYProgress: exitProgress } = useScroll({ target: ref, offset: ["end end", "end start"] });
 
   useEffect(() => {
     if (!pinned) return;
@@ -144,10 +159,30 @@ function Hero() {
     const t = window.setTimeout(() => setMount3d(true), 300);
     return () => window.clearTimeout(t);
   }, [pinned]);
+  useEffect(() => {
+    // Without 3D the hero is ready once its still has loaded, which the image reports itself.
+    if (pinned) return;
+    const still = ref.current?.querySelector("img");
+    if (!still || still.complete) onReady();
+  }, [pinned, onReady]);
 
   return (
-    <section ref={ref} aria-labelledby="hero-h" className="relative" style={pinned ? { height: "220vh" } : undefined}>
-      <div className={clsx("relative overflow-hidden", pinned ? "sticky top-[72px] h-[calc(100dvh-72px)] min-h-[560px]" : "min-h-[calc(100dvh-72px)]")}>
+    <section
+      ref={ref}
+      aria-labelledby="hero-h"
+      className="relative"
+      // Tuck the next section's empty top padding (md:pt-40) under the stage: its heading arrives exactly as
+      // the pin releases and the papers lift, without ever sitting beside the pinned page.
+      style={pinned ? { height: "220vh", marginBottom: "-10rem" } : undefined}
+    >
+      <div
+        className={clsx(
+          "relative flex items-center overflow-hidden",
+          pinned
+            ? "pointer-events-none sticky top-[72px] z-[1] h-[calc(100dvh-72px)] min-h-[560px]"
+            : "min-h-[calc(100dvh-72px)] py-16",
+        )}
+      >
         {!pinned && (
           <img
             src="/front/policy-stack.webp"
@@ -155,37 +190,39 @@ function Hero() {
             width={2160}
             height={1242}
             className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-auto object-contain object-right md:block"
+            onLoad={onReady}
+            onError={onReady}
           />
         )}
         {mount3d && (
-          <motion.div className="absolute inset-0" style={{ opacity: canvasOpacity }}>
-            <motion.div className="size-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9 }}>
-              <Suspense fallback={null}>
-                <PolicyStack progress={scrollYProgress} active={visible} />
-              </Suspense>
-            </motion.div>
+          <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9 }}>
+            <Suspense fallback={null}>
+              <PolicyStack progress={scrollYProgress} exit={exitProgress} active={visible} eventSource={ref} onReady={onReady} />
+            </Suspense>
           </motion.div>
         )}
         <motion.div
           style={reduce ? undefined : pinned ? { opacity: textOpacity, y: textY } : undefined}
-          className="pointer-events-none relative mx-auto max-w-[1400px] px-4 pt-16 md:px-8 md:pt-24"
+          className="pointer-events-none relative mx-auto w-full max-w-[1400px] px-4 md:px-8"
         >
-          <h1
+          <motion.h1
             id="hero-h"
             className="max-w-[15ch] pb-2 font-display text-[clamp(3rem,6.4vw,6rem)] font-bold leading-[1.02] tracking-[-0.012em]"
+            {...rise(0.35)}
           >
-            Every verdict,{" "}
-            <HighlightMark delay={0.45} duration={0.75}>
-              pinned to its clause.
+            Your next move,{" "}
+            <HighlightMark play={revealed} delay={entrance ? 1.05 : 0.45} duration={0.75}>
+              backed by policy.
             </HighlightMark>
-          </h1>
-          <p className="mt-7 max-w-[40ch] text-xl leading-relaxed text-ink-2 md:text-[1.375rem]">
-            Describe a business activity. Clause checks it against your policies and shows the exact words behind every
-            finding.
-          </p>
+          </motion.h1>
+          <motion.p className="mt-7 max-w-[40ch] text-xl leading-relaxed text-ink-2 md:text-[1.375rem]" {...rise(0.47)}>
+            Tell Clause what you&rsquo;re planning. See which rules apply, what needs attention, and the exact words behind
+            each finding.
+          </motion.p>
           <motion.div
             className="pointer-events-auto mt-10 flex flex-wrap gap-3"
             style={pinned && !reduce ? { pointerEvents: ctaPointer } : undefined}
+            {...rise(0.57)}
           >
             <ButtonLink to="/app" variant="mark" size="lg">
               Enter demo
@@ -201,6 +238,8 @@ function Hero() {
               width={2160}
               height={1242}
               className="-ml-[70%] mt-4 w-[170%] max-w-none md:hidden"
+              onLoad={onReady}
+              onError={onReady}
             />
           )}
         </motion.div>
@@ -221,9 +260,9 @@ function ProductShot() {
     <section id="product" aria-labelledby="product-h" className="relative overflow-x-clip py-28 md:py-40">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         <H2 id="product-h" className="max-w-[17ch]">
-          From a plain description to a cited verdict.
+          Know where your plan stands.
         </H2>
-        <Lead>One screen holds the conversation, the facts, the verdict and the clause behind each finding.</Lead>
+        <Lead>Sharing customer data? Giving a contractor access? Check the requirements before you go ahead, with the source beside every finding.</Lead>
         <div ref={frame} className="relative mt-16 md:mt-20" style={{ perspective: 1800 }}>
           <motion.div
             aria-hidden
@@ -240,10 +279,10 @@ function ProductShot() {
 }
 
 const FEATURES = [
-  { id: "ask", title: "Ask a policy question", body: "A short answer, and the clauses that support it.", Exhibit: LookupExhibit },
-  { id: "assess", title: "Assess a scenario", body: "Five specialist roles check it before the verdict arrives.", Exhibit: AssessExhibit },
-  { id: "evidence", title: "Open the evidence", body: "Each finding opens the exact words, in the version that applied.", Exhibit: EvidenceExhibit },
-  { id: "hypothetical", title: "Try a hypothetical", body: "Change facts in a separate branch and compare the result.", Exhibit: HypotheticalExhibit },
+  { id: "ask", title: "Ask a policy question", body: "Get a direct answer with the relevant passages ready to read.", Exhibit: LookupExhibit },
+  { id: "assess", title: "Check your plan", body: "Describe the situation. Find the gaps and what to do next.", Exhibit: AssessExhibit },
+  { id: "evidence", title: "Read the source", body: "Go straight from a finding to the policy text behind it.", Exhibit: EvidenceExhibit },
+  { id: "hypothetical", title: "Explore a what-if", body: "See how different facts could change the outcome in this prototype.", Exhibit: HypotheticalExhibit },
 ] as const;
 const ADVANCE_MS = 7000;
 
@@ -285,7 +324,7 @@ function FeatureTabs() {
       <div className="mx-auto grid max-w-[1400px] gap-x-16 gap-y-12 px-4 md:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,8fr)]">
         <div>
           <H2 id="features-h" className="max-w-[12ch]">
-            One case, from question to evidence.
+            A policy question deserves a clear answer.
           </H2>
           <div role="tablist" aria-label="Features" aria-orientation={wide ? "vertical" : "horizontal"} className="mt-10 flex gap-2 overflow-x-auto lg:block lg:space-y-0 lg:overflow-visible">
             {FEATURES.map((f, i) => {
@@ -357,11 +396,11 @@ function FeatureTabs() {
 }
 
 const STORY: Record<AgentRole, string> = {
-  retrieval: "Finds the clauses that apply, in the policy version in force on your date.",
-  analysis: "Checks each requirement against your facts. Missing facts stay unknown.",
-  risk: "Ranks the gaps by severity. Likelihood stays unknown unless your facts support it.",
-  validation: "Rejects any finding its cited text does not support, and can ask retrieval for more.",
-  recommendation: "Proposes actions, each tied to a gap and the clause that requires it.",
+  retrieval: "Finds the relevant clauses in the policies that applied on your chosen date.",
+  analysis: "Compares your situation with each requirement and flags missing details.",
+  risk: "Weighs how serious each gap is, using the facts available.",
+  validation: "Checks whether the sources support each finding and requests more evidence when needed.",
+  recommendation: "Suggests what to do next, with the policy reason for each action.",
 };
 const MESSAGES_AT = [1, 2, 3, 6, 7];
 
@@ -376,12 +415,12 @@ function TraceExhibit({ idx }: { idx: number }) {
   return (
     <Exhibit
       width={900}
-      height={660}
+      height={760}
       label="The recorded trace of the vendor case: messages passed between retrieval, analysis, risk, validation and recommendation, including one repair request."
     >
       <div className="h-full bg-sheet p-10">
         <StageTrack stages={idx >= STAGES.length ? stagesUpTo(STAGES.length) : stagesUpTo(idx)} />
-        <div className="mt-10">
+        <div className="mt-10 [&_li]:grid-cols-[5rem_minmax(0,1fr)] [&_li]:gap-4">
           <RunTimeline messages={vendorAgentMessages.slice(0, MESSAGES_AT[Math.min(idx, 4)])} />
           <ol aria-hidden className="border-l-2 border-rule">
             {Array.from({ length: vendorAgentMessages.length - MESSAGES_AT[Math.min(idx, 4)] }, (_, i) => (
@@ -422,7 +461,7 @@ function WorkflowStory() {
   const heading = (
     <>
       <H2 id="how-h" className="max-w-[13ch]">
-        Five specialists, one traceable answer.
+        Follow the work behind the answer.
       </H2>
     </>
   );
@@ -511,10 +550,10 @@ function Unknowns() {
     <section aria-labelledby="unknown-h" className="border-t-2 border-ink py-28 md:py-40">
       <div className="mx-auto grid max-w-[1400px] items-center gap-x-20 gap-y-14 px-4 md:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         <div>
-          <H2 id="unknown-h">Unknown stays unknown.</H2>
+          <H2 id="unknown-h">You don&rsquo;t have to know it all.</H2>
           <Lead>
-            If you don&rsquo;t know whether the vendor was reviewed, Clause asks, and accepts &ldquo;I don&rsquo;t know&rdquo;.
-            It never fills the gap with a guess.
+            Was the vendor approved? Has anyone signed off? If you&rsquo;re unsure, &ldquo;I don&rsquo;t know&rdquo; is a valid
+            answer. Clause keeps that question open so you can follow up.
           </Lead>
         </div>
         <Parallax>
@@ -530,11 +569,11 @@ function Versions() {
     <section aria-labelledby="versions-h" className="border-t-2 border-ink py-28 md:py-40">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         <H2 id="versions-h" className="max-w-[20ch]">
-          Policies change. Old decisions stay reproducible.
+          Policies move on. Keep the full picture.
         </H2>
         <Lead>
-          Each assessment pins the policy version in force on its date. When a new version lands, you see exactly which
-          clauses changed.
+          Each assessment keeps the policy version it used. Come back later and you can still see the rules behind the
+          result, even after an update.
         </Lead>
         <div className="mt-14 lg:ml-[16%]">
           <Parallax amount={30}>
@@ -551,29 +590,29 @@ function ReviewBento() {
     <section id="review" aria-labelledby="review-h" className="border-t-2 border-ink py-28 md:py-40">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         <H2 id="review-h" className="max-w-[16ch]">
-          Built for review, not just answers.
+          Read it. Question it. Take the next step.
         </H2>
         <div className="mt-14 grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:grid-rows-[auto_1fr]">
           <div className="bg-sheet p-6 md:p-10 lg:row-span-2">
-            <h3 className="font-display text-3xl font-bold">A person makes the call.</h3>
+            <h3 className="font-display text-3xl font-bold">You make the call.</h3>
             <p className="mt-2 max-w-[44ch] text-ink-2">
-              Reviewers accept, challenge or ask for information, with a written reason. The model&rsquo;s findings are kept
-              as they were.
+              This review prototype shows how a person could accept a finding, challenge it, or ask for more detail,
+              with their reasoning recorded alongside the original assessment.
             </p>
             <div className="mt-8">
               <ReviewExhibit />
             </div>
           </div>
           <div className="bg-ink p-6 text-paper md:p-8">
-            <h3 className="font-display text-3xl font-bold">Exports keep their sources.</h3>
-            <p className="mt-2 max-w-[40ch] text-paper/75">Snapshot, citations and review state travel with every result.</p>
+            <h3 className="font-display text-3xl font-bold">Take the sources with you.</h3>
+            <p className="mt-2 max-w-[40ch] text-paper/75">See a sample export with the policy references attached, ready for a closer look.</p>
             <div className="mt-6">
               <ExportExcerpt />
             </div>
           </div>
           <div className="bg-mark p-6 text-on-mark md:p-8">
-            <h3 className="font-display text-3xl font-bold">A companion that follows the run.</h3>
-            <p className="mt-2 max-w-[40ch]">It reacts to what you do and to real progress. Turn it off and nothing is lost.</p>
+            <h3 className="font-display text-3xl font-bold">A little company along the way.</h3>
+            <p className="mt-2 max-w-[40ch]">An optional companion reacts as your assessment progresses. Keep it around if you like.</p>
             <div className="mt-4">
               <AvatarExhibit />
             </div>
@@ -589,9 +628,9 @@ function Close() {
     <section aria-labelledby="close-h" className="border-t-2 border-ink py-32 md:py-48">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
         <h2 id="close-h" className="max-w-[14ch] pb-2 font-display text-[clamp(3rem,6.4vw,6rem)] font-bold leading-[1.02]">
-          Try the <HighlightMark>vendor case</HighlightMark> yourself.
+          See what <HighlightMark>Clause uncovers.</HighlightMark>
         </h2>
-        <Lead>Pick the vendor sample, press Assess, and open the evidence behind each finding.</Lead>
+        <Lead>Start with a sample case. Follow the findings, read the policy, and see what needs to happen next.</Lead>
         <ButtonLink to="/app" variant="mark" size="lg" className="mt-10">
           Enter demo
         </ButtonLink>
@@ -607,8 +646,8 @@ function Footer() {
         <div>
           <Wordmark />
           <p className="mt-4 max-w-[60ch] text-sm text-ink-2">
-            Kestrel Mutual and every policy, person and case shown here are fictional demo material. Clause is a capstone
-            project and does not give legal advice.
+            Clause is a capstone project. Kestrel Mutual, its policies, and the people and cases in this demo are fictional.
+            The examples are for demonstration and do not provide legal advice.
           </p>
         </div>
         <nav aria-label="Footer" className="flex gap-6 text-sm font-semibold">
@@ -624,33 +663,66 @@ function Footer() {
   );
 }
 
+/* Everything below the hero. Memoized so the intro's reveal and handoff re-render only the hero and nav. */
+const Sections = memo(function Sections() {
+  return (
+    <>
+      <ProductShot />
+      <FeatureTabs />
+      <WorkflowStory />
+      <Unknowns />
+      <Versions />
+      <ReviewBento />
+      <Close />
+    </>
+  );
+});
+
+/* The intro plays once per page load, not on every client-side return to the front door. */
+let introPlayed = false;
+
 export function FrontDoor() {
   const reduce = useReducedMotion();
+  const [intro, setIntro] = useState(() => !introPlayed);
+  const [revealed, setRevealed] = useState(() => introPlayed);
+  const [heroReady, setHeroReady] = useState(false);
+  const onHeroReady = useCallback(() => setHeroReady(true), []);
+  const navMark = useRef<HTMLSpanElement>(null);
   const page = (
-    <div className="min-h-dvh bg-paper text-ink">
+    <div className="min-h-dvh bg-paper text-ink" inert={intro}>
       <a
         href="#main"
         className="sr-only z-50 bg-mark px-4 py-2 font-semibold text-on-mark focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
       >
         Skip to content
       </a>
-      <FrontNav />
+      <FrontNav markRef={navMark} markHidden={intro} />
       <main id="main" tabIndex={-1} className="outline-none">
-        <Hero />
-        <ProductShot />
-        <FeatureTabs />
-        <WorkflowStory />
-        <Unknowns />
-        <Versions />
-        <ReviewBento />
-        <Close />
+        <Hero revealed={revealed} onReady={onHeroReady} />
+        <Sections />
       </main>
       <Footer />
     </div>
   );
+  const content = (
+    <>
+      {page}
+      {intro && (
+        <IntroLoader
+          heroReady={heroReady}
+          target={navMark}
+          onReveal={() => setRevealed(true)}
+          onDone={() => {
+            introPlayed = true;
+            setIntro(false);
+          }}
+        />
+      )}
+    </>
+  );
   return (
     <QueryClientProvider client={exhibitClient}>
-      {reduce ? page : <ReactLenis root options={{ lerp: 0.1, smoothWheel: true }}>{page}</ReactLenis>}
+      {reduce ? content : <ReactLenis root options={{ lerp: 0.1, smoothWheel: true }}>{content}</ReactLenis>}
     </QueryClientProvider>
   );
 }

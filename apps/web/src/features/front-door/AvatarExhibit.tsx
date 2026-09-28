@@ -13,7 +13,7 @@ export function AvatarExhibit() {
   const mode = SEQUENCE[Math.min(step, SEQUENCE.length - 1)];
   return (
     <div ref={ref} className="flex items-center gap-5">
-      <AvatarView mode={mode} size={140} onFailure={() => {}} />
+      <AvatarView mode={mode} size={140} />
       <div>
         <p className="font-semibold" aria-live="off">
           {modeCaption[mode]}

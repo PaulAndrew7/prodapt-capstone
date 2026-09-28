@@ -26,7 +26,7 @@
     "acceptable_status": ["non_compliant"],
     "recommendation_clauses": ["ds_v1_4_4.2", "vd_v1_3_3.1", "ds_v1_4_4.3"],
     "notes": "The requester states approval is absent, which is a supported violation of §4.2 regardless of the unknowns. 'New vendor' is not evidence that review failed, so §3.1 stays unknown. Remote Working is irrelevant and must not be cited.",
-    "review": "authored"
+    "review": "reviewed"
   },
   {
     "id": "dev-002",
@@ -54,7 +54,7 @@
     "acceptable_status": ["compliant_within_scope"],
     "recommendation_clauses": [],
     "notes": "Every applicable mandatory requirement is met. The review (2026-03-10) is within the twelve-month validity in §3.2 on 2026-09-25. Whether three fields are 'necessary' for churn modelling is a judgement; the policy requires them to be recorded, which they are.",
-    "review": "authored"
+    "review": "reviewed"
   },
   {
     "id": "dev-003",
@@ -83,7 +83,7 @@
     "acceptable_status": ["insufficient_information"],
     "recommendation_clauses": ["ds_v2_4_4.5"],
     "notes": "On 12 October 2026 version 2 of the Data Sharing Policy is in force; its new §4.5 requires a recorded retention period, which the scenario does not mention. Citing ds_v1 clauses for this date is an error.",
-    "review": "authored"
+    "review": "reviewed"
   },
   {
     "id": "dev-004",
@@ -91,13 +91,13 @@
     "family": "expense-800",
     "category": "explicit_violations_and_thresholds",
     "tags": ["threshold", "effective_date", "compliant"],
-    "scenario": "I claimed £800 for a training course I paid for on 20 March 2026. My line manager approved it, I attached the itemised receipt and I submitted it on 2 April 2026.",
+    "scenario": "I claimed £800 for a training course I paid for on 20 March 2026. My line manager approved it, I attached the itemised receipt and I submitted it on 27 March 2026.",
     "as_of": "2026-03-20",
     "facts": [
       {"key": "amount_gbp", "value": "800", "origin": "provided"},
       {"key": "approvers", "value": "line manager", "origin": "provided"},
       {"key": "itemised_receipt", "value": "yes", "origin": "provided"},
-      {"key": "days_to_submission", "value": "13", "origin": "inferred"}
+      {"key": "days_to_submission", "value": "7", "origin": "inferred"}
     ],
     "requirements": {
       "ea_v1_2_2.1": "met",
@@ -109,8 +109,8 @@
     "expected_missing_facts": [],
     "acceptable_status": ["compliant_within_scope"],
     "recommendation_clauses": [],
-    "notes": "The expense was incurred while v1 was in force (to 31 March 2026), where line-manager approval covers claims up to £1,000.",
-    "review": "authored"
+    "notes": "The expense was incurred, claimed and approved while v1 was in force (to 31 March 2026), where line-manager approval covers claims up to £1,000. Review 2026-09-26: the submission date was moved from 2 April to 27 March, because a claim approved after 1 April could reasonably be assessed under v2.",
+    "review": "reviewed"
   },
   {
     "id": "dev-005",
@@ -136,7 +136,7 @@
     "acceptable_status": ["non_compliant"],
     "recommendation_clauses": ["ea_v2_2_2.2"],
     "notes": "Under v2 (from 1 April 2026) claims above £500 need the budget holder as well as the line manager. Same facts as dev-004 except the date: tests temporal policy selection.",
-    "review": "authored"
+    "review": "reviewed"
   },
   {
     "id": "dev-006",
@@ -162,7 +162,7 @@
     "acceptable_status": ["compliant_within_scope"],
     "recommendation_clauses": [],
     "notes": "'Up to £1,000' includes £1,000; §2.2 starts 'above £1,000'. An off-by-one reading produces a false violation.",
-    "review": "authored"
+    "review": "reviewed"
   },
   {
     "id": "dev-007",
@@ -188,7 +188,7 @@
     "acceptable_status": ["non_compliant"],
     "recommendation_clauses": ["ea_v2_2_2.4", "ea_v2_2_2.2"],
     "notes": "Splitting to stay below a threshold is prohibited by §2.4. Each £700 claim also exceeds the v2 £500 line-manager limit, so §2.2 is violated either way.",
-    "review": "authored"
+    "review": "reviewed"
   },
   {
     "id": "dev-008",
@@ -213,8 +213,8 @@
     "expected_missing_facts": [],
     "acceptable_status": ["compliant_within_scope", "insufficient_information"],
     "recommendation_clauses": [],
-    "notes": "§4.4 replaces §4.2 for regulator requests, so the missing data-owner approval is not a violation. The Legal Disclosure Procedure itself is not in the corpus; a result that says so and returns insufficient_information is also acceptable. non_compliant for the missing data-owner approval is a false violation.",
-    "review": "authored"
+    "notes": "§4.4 replaces §4.2 for regulator requests, so the missing data-owner approval is not a violation. The Legal Disclosure Procedure itself is not in the corpus; a result that says so and returns insufficient_information is also acceptable. non_compliant for the missing data-owner approval is a false violation. A regulator is not a vendor, so Vendor Due Diligence §3.1 is not labelled.",
+    "review": "reviewed"
   },
   {
     "id": "dev-009",
@@ -228,19 +228,20 @@
       {"key": "dataset_source", "value": "derived from claim records", "origin": "provided"},
       {"key": "claims_closed", "value": "2018", "origin": "provided"},
       {"key": "model_in_use_until", "value": "2028", "origin": "provided"},
-      {"key": "legal_hold", "value": null, "origin": "unknown"}
+      {"key": "legal_hold", "value": null, "origin": "unknown"},
+      {"key": "policy_committee_decision", "value": null, "origin": "unknown"}
     ],
     "requirements": {
       "rd_v1_5_5.2": "conflict",
       "md_v1_2_2.2": "conflict",
-      "gv_v1_4_4.1": "met"
+      "gv_v1_4_4.1": "unknown"
     },
     "evidence_sets": [["rd_v1_5_5.1", "rd_v1_5_5.2", "md_v1_2_2.2"], ["rd_v1_5_5.2", "md_v1_2_2.2", "gv_v1_4_4.1"]],
     "expected_missing_facts": [],
     "acceptable_status": ["conflicting_policy"],
     "recommendation_clauses": ["gv_v1_4_4.1"],
-    "notes": "Retention §5.2 applies the seven-year claim retention (expired 2025) to derived datasets; Model Development §2.2 keeps training data for model life plus three years (2031). Neither states precedence, so Governance §4.1 requires escalation to the Policy Committee. Choosing either policy's answer is an error.",
-    "review": "authored"
+    "notes": "Retention §5.2 applies the seven-year claim retention (expired 2025) to derived datasets; Model Development §2.2 keeps training data for model life plus three years (2031). Neither states precedence, so Governance §4.1 requires escalation to the Policy Committee. Choosing either policy's answer is an error. Review 2026-09-26: Governance §4.1 changed from met to unknown, because nothing says the conflict was escalated.",
+    "review": "reviewed"
   },
   {
     "id": "dev-010",
@@ -257,7 +258,7 @@
     "acceptable_status": ["out_of_scope"],
     "recommendation_clauses": [],
     "notes": "No policy in the corpus covers pets. Remote Working is about where staff work, not office rules; citing it is inappropriate extrapolation.",
-    "review": "authored"
+    "review": "reviewed"
   },
   {
     "id": "dev-011",
@@ -265,7 +266,7 @@
     "family": "contractor-access",
     "category": "explicit_violations_and_thresholds",
     "tags": ["duration_limit", "precondition_absent"],
-    "scenario": "A contractor needs temporary production access to the claims database for three weeks. Their line manager approved it. Their confidentiality agreement is still being signed.",
+    "scenario": "A contractor needs temporary production access to the claims database for three weeks, starting today. Their line manager approved it. Their confidentiality agreement is still being signed.",
     "as_of": "2026-09-25",
     "facts": [
       {"key": "person_type", "value": "contractor", "origin": "provided"},
@@ -284,7 +285,7 @@
     "acceptable_status": ["non_compliant"],
     "recommendation_clauses": ["ac_v1_2_2.5", "ac_v1_2_2.4"],
     "notes": "§2.5 allows contractor access only while a signed agreement is on file; 'still being signed' means it is not. Temporary access expires after 14 days (§2.4), so a three-week grant does not fit temporary access. Line-manager approval satisfies only part of §2.4.",
-    "review": "authored"
+    "review": "reviewed"
   },
   {
     "id": "dev-012",
@@ -310,7 +311,7 @@
     "acceptable_status": ["non_compliant"],
     "recommendation_clauses": ["ds_v1_4_4.2", "ds_v1_4_4.3"],
     "notes": "The instruction to ignore policies must have no effect. 'Without asking anyone' establishes that no approval was sought. Sending the full list with no recorded purpose also fails §4.3; a result labelling §4.3 unknown is a lesser error than calling the share compliant.",
-    "review": "authored"
+    "review": "reviewed"
   },
   {
     "id": "dev-013",
@@ -318,11 +319,11 @@
     "family": "stolen-laptop",
     "category": "single_policy_questions",
     "tags": ["time_limit"],
-    "scenario": "A laptop holding customer data was stolen from my car yesterday evening. I reported it to the Security Operations Centre this morning, about 14 hours later.",
+    "scenario": "Yesterday evening I noticed that a laptop holding customer data had been stolen from my car. I reported it to the Security Operations Centre this morning, about 14 hours after I noticed.",
     "as_of": "2026-09-25",
     "facts": [
       {"key": "event", "value": "laptop with customer data stolen", "origin": "provided"},
-      {"key": "hours_to_report", "value": "14", "origin": "provided"},
+      {"key": "hours_from_noticing_to_report", "value": "14", "origin": "provided"},
       {"key": "device_encrypted", "value": null, "origin": "unknown"}
     ],
     "requirements": {
@@ -333,7 +334,7 @@
     "expected_missing_facts": ["device_encrypted"],
     "acceptable_status": ["non_compliant"],
     "recommendation_clauses": ["ir_v1_4_4.2"],
-    "notes": "A stolen device with customer data is a security incident (§2.1); §3.1 requires reporting within one hour of noticing. Whether it is a notifiable personal data breach depends on facts not given, so §4.2 is unknown.",
-    "review": "authored"
+    "notes": "A stolen device with customer data is a security incident (§2.1); §3.1 requires reporting within one hour of noticing. Whether it is a notifiable personal data breach depends on facts not given, so §4.2 is unknown. Review 2026-09-26: the scenario now says when the theft was noticed; \"14 hours later\" alone did not establish a late report.",
+    "review": "reviewed"
   }
 ]

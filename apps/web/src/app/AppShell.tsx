@@ -6,17 +6,22 @@ import { Wordmark } from "@/components/Wordmark";
 import { ButtonLink } from "@/components/Button";
 import { api } from "@/lib/api";
 
+/* The live app has three areas (plan §12); fixture mode also shows the prototype screens. */
 const primary = [
   { to: "/app/cases", label: "Cases" },
   { to: "/app/policies", label: "Policies" },
-  { to: "/app/reviews", label: "Reviews" },
+  { to: "/app/ask", label: "Ask a question" },
+  ...(api.mode === "fixture" ? [{ to: "/app/reviews", label: "Reviews" }] : []),
 ];
 
-const secondary = [
-  { to: "/app/reports", label: "Reports" },
-  { to: "/app/evaluation", label: "Evaluation" },
-  { to: "/app/settings", label: "Settings" },
-];
+const secondary =
+  api.mode === "fixture"
+    ? [
+        { to: "/app/reports", label: "Reports" },
+        { to: "/app/evaluation", label: "Evaluation" },
+        { to: "/app/settings", label: "Settings" },
+      ]
+    : [];
 
 function NavItem({ to, label, forceActive }: { to: string; label: string; forceActive?: boolean }) {
   return (
@@ -55,24 +60,26 @@ export function AppHeader({ sticky = true, activePath }: { sticky?: boolean; act
         {primary.map((n) => (
           <NavItem key={n.to} {...n} forceActive={activePath === n.to} />
         ))}
-        <Dropdown.Root>
-          <Dropdown.Trigger className="flex h-16 items-center gap-1 px-3 font-semibold text-ink-2 outline-none hover:text-ink data-[state=open]:text-ink">
-            More <CaretDown size={14} aria-hidden />
-          </Dropdown.Trigger>
-          <Dropdown.Portal>
-            <Dropdown.Content
-              align="start"
-              sideOffset={0}
-              className="z-30 min-w-48 border-2 border-ink bg-sheet py-1"
-            >
-              {secondary.map((n) => (
-                <Dropdown.Item key={n.to} asChild className={menuItem}>
-                  <Link to={n.to}>{n.label}</Link>
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Content>
-          </Dropdown.Portal>
-        </Dropdown.Root>
+        {secondary.length > 0 && (
+          <Dropdown.Root>
+            <Dropdown.Trigger className="flex h-16 items-center gap-1 px-3 font-semibold text-ink-2 outline-none hover:text-ink data-[state=open]:text-ink">
+              More <CaretDown size={14} aria-hidden />
+            </Dropdown.Trigger>
+            <Dropdown.Portal>
+              <Dropdown.Content
+                align="start"
+                sideOffset={0}
+                className="z-30 min-w-48 border-2 border-ink bg-sheet py-1"
+              >
+                {secondary.map((n) => (
+                  <Dropdown.Item key={n.to} asChild className={menuItem}>
+                    <Link to={n.to}>{n.label}</Link>
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Content>
+            </Dropdown.Portal>
+          </Dropdown.Root>
+        )}
       </nav>
 
       <div className="ml-auto flex items-center gap-3">

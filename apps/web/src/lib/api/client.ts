@@ -1,6 +1,7 @@
 import type {
   Assessment,
   CaseDetail,
+  Clause,
   CaseSummary,
   LookupAnswer,
   Policy,
@@ -38,11 +39,13 @@ export interface ComplianceApi {
     onEvent: (event: RunEvent) => void,
     afterSequence?: number,
   ): () => void;
+  /** Up to three answers, each at most 4,000 characters; null means unknown. */
   answerClarification(runId: string, answers: Record<string, string | null>): Promise<void>;
   cancelRun(runId: string): Promise<void>;
   createBranch(caseId: string, changes: HypotheticalChange[]): Promise<Assessment>;
   submitReview(caseId: string, runId: string, input: ReviewInput): Promise<void>;
   listPolicies(): Promise<Policy[]>;
   getPolicyVersion(versionId: string): Promise<PolicyVersion>;
+  getClause(clauseId: string): Promise<Clause>;
   lookup(question: string): Promise<LookupAnswer>;
 }

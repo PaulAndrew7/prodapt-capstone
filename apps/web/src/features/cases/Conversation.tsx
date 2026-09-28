@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, Question } from "@phosphor-icons/react";
 import clsx from "clsx";
-import type { ClarificationQuestion, Fact, Message } from "@/lib/api/types";
+import { useQueries } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import type { ClarificationQuestion, Clause, Fact, Message } from "@/lib/api/types";
 import { Button } from "@/components/Button";
 import { factOriginLabel } from "@/lib/status";
-import { clauseById, clauseRef } from "@/fixtures/policies";
+import { useSectionRef } from "@/features/policies/useSectionRef";
 
 export function Transcript({ messages, autoScroll = true }: { messages: Message[]; autoScroll?: boolean }) {
   const end = useRef<HTMLDivElement>(null);
@@ -82,10 +84,17 @@ export function ClarificationBlock({
   questions: ClarificationQuestion[];
   onSubmit: (answers: Record<string, string | null>) => void;
   submitting: boolean;
-  onOpenClause: (clauseId: string) => void;
+  onOpenClause: (clause: Clause) => void;
   initialAnswers?: Record<string, string>;
 }) {
   const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers);
+  const clauseRef = useSectionRef();
+  // The clause that makes each question matter, so the requester can read it first.
+  const refs = [...new Set(questions.map((q) => q.clause_ref).filter(Boolean))];
+  const clauseQueries = useQueries({
+    queries: refs.map((id) => ({ queryKey: ["clause", id], queryFn: () => api.getClause(id), staleTime: Infinity })),
+  });
+  const clauses = new Map(clauseQueries.filter((q) => q.data).map((q) => [q.data!.id, q.data!]));
   const complete = questions.every((q) => (answers[q.id] ?? "").trim().length > 0);
 
   return (
@@ -105,7 +114,7 @@ export function ClarificationBlock({
         }}
       >
         {questions.map((q, i) => {
-          const clause = clauseById(q.clause_ref);
+          const clause = clauses.get(q.clause_ref);
           const value = answers[q.id] ?? "";
           const set = (v: string) => setAnswers((a) => ({ ...a, [q.id]: v }));
           return (
@@ -119,7 +128,7 @@ export function ClarificationBlock({
                 {clause && (
                   <button
                     type="button"
-                    onClick={() => onOpenClause(clause.id)}
+                    onClick={() => onOpenClause(clause)}
                     className="tnum font-semibold text-ink underline decoration-1 underline-offset-4 hover:decoration-2"
                   >
                     Read {clauseRef(clause)}
@@ -150,6 +159,7 @@ export function ClarificationBlock({
                     {q.question}
                   </label>
                   <textarea
+                    maxLength={4000}
                     id={`${q.id}-text`}
                     rows={2}
                     value={value === DONT_KNOW ? "" : value}
@@ -195,18 +205,22 @@ export function Composer({
 }) {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const inFlight = useRef(false);
   return (
     <form
       className="border-t-2 border-ink bg-paper p-4 md:p-5"
       onSubmit={async (e) => {
         e.preventDefault();
-        if (!text.trim()) return;
+        if (disabled || sending || inFlight.current || !text.trim() || text.trim().length > 4000) return;
+        inFlight.current = true;
         setError(null);
         try {
           await onSend(text.trim());
           setText("");
         } catch {
           setError("That did not send. Your text is still here; try again.");
+        } finally {
+          inFlight.current = false;
         }
       }}
     >
@@ -216,9 +230,10 @@ export function Composer({
       <div className="mt-2 flex items-end gap-2">
         <textarea
           id="composer"
+          maxLength={4000}
           rows={2}
           value={text}
-          disabled={disabled}
+          disabled={disabled || sending}
           onChange={(e) => setText(e.target.value)}
           onFocus={() => onFocusChange?.(true)}
           onBlur={() => onFocusChange?.(false)}

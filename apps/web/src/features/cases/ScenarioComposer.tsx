@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -31,6 +31,7 @@ export function ScenarioComposer({ headingLevel = "h1" }: { headingLevel?: "h1" 
   const [area, setArea] = useState(AREAS[0]);
   const [asOf, setAsOf] = useState(todayIso());
   const [touched, setTouched] = useState(false);
+  const inFlight = useRef(false);
   const create = useMutation({
     mutationFn: () => api.createCase({ text: text.trim(), business_area: area, as_of: asOf }),
     onSuccess: (c) => {
@@ -39,6 +40,22 @@ export function ScenarioComposer({ headingLevel = "h1" }: { headingLevel?: "h1" 
     },
   });
   const tooShort = text.trim().length < 20;
+  const tooLong = text.trim().length > 4000;
+  const parsedDate = new Date(`${asOf}T00:00:00Z`);
+  const validDate = /^\d{4}-\d{2}-\d{2}$/.test(asOf) && Number(asOf.slice(0, 4)) > 0
+    && Number.isFinite(parsedDate.getTime()) && parsedDate.toISOString().slice(0, 10) === asOf;
+  const submit = async () => {
+    setTouched(true);
+    if (tooShort || tooLong || !validDate || create.isPending || inFlight.current) return;
+    inFlight.current = true;
+    try {
+      await create.mutateAsync();
+    } catch {
+      // The mutation error is rendered below; preserve the form for a validated retry.
+    } finally {
+      inFlight.current = false;
+    }
+  };
   const H = headingLevel;
 
   return (
@@ -46,8 +63,7 @@ export function ScenarioComposer({ headingLevel = "h1" }: { headingLevel?: "h1" 
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          setTouched(true);
-          if (!tooShort) create.mutate();
+          void submit();
         }}
         noValidate
       >
@@ -65,13 +81,14 @@ export function ScenarioComposer({ headingLevel = "h1" }: { headingLevel?: "h1" 
           </label>
           <textarea
             id="scenario"
+            maxLength={4000}
             rows={5}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) e.currentTarget.form?.requestSubmit();
             }}
-            aria-invalid={touched && tooShort}
+            aria-invalid={touched && (tooShort || tooLong)}
             aria-describedby="scenario-help scenario-error"
             className="block w-full resize-y border-2 border-ink bg-sheet px-4 py-3 text-lg leading-relaxed placeholder:text-ink-2 focus:outline-2 focus:outline-offset-2 focus:outline-ink"
             placeholder="We want to send customer records to a new analytics vendor..."
@@ -82,6 +99,11 @@ export function ScenarioComposer({ headingLevel = "h1" }: { headingLevel?: "h1" 
           {touched && tooShort && (
             <p id="scenario-error" className="text-sm font-semibold text-violated">
               Add a little more detail (at least 20 characters) so the right policies can be found.
+            </p>
+          )}
+          {touched && tooLong && (
+            <p id="scenario-error" className="text-sm font-semibold text-violated">
+              Keep the scenario within 4,000 characters.
             </p>
           )}
         </div>
@@ -109,14 +131,19 @@ export function ScenarioComposer({ headingLevel = "h1" }: { headingLevel?: "h1" 
             <input
               id="asof"
               type="date"
+              required
+              aria-invalid={touched && !validDate}
               value={asOf}
               onChange={(e) => setAsOf(e.target.value)}
               className="tnum block h-12 w-full border-2 border-ink bg-sheet px-3"
-              aria-describedby="asof-help"
+              aria-describedby={touched && !validDate ? "asof-help asof-error" : "asof-help"}
             />
             <p id="asof-help" className="text-sm text-ink-2">
               Policies in force on this date are used.
             </p>
+            {touched && !validDate && (
+              <p id="asof-error" className="text-sm font-semibold text-violated">Choose a valid assessment date.</p>
+            )}
           </div>
         </div>
 
@@ -131,7 +158,7 @@ export function ScenarioComposer({ headingLevel = "h1" }: { headingLevel?: "h1" 
             <ErrorNotice
               title="The case was not created"
               body="Your scenario is still here. Try again."
-              onRetry={() => create.mutate()}
+              onRetry={() => { void submit(); }}
             />
           </div>
         )}
