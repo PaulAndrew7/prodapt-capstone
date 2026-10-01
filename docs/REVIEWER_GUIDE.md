@@ -35,7 +35,7 @@ Do not memorize technologies from an early proposal without checking the impleme
 | Five agents | Five specialist stages: retrieval, analysis, risk, validation, recommendation. They are modules in one backend, not five autonomous services. |
 | Agent2Agent / A2A | Internal recorded handoffs exist. The standardized Agent2Agent protocol is not implemented. |
 | RAG | Yes: retrieved policy text is supplied to the language model before it generates structured output. |
-| Knowledge graph | A bounded visualization of stored policy relationships and finding provenance. No Neo4j service or general graph-reasoning engine. |
+| Knowledge graph | **Not implemented.** Clause references, exceptions, and overrides are stored as PostgreSQL rows, and retrieval follows them one step. There is no graph page, Neo4j service, entity extraction, or graph reasoning. |
 | Three.js | Used for the landing-page policy stack through React Three Fiber. The current companion/avatar is SVG. |
 | Offline mode | A real local source-review workflow with user confirmations; it still needs the database and ingested documents. |
 | Authentication | Development requests resolve to a seeded demo administrator. Working production session login is not implemented. |
@@ -722,7 +722,6 @@ This guide is a documentation continuation. Its verification checks file referen
 | Policy detail and comparison | Read numbered clauses, open PDF, compare versions | Diff is deterministic by section path and text, not generated semantic impact |
 | Ask `/app/ask` | Grounded short answer in model mode; exact excerpts in local mode | A lookup is not an assessment and has lighter validation |
 | Policy management | Upload a PDF, review all clause candidates and relations, publish | Real admin API; demo auth maps to an administrator |
-| Policy knowledge graph | Inspect stored relationships by date/snapshot and optional case provenance | Bounded visual view; not graph-machine-learning or general logical inference |
 | Printable case report | Shows saved assessment, facts, sources, limits, execution, coverage | Browser print/PDF uses saved content; not a separately generated verdict |
 | Case JSON export | Downloads structured assessment and facts | Machine-readable output from the browser, with recorded review state |
 | Hypothetical branch | Fixture comparison with changed facts | Fixture-only; hidden for normal live operation, no implemented backend branch route |
@@ -761,7 +760,7 @@ Publishing creates a snapshot containing ready, non-draft versions. It keeps pub
 
 The current snapshot records versions and index-revision metadata. That supports traceability; it is not a universal replay guarantee across changed model binaries, provider revisions, changed code, or manual database edits. Numerical embeddings and model output can vary with runtime and provider behavior.
 
-The graph endpoint returns policy, version, and clause nodes with containment and stored reference/exception/override edges. Case mode adds saved findings linked to their requirement clauses. The view caps visible clauses at **60**, reports truncation, and shows source links and relation provenance. An edge labelled supports expresses a saved link; graph drawing does not independently certify support or resolve precedence.
+Stored clause relations are not shown on a page of their own. A graph view was removed because it suggested a full knowledge graph while it only drew these stored links. Retrieval still uses them for bounded expansion.
 
 ## 21. Tech stack: what each technology contributes
 
@@ -822,7 +821,7 @@ All paths below are relative to the repository root `D:\coding\capstone`. The HT
 | `services/api/app/storage.py` | Content-addressed original PDF writes, confined source paths, storage readiness |
 | `services/api/app/seed.py` | Reads the demo manifest, creates demo organization/admin and policy corpus, snapshots, and metadata |
 | `services/api/app/domain/contracts.py` | Public request/response schemas, states, facts, citations, findings, actions, confidence, coverage, and cross-reference validation |
-| `services/api/app/domain/policy_management.py` | Upload/review/publication/graph schemas, metadata and candidate/relation constraints |
+| `services/api/app/domain/policy_management.py` | Upload/review/publication schemas, metadata and candidate/relation constraints |
 | `services/api/app/persistence/models.py` | SQLAlchemy table models, relationships, constraints, full-text representation, 384-dimensional vector storage |
 | `services/api/app/persistence/db.py` | Database engine/session lifecycle, database creation, request transaction access |
 | `services/api/app/evaluation.py` | Scenario selection, same-workflow runs, metrics, band summaries, raw and Markdown reports |
@@ -845,7 +844,6 @@ All paths below are relative to the repository root `D:\coding\capstone`. The HT
 | `services/api/app/api/search.py` | Raw evidence search and grounded lookup endpoints |
 | `services/api/app/api/cases.py` | Case messages, run creation/status/resume/cancel, saved case detail/handoffs, background launcher, replayable SSE |
 | `services/api/app/api/policy_admin.py` | Admin PDF upload, complete draft review, optimistic revision checks, publication, audit rows, new snapshots |
-| `services/api/app/api/policy_graph.py` | Bounded dated/snapshot graph and saved case finding links |
 
 ### Ingestion and retrieval
 
@@ -893,7 +891,7 @@ All paths below are relative to the repository root `D:\coding\capstone`. The HT
 | `apps/web/src/lib/api/client.ts` | `ComplianceApi` interface, new-case/review/branch inputs |
 | `apps/web/src/lib/api/types.ts` | TypeScript mirror of backend public schemas |
 | `apps/web/src/lib/api/index.ts` | Chooses HTTP or fixtures by `VITE_API_MODE` |
-| `apps/web/src/lib/api/httpApi.ts` | Fetch/error wrapper, live endpoints, SSE subscription, upload/review/publication/graph requests |
+| `apps/web/src/lib/api/httpApi.ts` | Fetch/error wrapper, live endpoints, SSE subscription, upload/review/publication requests |
 | `apps/web/src/lib/api/fixtureApi.ts` | Prepared data and run-event replay for UI demonstrations |
 | `apps/web/src/lib/events/runStore.ts` | Zustand event reducer/store, deduplication, stage/phase projections, fallback metadata |
 | `apps/web/src/lib/exportReport.ts` | Browser JSON download of saved case facts/assessment |
@@ -927,14 +925,13 @@ All paths below are relative to the repository root `D:\coding\capstone`. The HT
 | `apps/web/src/features/cases/PrintReport.tsx` | Printable saved facts/result/evidence/coverage/execution report |
 | `apps/web/src/features/cases/printReport.css` | Print pagination/visibility/typography |
 | `apps/web/src/features/cases/Hypothetical.tsx` | Fixture-only changed-fact branch comparison |
-| `apps/web/src/features/policies/PolicyLibrary.tsx` | Policy/version browsing and management/graph navigation |
+| `apps/web/src/features/policies/PolicyLibrary.tsx` | Policy/version browsing and management navigation |
 | `apps/web/src/features/policies/PolicyDetail.tsx` | Version text, clause navigation, source and comparison views |
 | `apps/web/src/features/policies/PolicyAsk.tsx` | Question input, answer/excerpt display, citations and execution notice |
 | `apps/web/src/features/policies/AskPage.tsx` | Full-page policy-question wrapper |
 | `apps/web/src/features/policies/VersionDiff.tsx` | Added/removed/changed clause comparison by section path |
 | `apps/web/src/features/policies/useSectionRef.ts` | Clause navigation/scroll targeting support |
 | `apps/web/src/features/policies/PolicyManagement.tsx` | Upload and complete draft review/publication UI |
-| `apps/web/src/features/policies/PolicyGraph.tsx` | Bounded graph controls, stored nodes/edges, detail/source inspection |
 | `apps/web/src/features/review/ReviewQueue.tsx` | Fixture human-review queue and dispositions |
 | `apps/web/src/features/admin/AdminPages.tsx` | Fixture reports/settings and evaluation placeholder; live routes gated |
 
@@ -1004,7 +1001,7 @@ Backend files under `services/api/tests`:
 | `test_api_basics.py`, `test_config.py`, `test_request_inputs.py` | Health/error behavior, settings, input validation |
 | `test_contracts.py`, `test_schema.py` | Public contract links/invariants and database schema |
 | `test_segment.py`, `test_ingestion.py` | Numbered clauses, spans, extraction/chunks/storage/index lifecycle |
-| `test_policies_api.py`, `test_policy_management.py` | Source access, policy visibility, upload/review/publication/graph |
+| `test_policies_api.py`, `test_policy_management.py` | Source access, policy visibility, upload/review/publication |
 | `test_assessment_api.py`, `test_workflow_rules.py` | Run lifecycle, persistence, clarification/cancel and final rules |
 | `test_llm_gateway.py`, `test_claude_model.py` | Schema modes, continuations, provider envelopes/errors/budgets |
 | `test_confidence.py`, `test_coverage.py`, `test_input_guard.py` | Scoring factors, candidate accounting, admission checks |
@@ -1140,9 +1137,9 @@ The harness needs a model client to assess scenarios. With no configured client,
 
 “Its saved data survives, but an active computation does not resume from a checkpoint. Startup marks interrupted queued/running attempts failed. A separate durable worker or stateful graph checkpoint system would be needed for that guarantee.”
 
-### “What is the knowledge graph doing?”
+### “Is there a knowledge graph?”
 
-“It visualizes stored policy/version/clause relations and saved finding links within a date and snapshot. Retrieval uses bounded stored links for context. The graph does not independently infer precedence or implement a general graph RAG engine.”
+“No. Clause references, exceptions, and overrides are stored links, and retrieval follows them one step so an exception reaches the model with its requirement. There is no entity extraction, graph database, graph query, or inference. An earlier page that drew these links was removed because it implied more than that.”
 
 ### “Are the policies and data real?”
 

@@ -115,7 +115,7 @@ export function CaseIndex() {
           ) : (
             <EmptyState
               title="No cases yet."
-              body="Describe a planned activity and Clause will check it against the policy corpus."
+              body="Describe a planned activity and Paul.ez will check it against the policy corpus."
               action={<ButtonLink to="/app/cases/new" variant="mark" size="lg">New case</ButtonLink>}
             />
           )

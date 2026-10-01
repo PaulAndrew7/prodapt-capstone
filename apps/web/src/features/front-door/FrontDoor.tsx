@@ -97,7 +97,7 @@ function FrontNav({ markRef, markHidden }: { markRef: Ref<HTMLSpanElement>; mark
   return (
     <header className="sticky top-0 z-10 border-b-2 border-ink bg-paper">
       <div className="mx-auto flex h-[72px] max-w-[1400px] items-center gap-8 px-4 md:px-8">
-        <Link to="/" aria-label="Clause home">
+        <Link to="/" aria-label="Paul.ez home">
           {/* The intro's wordmark lands on this one; it shows the moment the intro leaves. */}
           <Wordmark ref={markRef} className={clsx(markHidden && "opacity-0")} />
         </Link>
@@ -210,13 +210,13 @@ function Hero({ revealed, onReady }: { revealed: boolean; onReady: () => void })
             className="max-w-[15ch] pb-2 font-display text-[clamp(3rem,6.4vw,6rem)] font-bold leading-[1.02] tracking-[-0.012em]"
             {...rise(0.35)}
           >
-            Your next move,{" "}
-            <HighlightMark play={revealed} delay={entrance ? 1.05 : 0.45} duration={1.1}>
-              backed by policy.
+            Policies made easy with{" "}
+            <HighlightMark play={revealed} delay={entrance ? 1.05 : 0.45} duration={0.8}>
+              Paul.ez
             </HighlightMark>
           </motion.h1>
           <motion.p className="mt-7 max-w-[40ch] text-xl leading-relaxed text-ink-2 md:text-[1.375rem]" {...rise(0.47)}>
-            Tell Clause what you&rsquo;re planning. See which rules apply, what needs attention, and the exact words behind
+            Tell Paul.ez what you&rsquo;re planning. See which rules apply, what needs attention, and the exact words behind
             each finding.
           </motion.p>
           <motion.div
@@ -553,7 +553,7 @@ function Unknowns() {
           <H2 id="unknown-h">You don&rsquo;t have to know it all.</H2>
           <Lead>
             Was the vendor approved? Has anyone signed off? If you&rsquo;re unsure, &ldquo;I don&rsquo;t know&rdquo; is a valid
-            answer. Clause keeps that question open so you can follow up.
+            answer. Paul.ez keeps that question open so you can follow up.
           </Lead>
         </div>
         <Parallax>
@@ -633,7 +633,7 @@ function Close() {
         <h2 ref={heading} id="close-h" className="max-w-[14ch] pb-2 font-display text-[clamp(3rem,6.4vw,6rem)] font-bold leading-[1.02]">
           See what{" "}
           <HighlightMark play={seen} delay={0.25} duration={1.1}>
-            Clause uncovers.
+            Paul.ez uncovers.
           </HighlightMark>
         </h2>
         <Lead>Start with a sample case. Follow the findings, read the policy, and see what needs to happen next.</Lead>
@@ -652,7 +652,7 @@ function Footer() {
         <div>
           <Wordmark />
           <p className="mt-4 max-w-[60ch] text-sm text-ink-2">
-            Clause is a capstone project. Kestrel Mutual, its policies, and the people and cases in this demo are fictional.
+            Paul.ez is a capstone project. Kestrel Mutual, its policies, and the people and cases in this demo are fictional.
             The examples are for demonstration and do not provide legal advice.
           </p>
         </div>

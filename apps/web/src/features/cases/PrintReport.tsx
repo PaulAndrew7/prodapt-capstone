@@ -12,7 +12,7 @@ export function PrintReport({ detail }: { detail: CaseDetail }) {
   return createPortal(
     <article className="assessment-print" aria-label="Printable assessment">
       <header>
-        <p>Clause · {assessment.hypothetical ? "Hypothetical assessment" : "Assessment report"}</p>
+        <p>Paul.ez · {assessment.hypothetical ? "Hypothetical assessment" : "Assessment report"}</p>
         <h1>{detail.title}</h1>
         <p>Fictional Kestrel Mutual policies. This report does not certify compliance.</p>
         <dl>

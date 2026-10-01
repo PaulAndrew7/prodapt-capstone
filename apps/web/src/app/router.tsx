@@ -34,7 +34,6 @@ export const router = createBrowserRouter([
           { path: "policies", lazy: async () => ({ Component: (await import("@/features/policies/PolicyLibrary")).PolicyLibrary }) },
           { path: "policies/manage", lazy: async () => ({ Component: (await import("@/features/policies/PolicyManagement")).PolicyManagement }) },
           { path: "policies/manage/:versionId", lazy: async () => ({ Component: (await import("@/features/policies/PolicyManagement")).DraftPolicyReview }) },
-          { path: "policies/graph", lazy: async () => ({ Component: (await import("@/features/policies/PolicyGraph")).PolicyKnowledgeGraph }) },
           { path: "ask", lazy: async () => ({ Component: (await import("@/features/policies/AskPage")).AskPage }) },
           {
             path: "policies/:policyId/versions/:versionId",

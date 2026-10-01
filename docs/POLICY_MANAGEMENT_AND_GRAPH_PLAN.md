@@ -1,5 +1,7 @@
 # Policy management and knowledge graph
 
+> **Update, 1 October 2026:** the graph page, the `/api/v1/policy-graph` endpoint and its schemas were removed. Stored clause relations remain and retrieval still uses them. The Graph section below is kept as the original plan.
+
 Implementation scope agreed 30 September 2026: digital PDF upload/replacement, extraction preview, editable draft metadata and clause classifications, reviewed relationships, publication, dated graph navigation and a version comparison. Published source text is immutable. Editing policy content means uploading a replacement PDF as a new version; an in-browser document authoring system is outside this batch.
 
 ## Workflow

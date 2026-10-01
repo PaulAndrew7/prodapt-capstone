@@ -1,4 +1,4 @@
-"""Policy administration and graph contracts; no generated policy semantics."""
+"""Policy administration contracts; no generated policy semantics."""
 
 from datetime import date, datetime
 from typing import Annotated, Literal, Self
@@ -99,33 +99,3 @@ class Publication(Contract):
     version_id: str
     snapshot_id: str
     published_at: datetime
-
-
-class GraphNode(Contract):
-    id: str
-    kind: Literal["policy", "version", "clause", "case", "finding"]
-    label: str
-    href: str
-    text: str | None = None
-    source_url: str | None = None
-    status: str | None = None
-
-
-class GraphEdge(Contract):
-    id: str
-    source: str
-    target: str
-    kind: Literal["contains", "references", "excepts", "overrides", "supports"]
-    approved: bool = True
-    provenance: str = "stored"
-
-
-class PolicyGraph(Contract):
-    snapshot_id: str
-    as_of: date
-    policy_id: str | None
-    case_id: str | None = None
-    nodes: list[GraphNode]
-    edges: list[GraphEdge]
-    truncated: bool
-    total_clauses: int

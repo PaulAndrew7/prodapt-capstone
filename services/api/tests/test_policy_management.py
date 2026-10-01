@@ -1,4 +1,4 @@
-"""Admin source lifecycle, dated graph and model-independent adoption of new policies."""
+"""Admin source lifecycle, dated versions and model-independent adoption of new policies."""
 
 import json
 from datetime import date
@@ -147,16 +147,6 @@ def test_upload_review_publish_adopts_general_obligation_without_a_model(
     assert (
         final["execution"]["mode"] == "local_review"
         and final["status"] == "insufficient_information"
-    )
-    graph = client.get(
-        "/api/v1/policy-graph", params={"case_id": case["id"], "policy_id": v["policy_id"]}
-    ).json()
-    assert graph["snapshot_id"] == result["snapshot_id"]
-    assert any(n["kind"] == "finding" for n in graph["nodes"])
-    assert all(
-        e["source"] in {n["id"] for n in graph["nodes"]}
-        and e["target"] in {n["id"] for n in graph["nodes"]}
-        for e in graph["edges"]
     )
     assert (
         db.scalar(select(func.count(m.AuditEvent.id)).where(m.AuditEvent.target_id == v["id"])) == 3
@@ -316,9 +306,9 @@ def test_requesters_cannot_manage_or_see_draft_only_policy(client: TestClient) -
     assert client.get(f"/api/v1/policy-versions/{draft['version']['id']}/source").status_code == 404
 
 
-def test_foreign_policy_draft_and_graph_are_inaccessible(client: TestClient, db: Session) -> None:
+def test_foreign_policy_draft_is_inaccessible(client: TestClient, db: Session) -> None:
     draft = save(client, upload(client))
-    result = publish(client, draft)
+    publish(client, draft)
     db.add(m.Organization(id="org_other", slug="other", name="Other Org"))
     db.flush()
     app.dependency_overrides[get_principal] = lambda: Principal(
@@ -326,12 +316,6 @@ def test_foreign_policy_draft_and_graph_are_inaccessible(client: TestClient, db:
     )
     assert (
         client.get(f"/api/v1/admin/policy-versions/{draft['version']['id']}/review").status_code
-        == 404
-    )
-    assert (
-        client.get(
-            "/api/v1/policy-graph", params={"snapshot_id": result["snapshot_id"]}
-        ).status_code
         == 404
     )
 
@@ -367,22 +351,3 @@ def test_cross_policy_links_are_dated_and_only_approved_links_expand_evidence(
         embedder=None,
     )
     assert ("ds_v1_4_4.2" in evidence.by_id()) == approved
-    future = client.get(
-        "/api/v1/policy-graph",
-        params={"policy_id": draft["version"]["policy_id"], "as_of": "2026-10-01"},
-    ).json()
-    assert not any(n["id"] == "clause:ds_v1_4_4.2" for n in future["nodes"])
-
-
-def test_graph_filters_date_drafts_and_old_snapshot(client: TestClient) -> None:
-    before = client.get(
-        "/api/v1/policy-graph", params={"policy_id": "ds", "as_of": "2026-09-30"}
-    ).json()
-    after = client.get(
-        "/api/v1/policy-graph", params={"policy_id": "ds", "as_of": "2026-10-01"}
-    ).json()
-    assert any(n["id"] == "version:ds_v1" for n in before["nodes"])
-    assert not any(n["id"] == "version:ds_v2" for n in before["nodes"])
-    assert any(n["id"] == "version:ds_v2" for n in after["nodes"])
-    assert not any(n["id"] == "version:ds_v1" for n in after["nodes"])
-    assert not any("cm_v2" in n["id"] for n in after["nodes"])

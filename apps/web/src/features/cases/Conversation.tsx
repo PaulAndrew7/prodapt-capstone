@@ -22,7 +22,7 @@ export function Transcript({ messages, autoScroll = true }: { messages: Message[
       {messages.map((m) => (
         <li key={m.id}>
           <p className={clsx("text-sm font-semibold", m.role === "user" ? "text-ink" : "text-ink-2")}>
-            {m.role === "user" ? "You" : "Clause"}
+            {m.role === "user" ? "You" : "Paul.ez"}
           </p>
           <p className={clsx("mt-1 max-w-[62ch]", m.role === "user" ? "text-[1.0625rem] leading-relaxed" : "text-ink-2")}>
             {m.text}

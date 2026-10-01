@@ -310,6 +310,21 @@ def _ask(deps: WorkflowDeps, attempt: Attempt, result: Analysis, budget: CallBud
     count = (
         "one question" if len(result.questions) == 1 else _plural(len(result.questions), "question")
     )
+    if attempt.execution and attempt.execution.mode == "local_review":
+        # Every batch asks the same kind of question, so say where the requester is.
+        total = len(result.facts)
+        recorded = sum(f.confirmed for f in result.facts)
+        batch = _plural(len(result.questions), "check")
+        text = (
+            f"Local review: {_plural(total, 'retrieved check')} to confirm, {batch} at a time. "
+            if recorded == 0
+            else f"Local review: {recorded} of {total} checks recorded. Next {batch}. "
+        ) + "Confirm each disposition, or finish with remaining checks unknown."
+    else:
+        text = (
+            f"Some facts that decide this case are missing. I have {count} before "
+            "I finish the assessment."
+        )
     with deps.session_factory() as s:
         run = lock_run(s, attempt.run_id)
         if run.state != RunState.RUNNING:
@@ -322,13 +337,7 @@ def _ask(deps: WorkflowDeps, attempt: Attempt, result: Analysis, budget: CallBud
                 case_id=attempt.case_id,
                 role="assistant",
                 created_at=_now(),
-                text=(
-                    f"Local review has {count} source-linked checks in this batch. "
-                    "Confirm each disposition, or finish with remaining checks unknown."
-                    if attempt.execution and attempt.execution.mode == "local_review"
-                    else f"Some facts that decide this case are missing. I have {count} before "
-                    "I finish the assessment."
-                ),
+                text=text,
             )
         )
         append_event(

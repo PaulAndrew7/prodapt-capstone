@@ -14,7 +14,7 @@ export function exportReport(detail: CaseDetail) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `clause-assessment-${detail.assessment.run_id}.json`;
+  a.download = `paul-ez-assessment-${detail.assessment.run_id}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }

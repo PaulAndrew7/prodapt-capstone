@@ -3,7 +3,7 @@
   before the backend exists. Every screen shows a "Fixture data" tag in this mode.
 */
 import type { ComplianceApi, NewCaseInput, ReviewInput } from "./client";
-import type { Assessment, CaseDetail, CaseSummary, RunEvent, UploadPolicyInput, DraftReview, DraftReviewInput, Publication, PolicyGraph, GraphInput } from "./types";
+import type { Assessment, CaseDetail, CaseSummary, RunEvent, UploadPolicyInput, DraftReview, DraftReviewInput, Publication } from "./types";
 import { caseDetails, caseSummaries } from "@/fixtures/cases";
 import { clauseById, policies, policyVersions, SNAPSHOT_ID } from "@/fixtures/policies";
 import { lookupAnswer } from "@/fixtures/lookup";
@@ -243,7 +243,6 @@ export class FixtureApi implements ComplianceApi {
   async getDraftReview(_versionId: string): Promise<DraftReview> { throw new Error("Policy review requires the live API."); }
   async saveDraftReview(_versionId: string, _input: DraftReviewInput): Promise<DraftReview> { throw new Error("Policy review requires the live API."); }
   async publishPolicy(_versionId: string, _revision: number): Promise<Publication> { throw new Error("Policy publication requires the live API."); }
-  async getPolicyGraph(_input: GraphInput): Promise<PolicyGraph> { throw new Error("The stored knowledge graph requires the live API."); }
 
   private play(rec: RunRecord, script: ScriptStep[]) {
     let at = 0;

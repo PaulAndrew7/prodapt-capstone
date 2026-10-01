@@ -108,7 +108,6 @@ export function DraftReviewEditor({ review }: { review: DraftReview }) {
   const publish = useMutation({ mutationFn: () => api.publishPolicy(v.id, review.revision), onSuccess: (result) => {
     void qc.invalidateQueries({ queryKey: ["policies"] });
     void qc.invalidateQueries({ queryKey: ["policy-version", v.id] });
-    void qc.invalidateQueries({ queryKey: ["policy-graph"] });
     void qc.invalidateQueries({ queryKey: ["draft-review", v.id] });
     navigate(`/app/policies/${v.policy_id}/versions/${v.id}?published=${result.snapshot_id}`);
   } });

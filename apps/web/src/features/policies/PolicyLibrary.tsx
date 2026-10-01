@@ -41,9 +41,9 @@ export function PolicyLibrary() {
     <div className="mx-auto max-w-[1600px] px-4 py-10 md:px-8 md:py-14">
       <h1 className="font-display text-[clamp(2.75rem,5vw,4.5rem)] font-bold leading-none">Policies</h1>
       <p className="mt-4 max-w-[60ch] text-lg text-ink-2">
-        Published policy evidence Clause searches, including the fictional Kestrel Mutual demo corpus. Every finding cites a clause in one of these versions.
+        Published policy evidence Paul.ez searches, including the fictional Kestrel Mutual demo corpus. Every finding cites a clause in one of these versions.
       </p>
-      <div className="mt-6 flex flex-wrap gap-3"><ButtonLink to="/app/policies/manage" variant="mark">Manage policies</ButtonLink><ButtonLink to="/app/policies/graph" variant="outline">Explore knowledge graph</ButtonLink></div>
+      <div className="mt-6 flex flex-wrap gap-3"><ButtonLink to="/app/policies/manage" variant="mark">Manage policies</ButtonLink></div>
 
       <h2 className="mt-12 font-display text-3xl font-semibold">All policies</h2>
       <div className="mt-5 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by category">

@@ -188,7 +188,7 @@ tbody tr:hover { background: var(--sheet); }
   <li><a href="#llm">The LLM layer</a></li>
   <li><a href="#local">Local review (no LLM)</a></li>
   <li><a href="#api">The HTTP API</a></li>
-  <li><a href="#admin">Policy upload and knowledge graph</a></li>
+  <li><a href="#admin">Policy upload</a></li>
   <li><a href="#cli">The command line</a></li>
   <li><a href="#frontend">The web app</a></li>
   <li><a href="#contracts">Shared contracts</a></li>
@@ -324,7 +324,7 @@ tbody tr:hover { background: var(--sheet); }
 <tr><td>Celery, Redis or a job queue</td><td class="no">No</td><td>An assessment runs as a FastAPI background task inside the API process.</td></tr>
 <tr><td>WebSockets</td><td class="no">No</td><td>Progress streams to the browser with Server-Sent Events (SSE).</td></tr>
 <tr><td>OCR, Word documents</td><td class="no">No</td><td>Digital PDFs only. Scanned PDFs are rejected with a clear error.</td></tr>
-<tr><td>Neo4j or a graph database</td><td class="no">No</td><td>The “Knowledge graph” page draws stored clause relations from PostgreSQL.</td></tr>
+<tr><td>Neo4j or a graph database</td><td class="no">No</td><td>Clause relations (references, exceptions, overrides) are rows in PostgreSQL. Retrieval follows them one step from the search hits. There is no graph page: it was removed on 1 October because it looked like a full knowledge graph when it only drew those stored links.</td></tr>
 <tr><td>Kafka</td><td class="no">No</td><td>Discussed as future work for policy-change events (<code>docs/CAPSTONE_REVIEW_AND_IMPLEMENTATION_PLAN.md</code> §7).</td></tr>
 <tr><td>Real login</td><td class="no">No</td><td><code>AUTH_MODE=demo</code> maps every request to one seeded admin user. Production settings refuse demo mode.</td></tr>
 <tr><td>Three.js</td><td class="yes">Yes, on the front page</td><td>The landing page's 3D stack of policy pages (React Three Fiber). The in-app companion avatar is SVG, not 3D.</td></tr>
@@ -1066,7 +1066,6 @@ questions: [{ fact_key, question, reason, clause_id, answer_kind: choice | text,
 <tr><td><code>POST /api/v1/admin/policies/upload</code></td><td>Admin uploads a PDF as a draft version.</td><td rowspan="3"><code>api/policy_admin.py</code></td></tr>
 <tr><td><code>GET/POST /api/v1/admin/policy-versions/{id}/review</code></td><td>Read or save the clause review of a draft.</td></tr>
 <tr><td><code>POST /api/v1/admin/policy-versions/{id}/publish</code></td><td>Publish and create a new snapshot.</td></tr>
-<tr><td><code>GET /api/v1/policy-graph</code></td><td>Nodes and edges for the knowledge graph page.</td><td><code>api/policy_graph.py</code></td></tr>
 </tbody></table></div>
 
 <h3>Cross-cutting behaviour</h3>
@@ -1079,7 +1078,7 @@ questions: [{ fact_key, question, reason, clause_id, answer_kind: choice | text,
 </ul>
 
 <!-- ============================================================ -->
-<h2 id="admin"><span class="num">17</span>Module: policy upload and the knowledge graph</h2>
+<h2 id="admin"><span class="num">17</span>Module: policy upload</h2>
 <p>Added on 30 September–1 October.</p>
 <h3>Upload, review, publish (<code>app/api/policy_admin.py</code>, <code>app/domain/policy_management.py</code>)</h3>
 <ol>
@@ -1088,8 +1087,6 @@ questions: [{ fact_key, question, reason, clause_id, answer_kind: choice | text,
   <li><strong>Publish</strong>: requires a ready index, a complete review, acknowledged warnings, the original file present and a start date different from other versions of that policy. It marks the version published and creates a <strong>new snapshot</strong> containing all published versions. Every step writes an <strong>audit event</strong>.</li>
 </ol>
 <p>Relations on uploaded policies are only used by retrieval once an admin approved them. The UI is <code>apps/web/src/features/policies/PolicyManagement.tsx</code>.</p>
-<h3>Knowledge graph (<code>app/api/policy_graph.py</code>)</h3>
-<p>Returns a bounded graph (at most 60 clauses) for the versions in force on a date: nodes for policies, versions, clauses and, when a case is given, the case and its findings; edges for <em>contains</em>, <em>references</em>, <em>excepts</em>, <em>overrides</em> and <em>supports</em> (clause → finding). The page <code>PolicyGraph.tsx</code> draws it as columns in SVG. It visualises stored relationships and saved provenance; it is <strong>not</strong> a graph database or a reasoning engine.</p>
 
 <!-- ============================================================ -->
 <h2 id="cli"><span class="num">18</span>Module: the command line (<code>app/cli.py</code>)</h2>
@@ -1131,7 +1128,6 @@ questions: [{ fact_key, question, reason, clause_id, answer_kind: choice | text,
 <tr><td><code>/app/policies</code></td><td>Policy library with index status</td><td><code>features/policies/PolicyLibrary.tsx</code></td></tr>
 <tr><td><code>/app/policies/:policyId/versions/:versionId</code></td><td>Policy reader with clause deep links and a version compare (a deterministic clause-level diff)</td><td><code>PolicyDetail.tsx</code>, <code>VersionDiff.tsx</code></td></tr>
 <tr><td><code>/app/policies/manage</code></td><td>Upload, review and publish a policy</td><td><code>PolicyManagement.tsx</code></td></tr>
-<tr><td><code>/app/policies/graph</code></td><td>Knowledge graph</td><td><code>PolicyGraph.tsx</code></td></tr>
 <tr><td><code>/app/ask</code></td><td>Ask a question</td><td><code>AskPage.tsx</code>, <code>PolicyAsk.tsx</code></td></tr>
 <tr><td><code>/app/reviews</code>, <code>/reports</code>, <code>/evaluation</code>, <code>/settings</code></td><td>Fixture prototypes. In live mode they show “Prototype screen” and are hidden from the navigation.</td><td><code>app/Prototype.tsx</code></td></tr>
 </tbody></table></div>
@@ -1701,7 +1697,7 @@ $env:VITE_API_MODE="http"; corepack pnpm --dir apps/web dev</code></pre>
 <tr><td><code>features/cases/ScenarioComposer.tsx</code>, <code>CaseIndex.tsx</code></td><td class="wrap">New-case form with samples; the case list.</td></tr>
 <tr><td><code>features/cases/PrintReport.tsx</code>, <code>printReport.css</code></td><td class="wrap">The printable report.</td></tr>
 <tr><td><code>features/cases/Hypothetical.tsx</code></td><td class="wrap">“Try a hypothetical” comparison (fixture mode only).</td></tr>
-<tr><td><code>features/policies/*</code></td><td class="wrap">Library, policy reader, version diff, Ask a question, policy management, knowledge graph.</td></tr>
+<tr><td><code>features/policies/*</code></td><td class="wrap">Library, policy reader, version diff, Ask a question, policy management.</td></tr>
 <tr><td><code>features/overview/Overview.tsx</code></td><td class="wrap">The app home page.</td></tr>
 <tr><td><code>features/review/ReviewQueue.tsx</code>, <code>features/admin/AdminPages.tsx</code></td><td class="wrap">Fixture prototypes: reviews, reports, evaluation lab, settings.</td></tr>
 <tr><td><code>features/avatar/*</code></td><td class="wrap">Companion: pure controller, expressions, SVG figure, panel, “assessing” stage, preference.</td></tr>

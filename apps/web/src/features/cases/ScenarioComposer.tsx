@@ -71,7 +71,7 @@ export function ScenarioComposer({ headingLevel = "h1" }: { headingLevel?: "h1" 
           Describe what you&rsquo;re planning to do.
         </H>
         <p className="mt-4 max-w-[54ch] text-lg text-ink-2">
-          Write it the way you would explain it to a colleague. Say what you don&rsquo;t know; Clause keeps unknowns
+          Write it the way you would explain it to a colleague. Say what you don&rsquo;t know; Paul.ez keeps unknowns
           visible instead of guessing.
         </p>
 

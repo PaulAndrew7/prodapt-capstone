@@ -348,7 +348,7 @@ export function CaseWorkspace() {
                 {phase === "idle" && (
                   <EmptyState
                     title="Not assessed yet."
-                    body="Clause will retrieve the relevant clauses, ask about anything that decides the result, and pin each finding to its source."
+                    body="Paul.ez will retrieve the relevant clauses, ask about anything that decides the result, and pin each finding to its source."
                     action={
                       <Button variant="mark" size="lg" loading={start.isPending} onClick={() => start.mutate()}>
                         Assess

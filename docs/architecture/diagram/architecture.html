@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Clause architecture</title>
+<title>Paul.ez architecture</title>
 <!-- Editable source for docs/architecture/architecture.pdf and the two JPEGs.
      Re-export with: corepack pnpm --dir apps/web export:architecture -->
 <style>
@@ -32,276 +32,444 @@
 
 <section class="page" id="system">
   <header>
-    <h1>Clause — <mark>system</mark> architecture</h1>
+    <h1>Paul.ez — <mark>system</mark> architecture</h1>
     <div class="meta">Fictional Kestrel Mutual corpus · local demonstration<br>Source: docs/architecture/diagram/architecture.html · 1 Oct 2026</div>
   </header>
   <figure>
-    <svg viewBox="0 0 1500 940" role="img" font-family="Switzer, ui-sans-serif, system-ui, sans-serif" aria-label="The browser talks only to one FastAPI process. That process holds the API routes, the five-stage assessment workflow run as a background task, and one model client. PostgreSQL with pgvector stores the policy library, cases and runs, and search runs inside it. The only call that leaves the machine is the model client's HTTPS request to the Anthropic API for Claude Sonnet 5.5; the organizers' GPT-4o mini gateway is a supported alternative. Command-line tools seed the corpus and run the evaluation through the same workflow.">
-      <defs>
-        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111413"/></marker>
-      </defs>
-
-      <!-- Zones -->
-      <rect x="320" y="40" width="920" height="550" rx="14" fill="none" stroke="#4a524e" stroke-width="1.5"/>
-      <text x="342" y="68" font-size="13" font-weight="600" letter-spacing="1.2" fill="#4a524e">FASTAPI BACKEND · ONE PROCESS</text>
-      <rect x="330" y="640" width="900" height="220" rx="14" fill="none" stroke="#4a524e" stroke-width="1.5"/>
-      <text x="352" y="667" font-size="13" font-weight="600" letter-spacing="1.2" fill="#4a524e">DATA</text>
-      <rect x="30" y="640" width="250" height="275" rx="14" fill="none" stroke="#d5dad7" stroke-width="1.5"/>
-      <text x="48" y="667" font-size="13" font-weight="600" letter-spacing="1.2" fill="#4a524e">COMMAND LINE</text>
-      <text x="1280" y="66" font-size="13" font-weight="600" letter-spacing="1.2" fill="#4a524e">EXTERNAL</text>
-
-      <!-- Browser -->
-      <rect x="40" y="280" width="230" height="260" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-      <text x="60" y="314" font-family="Clash Display, Switzer, sans-serif" font-size="21" font-weight="600">Web app</text>
-      <text x="60" y="339" font-size="14" fill="#4a524e">React · TypeScript · Vite</text>
-      <text x="60" y="376" font-size="15">Policies</text>
-      <text x="60" y="401" font-size="15">Ask a question</text>
-      <text x="60" y="426" font-size="15">Cases and evidence</text>
-      <text x="60" y="451" font-size="15">Avatar mirrors run state</text>
-      <text x="60" y="515" font-size="13" fill="#6b726e">No keys; calls /api only</text>
-
-      <!-- API routes -->
-      <rect x="350" y="280" width="300" height="260" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-      <text x="370" y="314" font-family="Clash Display, Switzer, sans-serif" font-size="21" font-weight="600">API routes</text>
-      <g font-family="ui-monospace, Consolas, monospace" font-size="13.5">
-        <text x="370" y="350">GET  policies, clauses, pages</text>
-        <text x="370" y="377">POST /search</text>
-        <text x="370" y="404">POST /lookup</text>
-        <text x="370" y="431">POST /cases, /cases/{id}/runs</text>
-        <text x="370" y="458">POST /runs/{id}/resume</text>
-        <text x="370" y="485">POST /runs/{id}/cancel</text>
-        <text x="370" y="512">GET  /runs/{id}/events</text>
-      </g>
-
-      <!-- Workflow -->
-      <rect x="860" y="280" width="350" height="260" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-      <text x="880" y="314" font-family="Clash Display, Switzer, sans-serif" font-size="21" font-weight="600">Assessment workflow</text>
-      <text x="880" y="339" font-size="14" fill="#4a524e">Background task · plain Python functions</text>
-      <g font-size="15">
-        <text x="880" y="374"><tspan font-family="ui-monospace, Consolas, monospace" fill="#6b726e">1 </tspan>Retrieval</text>
-        <text x="880" y="401"><tspan font-family="ui-monospace, Consolas, monospace" fill="#6b726e">2 </tspan>Compliance analysis</text>
-        <text x="880" y="428"><tspan font-family="ui-monospace, Consolas, monospace" fill="#6b726e">3 </tspan>Risk</text>
-        <text x="880" y="455"><tspan font-family="ui-monospace, Consolas, monospace" fill="#6b726e">4 </tspan>Validation</text>
-        <text x="880" y="482"><tspan font-family="ui-monospace, Consolas, monospace" fill="#6b726e">5 </tspan>Recommendation</text>
-        <text x="880" y="509"><tspan font-family="ui-monospace, Consolas, monospace" fill="#6b726e">6 </tspan>Final checks</text>
-      </g>
-      <g font-size="12" font-weight="600">
-        <rect x="1116" y="387" width="78" height="20" rx="10" fill="#ddff3c"/><text x="1155" y="401" text-anchor="middle">model</text>
-        <rect x="1116" y="441" width="78" height="20" rx="10" fill="#ddff3c"/><text x="1155" y="455" text-anchor="middle">model</text>
-        <rect x="1116" y="468" width="78" height="20" rx="10" fill="#ddff3c"/><text x="1155" y="482" text-anchor="middle">model</text>
-      </g>
-
-      <!-- Model client -->
-      <rect x="600" y="80" width="400" height="120" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-      <text x="620" y="112" font-family="Clash Display, Switzer, sans-serif" font-size="21" font-weight="600">Model client <tspan font-family="ui-monospace, Consolas, monospace" font-size="14" font-weight="400" fill="#4a524e">claude_model.py</tspan></text>
-      <text x="620" y="140" font-size="15">Anthropic SDK, structured outputs</text>
-      <text x="620" y="164" font-size="15">JSON validated in code, 1 repair</text>
-      <text x="620" y="187" font-size="14" fill="#4a524e">≤ 8 calls, 120 s; gateway client in llm.py</text>
-
-      <!-- Model provider (external) -->
-      <rect x="1280" y="80" width="200" height="120" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5" stroke-dasharray="7 5"/>
-      <text x="1298" y="110" font-size="16" fill="#4a524e">Anthropic API</text>
-      <text x="1298" y="140" font-family="Clash Display, Switzer, sans-serif" font-size="18" font-weight="700">Claude Sonnet 5.5</text>
-      <text x="1298" y="166" font-size="13" fill="#6b726e">Or GPT-4o mini through</text>
-      <text x="1298" y="184" font-size="13" fill="#6b726e">the organizers' gateway</text>
-
-      <!-- Data -->
-      <rect x="360" y="690" width="200" height="150" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-      <text x="378" y="722" font-family="Clash Display, Switzer, sans-serif" font-size="19" font-weight="600">File storage</text>
-      <text x="378" y="750" font-size="15">Original policy PDFs</text>
-      <text x="378" y="776" font-family="ui-monospace, Consolas, monospace" font-size="13" fill="#4a524e">var/storage</text>
-      <rect x="590" y="690" width="610" height="150" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-      <text x="610" y="722" font-family="Clash Display, Switzer, sans-serif" font-size="19" font-weight="600">PostgreSQL 16 + pgvector</text>
-      <g font-size="14.5">
-        <text x="610" y="752"><tspan font-family="ui-monospace, Consolas, monospace" font-size="13" fill="#4a524e">library </tspan> policies, versions, clauses, chunks + vectors, snapshots</text>
-        <text x="610" y="780"><tspan font-family="ui-monospace, Consolas, monospace" font-size="13" fill="#4a524e">cases   </tspan> scenario revisions, messages, facts</text>
-        <text x="610" y="808"><tspan font-family="ui-monospace, Consolas, monospace" font-size="13" fill="#4a524e">runs    </tspan> state, final assessment JSON, progress events, handoffs</text>
-      </g>
-
-      <!-- Command line -->
-      <rect x="45" y="685" width="220" height="82" rx="8" fill="#fbfcfb" stroke="#4a524e"/>
-      <text x="60" y="709" font-family="ui-monospace, Consolas, monospace" font-size="14" font-weight="600">seed-demo</text>
-      <text x="60" y="731" font-size="13.5">PDFs → clauses → local</text>
-      <text x="60" y="751" font-size="13.5">embeddings (bge-small)</text>
-      <rect x="45" y="777" width="220" height="52" rx="8" fill="#fbfcfb" stroke="#4a524e"/>
-      <text x="60" y="800" font-family="ui-monospace, Consolas, monospace" font-size="14" font-weight="600">check-model</text>
-      <text x="60" y="819" font-size="13.5">one test model request</text>
-      <rect x="45" y="839" width="220" height="62" rx="8" fill="#fbfcfb" stroke="#4a524e"/>
-      <text x="60" y="862" font-family="ui-monospace, Consolas, monospace" font-size="14" font-weight="600">evaluate</text>
-      <text x="60" y="883" font-size="13.5">33 labelled scenarios</text>
-
-      <!-- Edges -->
-      <g stroke="#111413" stroke-width="1.6" fill="none">
-        <line x1="270" y1="370" x2="348" y2="370" marker-end="url(#a1)"/>
-        <line x1="350" y1="450" x2="272" y2="450" marker-end="url(#a1)"/>
-        <line x1="650" y1="330" x2="858" y2="330" marker-end="url(#a1)"/>
-        <line x1="630" y1="280" x2="630" y2="202" marker-end="url(#a1)"/>
-        <line x1="940" y1="280" x2="940" y2="202" marker-end="url(#a1)"/>
-        <line x1="460" y1="540" x2="460" y2="688" marker-end="url(#a1)"/>
-        <line x1="620" y1="540" x2="620" y2="688" marker-end="url(#a1)"/>
-        <line x1="1000" y1="540" x2="1000" y2="688" marker-end="url(#a1)"/>
-        <line x1="265" y1="726" x2="328" y2="726" marker-end="url(#a1)"/>
-        <polyline points="155,901 155,926 1265,926 1265,500 1212,500" marker-end="url(#a1)"/>
-      </g>
-      <!-- The one hop that leaves the machine -->
-      <line x1="1000" y1="140" x2="1277" y2="140" stroke="#111413" stroke-width="2.4" marker-end="url(#a1)"/>
-      <rect x="1052" y="112" width="176" height="22" rx="4" fill="#ddff3c"/>
-      <text x="1140" y="128" text-anchor="middle" font-size="13.5" font-weight="600">HTTPS · key stays server-side</text>
-
-      <!-- Edge labels -->
-      <g font-size="13.5" fill="#111413">
-        <text x="309" y="361" text-anchor="middle">HTTP</text>
-        <text x="309" y="441" text-anchor="middle">SSE</text>
-        <text x="755" y="320" text-anchor="middle">start · resume · cancel</text>
-        <text x="640" y="245">lookup: 1 call</text>
-        <text x="950" y="245">3 calls per run</text>
-        <text x="470" y="612">source pages</text>
-        <text x="630" y="612">records, search SQL</text>
-        <text x="1010" y="606">hybrid search;</text>
-        <text x="1010" y="624">saves events, result</text>
-        <text x="296" y="716" text-anchor="middle">writes</text>
-        <text x="1278" y="700">evaluate runs the</text>
-        <text x="1278" y="718">same workflow in a</text>
-        <text x="1278" y="736">separate database</text>
-      </g>
+    <svg viewBox="0 0 1500 920" role="img" font-family="Switzer, ui-sans-serif, system-ui, sans-serif" aria-label="Three flows inside one FastAPI process. A, policy intake: an admin uploads a PDF; code extracts text, segments it into clauses, tags each clause by its wording and indexes it with full-text and local embeddings as a draft; a person reviews it and publishing creates an immutable snapshot. B, ask a question: the question is screened, searched with hybrid full-text and pgvector search fused by reciprocal rank, and answered by one model call whose quotes are checked in code. C, compliance assessment: a case run is screened, retrieves the clauses in force on the as-of date, runs analysis, validation and recommendation with one model call each, may pause for up to three questions, and ends with the coverage gate, outcome rules and evidence scores; progress streams to the browser over SSE. If the model fails, the run continues as a local review. Data lives in local PostgreSQL with pgvector and in file storage. The only external call is HTTPS to the Anthropic API.">
+      <defs><marker id="s1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111413"/></marker></defs>
+      <rect x="250" y="20" width="1000" height="622" rx="14" fill="none" stroke="#4a524e" stroke-width="1.5"/>
+      <text x="268" y="44" font-size="12.5" font-weight="600" letter-spacing="1.2" fill="#4a524e">FASTAPI BACKEND · /api/v1 · ONE UVICORN PROCESS</text>
+      <rect x="262" y="52" width="976" height="160" rx="10" fill="#ebefec"/>
+      <circle cx="284" cy="72" r="11" fill="#111413"/>
+      <text x="284" y="76.5" text-anchor="middle" font-family="Clash Display, Switzer, sans-serif" font-size="13" font-weight="700" fill="#fbfcfb">A</text>
+      <text x="303" y="77" font-size="12.5" font-weight="700" letter-spacing="1.1">POLICY INTAKE · ADMIN</text>
+      <text x="1226" y="77" text-anchor="end" font-size="12" fill="#4a524e">nothing is searchable until a person reviews and publishes it</text>
+      <rect x="262" y="222" width="976" height="160" rx="10" fill="#ebefec"/>
+      <circle cx="284" cy="242" r="11" fill="#111413"/>
+      <text x="284" y="246.5" text-anchor="middle" font-family="Clash Display, Switzer, sans-serif" font-size="13" font-weight="700" fill="#fbfcfb">B</text>
+      <text x="303" y="247" font-size="12.5" font-weight="700" letter-spacing="1.1">ASK A QUESTION</text>
+      <text x="1226" y="247" text-anchor="end" font-size="12" fill="#4a524e">grounded lookup: answers only from retrieved clause text</text>
+      <rect x="262" y="392" width="976" height="242" rx="10" fill="#ebefec"/>
+      <circle cx="284" cy="412" r="11" fill="#111413"/>
+      <text x="284" y="416.5" text-anchor="middle" font-family="Clash Display, Switzer, sans-serif" font-size="13" font-weight="700" fill="#fbfcfb">C</text>
+      <text x="303" y="417" font-size="12.5" font-weight="700" letter-spacing="1.1">COMPLIANCE ASSESSMENT · CASE RUN</text>
+      <text x="1226" y="417" text-anchor="end" font-size="12" fill="#4a524e">background task; every stage saves an event and a handoff</text>
+      <rect x="270" y="94" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="282" y="118" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Upload PDF</text>
+      <text x="282" y="138" font-family="ui-monospace, Consolas, monospace" font-size="11" fill="#111413">POST /admin/</text>
+      <text x="282" y="153" font-family="ui-monospace, Consolas, monospace" font-size="11" fill="#111413">policies/upload</text>
+      <text x="282" y="168" font-size="12" fill="#4a524e">multipart, ≤ 20 MB</text>
+      <rect x="434" y="94" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="446" y="118" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Extract text</text>
+      <text x="446" y="138" font-size="12" fill="#4a524e">pypdf, page by page</text>
+      <text x="446" y="153" font-size="12" fill="#4a524e">drops running headers</text>
+      <text x="446" y="168" font-size="12" fill="#4a524e">warns if no text layer</text>
+      <rect x="598" y="94" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="610" y="118" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Segment</text>
+      <text x="610" y="138" font-size="12" fill="#4a524e">numbered headings</text>
+      <text x="610" y="153" font-size="12" fill="#4a524e">→ clauses, tagged by</text>
+      <text x="610" y="168" font-size="12" fill="#4a524e">wording: requirement,</text>
+      <text x="610" y="183" font-size="12" fill="#4a524e">exception, definition</text>
+      <rect x="762" y="94" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="774" y="118" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Index</text>
+      <text x="774" y="138" font-size="12" fill="#4a524e">chunks + tsvector</text>
+      <text x="774" y="153" font-size="12" fill="#4a524e">bge-small embeddings</text>
+      <text x="774" y="168" font-size="12" fill="#4a524e">384-d, local ONNX</text>
+      <text x="774" y="183" font-size="12" fill="#4a524e">no API key needed</text>
+      <rect x="926" y="94" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="938" y="118" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Admin review</text>
+      <text x="938" y="138" font-size="12" fill="#4a524e">confirm clause kinds</text>
+      <text x="938" y="153" font-size="12" fill="#4a524e">approve relations</text>
+      <text x="938" y="168" font-size="12" fill="#4a524e">(excepts, overrides)</text>
+      <text x="938" y="183" font-size="12" fill="#4a524e">audit logged</text>
+      <rect x="1090" y="94" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="1102" y="118" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Publish</text>
+      <text x="1102" y="138" font-size="12" fill="#4a524e">draft → published</text>
+      <text x="1102" y="153" font-size="12" fill="#4a524e">(immutable)</text>
+      <text x="1102" y="168" font-size="12" fill="#4a524e">new policy snapshot</text>
+      <text x="1102" y="183" font-size="12" fill="#4a524e">for future runs</text>
+      <rect x="270" y="264" width="168" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="282" y="288" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Question</text>
+      <text x="282" y="308" font-family="ui-monospace, Consolas, monospace" font-size="11" fill="#111413">POST /lookup</text>
+      <text x="282" y="323" font-size="12" fill="#4a524e">free-text question</text>
+      <text x="282" y="338" font-size="12" fill="#4a524e">latest snapshot</text>
+      <rect x="468" y="264" width="168" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="480" y="288" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Input check</text>
+      <text x="480" y="308" font-size="12" fill="#4a524e">off-topic or override</text>
+      <text x="480" y="323" font-size="12" fill="#4a524e">→ declined before</text>
+      <text x="480" y="338" font-size="12" fill="#4a524e">any model call</text>
+      <rect x="666" y="264" width="168" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="678" y="288" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Hybrid search</text>
+      <text x="678" y="308" font-size="12" fill="#4a524e">Postgres FTS (ts_rank_cd)</text>
+      <text x="678" y="323" font-size="12" fill="#4a524e">+ pgvector cosine</text>
+      <text x="678" y="338" font-size="12" fill="#4a524e">fused by RRF, k = 60</text>
+      <rect x="864" y="264" width="168" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="876" y="288" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Grounded answer</text>
+      <text x="876" y="308" font-size="12" fill="#4a524e">cites retrieved clauses</text>
+      <text x="876" y="323" font-size="12" fill="#4a524e">quotes checked in code</text>
+      <text x="876" y="338" font-size="12" fill="#4a524e">no model → excerpts</text>
+      <rect x="986" y="255" width="38" height="18" rx="9" fill="#ddff3c" stroke="#111413" stroke-width="1"/>
+      <text x="1005" y="268" text-anchor="middle" font-size="10.5" font-weight="700">LLM</text>
+      <rect x="1062" y="264" width="168" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="1074" y="288" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Answer</text>
+      <text x="1074" y="308" font-size="12" fill="#4a524e">text + citations</text>
+      <text x="1074" y="323" font-size="12" fill="#4a524e">evidence score 0–100</text>
+      <text x="1074" y="338" font-size="12" fill="#4a524e">links to the PDF page</text>
+      <rect x="270" y="434" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="282" y="458" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Start run</text>
+      <text x="282" y="478" font-family="ui-monospace, Consolas, monospace" font-size="11" fill="#111413">POST /cases/{id}</text>
+      <text x="282" y="493" font-family="ui-monospace, Consolas, monospace" font-size="11" fill="#111413">/runs → 202</text>
+      <text x="282" y="508" font-size="12" fill="#4a524e">input check first</text>
+      <rect x="434" y="434" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="446" y="458" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Retrieval</text>
+      <text x="446" y="478" font-size="12" fill="#4a524e">snapshot + as-of date</text>
+      <text x="446" y="493" font-size="12" fill="#4a524e">→ version in force</text>
+      <text x="446" y="508" font-size="12" fill="#4a524e">top 10 + related</text>
+      <text x="446" y="523" font-size="12" fill="#4a524e">≤ 14 clauses</text>
+      <rect x="598" y="434" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="610" y="458" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Analysis</text>
+      <text x="610" y="478" font-size="12" fill="#4a524e">facts: provided,</text>
+      <text x="610" y="493" font-size="12" fill="#4a524e">inferred, unknown</text>
+      <text x="610" y="508" font-size="12" fill="#4a524e">a finding per clause</text>
+      <text x="610" y="523" font-size="12" fill="#4a524e">≤ 3 questions</text>
+      <rect x="692" y="425" width="38" height="18" rx="9" fill="#ddff3c" stroke="#111413" stroke-width="1"/>
+      <text x="711" y="438" text-anchor="middle" font-size="10.5" font-weight="700">LLM</text>
+      <rect x="762" y="434" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="774" y="458" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Validation</text>
+      <text x="774" y="478" font-size="12" fill="#4a524e">quotes match (code)</text>
+      <text x="774" y="493" font-size="12" fill="#4a524e">support check (LLM)</text>
+      <text x="774" y="508" font-size="12" fill="#4a524e">coverage gate: no</text>
+      <text x="774" y="523" font-size="12" fill="#4a524e">clause left open</text>
+      <rect x="856" y="425" width="38" height="18" rx="9" fill="#ddff3c" stroke="#111413" stroke-width="1"/>
+      <text x="875" y="438" text-anchor="middle" font-size="10.5" font-weight="700">LLM</text>
+      <rect x="926" y="434" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="938" y="458" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Recommend</text>
+      <text x="938" y="478" font-size="12" fill="#4a524e">actions only for</text>
+      <text x="938" y="493" font-size="12" fill="#4a524e">validated gaps</text>
+      <text x="938" y="508" font-size="12" fill="#4a524e">unlinked → dropped</text>
+      <rect x="1020" y="425" width="38" height="18" rx="9" fill="#ddff3c" stroke="#111413" stroke-width="1"/>
+      <text x="1039" y="438" text-anchor="middle" font-size="10.5" font-weight="700">LLM</text>
+      <rect x="1090" y="434" width="140" height="100" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="1102" y="458" font-family="Clash Display, Switzer, sans-serif" font-size="15" font-weight="600">Outcome</text>
+      <text x="1102" y="478" font-size="12" fill="#4a524e">risk rubric</text>
+      <text x="1102" y="493" font-size="12" fill="#4a524e">5 ordered rules</text>
+      <text x="1102" y="508" font-size="12" fill="#4a524e">evidence scores</text>
+      <text x="1102" y="523" font-size="12" fill="#4a524e">→ assessment JSON</text>
+      <line x1="410" y1="144" x2="432" y2="144" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="574" y1="144" x2="596" y2="144" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="738" y1="144" x2="760" y2="144" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="902" y1="144" x2="924" y2="144" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="1066" y1="144" x2="1088" y2="144" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="438" y1="314" x2="466" y2="314" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="636" y1="314" x2="664" y2="314" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="834" y1="314" x2="862" y2="314" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="1032" y1="314" x2="1060" y2="314" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="410" y1="484" x2="432" y2="484" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="574" y1="484" x2="596" y2="484" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="738" y1="484" x2="760" y2="484" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="902" y1="484" x2="924" y2="484" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="1066" y1="484" x2="1088" y2="484" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <rect x="270" y="556" width="140" height="68" rx="8" fill="#fbfcfb" stroke="#4a524e" stroke-width="1.2"/>
+      <text x="282" y="578" font-size="13.5" font-weight="600">Live progress</text>
+      <text x="282" y="596" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#111413">run_events → SSE</text>
+      <text x="282" y="612" text-anchor="start" font-size="9.5" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">GET …/runs/{id}/events</text>
+      <rect x="434" y="556" width="304" height="68" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="446" y="578" font-family="ui-monospace, Consolas, monospace" font-size="13" font-weight="700">waiting_for_user</text>
+      <text x="446" y="596" text-anchor="start" font-size="12" fill="#4a524e">facts missing → run pauses with ≤ 3 questions</text>
+      <text x="446" y="612" text-anchor="start" font-size="10.5" font-family="ui-monospace, Consolas, monospace" fill="#111413">POST /runs/{id}/resume → rerun, no 2nd pause</text>
+      <line x1="668" y1="534" x2="668" y2="554" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <line x1="516" y1="556" x2="516" y2="536" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <rect x="762" y="556" width="468" height="68" rx="8" fill="#fbfcfb" stroke="#111413" stroke-width="1.4" stroke-dasharray="6 4"/>
+      <text x="774" y="578" font-size="13.5" font-weight="600">Fallback: local review, no model</text>
+      <text x="774" y="596" text-anchor="start" font-size="12" fill="#4a524e">LLM_MODE=auto: on a model error or timeout the same stages run without</text>
+      <text x="774" y="612" text-anchor="start" font-size="12" fill="#4a524e">the LLM; the user confirms each clause, so it can never clear a case by default</text>
+      <rect x="22" y="94" width="196" height="530" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+      <text x="38" y="124" font-family="Clash Display, Switzer, sans-serif" font-size="20" font-weight="600">Web app</text>
+      <text x="38" y="148" text-anchor="start" font-size="12.5" fill="#4a524e">React 19 · TypeScript</text>
+      <text x="38" y="166" text-anchor="start" font-size="12.5" fill="#4a524e">Vite 8 · Tailwind 4</text>
+      <text x="38" y="184" text-anchor="start" font-size="12.5" fill="#4a524e">TanStack Query</text>
+      <text x="38" y="202" text-anchor="start" font-size="12.5" fill="#4a524e">Motion · three.js avatar</text>
+      <line x1="38" y1="230" x2="202" y2="230" stroke="#d5dad7"/>
+      <text x="38" y="254" text-anchor="start" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#111413">/app/policies</text>
+      <text x="38" y="273" text-anchor="start" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#111413">/app/policies/manage</text>
+      <text x="38" y="292" text-anchor="start" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#111413">/app/ask</text>
+      <text x="38" y="311" text-anchor="start" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#111413">/app/cases</text>
+      <text x="38" y="330" text-anchor="start" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#111413">/app/cases/:id</text>
+      <text x="38" y="349" text-anchor="start" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#111413">/app/reviews</text>
+      <line x1="38" y1="378" x2="202" y2="378" stroke="#d5dad7"/>
+      <text x="38" y="400" text-anchor="start" font-size="12" fill="#4a524e">Types follow the</text>
+      <text x="38" y="417" text-anchor="start" font-size="12" fill="#4a524e">OpenAPI contract in</text>
+      <text x="38" y="434" text-anchor="start" font-size="12" fill="#4a524e">packages/contracts</text>
+      <text x="38" y="520" text-anchor="start" font-size="12" fill="#6b726e">No API key in the</text>
+      <text x="38" y="537" text-anchor="start" font-size="12" fill="#6b726e">browser; it calls</text>
+      <text x="38" y="554" text-anchor="start" font-size="12" fill="#6b726e">/api only</text>
+      <line x1="218" y1="144" x2="268" y2="144" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <text x="234" y="137" text-anchor="middle" font-size="10.5" fill="#4a524e">upload</text>
+      <line x1="218" y1="314" x2="268" y2="314" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <text x="234" y="307" text-anchor="middle" font-size="11" fill="#4a524e">JSON</text>
+      <line x1="218" y1="484" x2="268" y2="484" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <text x="234" y="477" text-anchor="middle" font-size="11" fill="#4a524e">JSON</text>
+      <line x1="270" y1="596" x2="220" y2="596" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <text x="236" y="589" text-anchor="middle" font-size="11" fill="#111413">SSE</text>
+      <rect x="1272" y="20" width="210" height="180" rx="10" fill="none" stroke="#d5dad7" stroke-width="1.4"/>
+      <text x="1288" y="44" font-size="12.5" font-weight="600" letter-spacing="1.2" fill="#4a524e">LEGEND</text>
+      <rect x="1288" y="60" width="34" height="20" rx="4" fill="#fbfcfb" stroke="#111413" stroke-width="1.4"/>
+      <text x="1332" y="75" text-anchor="start" font-size="12" fill="#111413">step in Python code</text>
+      <rect x="1288" y="96" width="34" height="18" rx="9" fill="#ddff3c" stroke="#111413"/>
+      <text x="1305" y="109" text-anchor="middle" font-size="10" font-weight="700">LLM</text>
+      <text x="1332" y="109" text-anchor="start" font-size="12" fill="#111413">makes one model call</text>
+      <rect x="1288" y="130" width="34" height="20" rx="4" fill="none" stroke="#111413" stroke-width="1.4" stroke-dasharray="5 3"/>
+      <text x="1332" y="145" text-anchor="start" font-size="12" fill="#111413">fallback or external</text>
+      <line x1="1288" y1="178" x2="1320" y2="178" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <text x="1332" y="182" text-anchor="start" font-size="12" fill="#111413">data / control flow</text>
+      <rect x="1272" y="222" width="210" height="196" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+      <text x="1288" y="250" font-family="Clash Display, Switzer, sans-serif" font-size="19" font-weight="600">Model client</text>
+      <text x="1288" y="270" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#111413">llm.py · claude_model.py</text>
+      <text x="1288" y="292" text-anchor="start" font-size="12" fill="#111413">Anthropic SDK</text>
+      <text x="1288" y="309" text-anchor="start" font-size="12" fill="#111413">JSON-schema outputs,</text>
+      <text x="1288" y="326" text-anchor="start" font-size="12" fill="#111413">Pydantic-validated,</text>
+      <text x="1288" y="343" text-anchor="start" font-size="12" fill="#111413">1 repair per stage</text>
+      <text x="1288" y="360" text-anchor="start" font-size="12" fill="#4a524e">≤ 8 calls, 120 s per run</text>
+      <text x="1288" y="377" text-anchor="start" font-size="12" fill="#4a524e">+ per-call timeout</text>
+      <text x="1288" y="394" text-anchor="start" font-size="12" fill="#4a524e">3 calls / run, 1 / lookup</text>
+      <line x1="1238" y1="312" x2="1270" y2="312" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <rect x="1272" y="478" width="210" height="104" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5" stroke-dasharray="7 5"/>
+      <text x="1288" y="502" text-anchor="start" font-size="11.5" fill="#4a524e">EXTERNAL · Anthropic API</text>
+      <text x="1288" y="528" font-family="Clash Display, Switzer, sans-serif" font-size="18" font-weight="700">Claude Sonnet 5.5</text>
+      <text x="1288" y="550" text-anchor="start" font-size="12" fill="#6b726e">alt: OpenAI-compatible</text>
+      <text x="1288" y="566" text-anchor="start" font-size="12" fill="#6b726e">gateway (GPT-4o mini)</text>
+      <line x1="1377" y1="418" x2="1377" y2="475" stroke="#111413" stroke-width="2.2" marker-end="url(#s1)"/>
+      <rect x="1300" y="436" width="154" height="20" rx="4" fill="#ddff3c"/>
+      <text x="1377" y="450" text-anchor="middle" font-size="11.5" font-weight="700">HTTPS · key server-side</text>
+      <rect x="250" y="680" width="1000" height="232" rx="14" fill="none" stroke="#4a524e" stroke-width="1.5"/>
+      <text x="268" y="704" font-size="12.5" font-weight="600" letter-spacing="1.2" fill="#4a524e">DATA · LOCAL</text>
+      <rect x="270" y="716" width="170" height="178" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+      <text x="286" y="744" font-family="Clash Display, Switzer, sans-serif" font-size="17" font-weight="600">File storage</text>
+      <text x="286" y="764" text-anchor="start" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#111413">var/storage</text>
+      <text x="286" y="788" text-anchor="start" font-size="12" fill="#4a524e">original policy PDFs</text>
+      <text x="286" y="805" text-anchor="start" font-size="12" fill="#4a524e">(demo + uploaded)</text>
+      <text x="286" y="822" text-anchor="start" font-size="12" fill="#4a524e">source pages for</text>
+      <text x="286" y="839" text-anchor="start" font-size="12" fill="#4a524e">citation links</text>
+      <rect x="460" y="716" width="770" height="178" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+      <text x="478" y="744" font-family="Clash Display, Switzer, sans-serif" font-size="17" font-weight="600">PostgreSQL 16 + pgvector</text>
+      <text x="478" y="764" text-anchor="start" font-size="12" fill="#4a524e">pixeltable-pgserver (no Docker) · port 5433 · SQLAlchemy 2 + Alembic migrations · search runs in SQL</text>
+      <text x="478" y="790" font-size="12.5" font-weight="700">Policy library</text>
+      <text x="478" y="807.0" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">policies</text>
+      <text x="478" y="821.5" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">policy_versions</text>
+      <text x="478" y="836.0" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">clauses</text>
+      <text x="478" y="850.5" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">clause_relations</text>
+      <text x="478" y="865.0" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">chunks: tsvector,</text>
+      <text x="478" y="879.5" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">  vector(384)</text>
+      <text x="666" y="790" font-size="12.5" font-weight="700">Snapshots + admin</text>
+      <text x="666" y="807.0" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">policy_snapshots</text>
+      <text x="666" y="821.5" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">snapshot_versions</text>
+      <text x="666" y="836.0" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">uploads</text>
+      <text x="666" y="850.5" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">audit_events</text>
+      <text x="854" y="790" font-size="12.5" font-weight="700">Cases</text>
+      <text x="854" y="807.0" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">cases</text>
+      <text x="854" y="821.5" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">scenario_revisions</text>
+      <text x="854" y="836.0" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">messages</text>
+      <text x="854" y="850.5" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">facts</text>
+      <text x="854" y="865.0" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">reviews</text>
+      <text x="1042" y="790" font-size="12.5" font-weight="700">Runs</text>
+      <text x="1042" y="807.0" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">assessment_runs</text>
+      <text x="1042" y="821.5" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">findings, citations</text>
+      <text x="1042" y="836.0" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">risks</text>
+      <text x="1042" y="850.5" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">recommendations</text>
+      <text x="1042" y="865.0" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">run_events</text>
+      <text x="1042" y="879.5" text-anchor="start" font-size="11" font-family="ui-monospace, Consolas, monospace" fill="#4a524e">agent_messages</text>
+      <line x1="410" y1="642" x2="410" y2="714" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <text x="418" y="665" text-anchor="start" font-size="11.5" fill="#4a524e">PDF bytes, page text</text>
+      <line x1="640" y1="642" x2="640" y2="714" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <text x="648" y="665" text-anchor="start" font-size="11.5" fill="#4a524e">drafts, index, snapshots</text>
+      <line x1="900" y1="642" x2="900" y2="714" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <text x="908" y="665" text-anchor="start" font-size="11.5" fill="#4a524e">hybrid search SQL; cases, runs, events</text>
+      <rect x="22" y="680" width="208" height="232" rx="14" fill="none" stroke="#d5dad7" stroke-width="1.5"/>
+      <text x="38" y="704" font-size="12.5" font-weight="600" letter-spacing="1.2" fill="#4a524e">COMMAND LINE</text>
+      <text x="38" y="726" text-anchor="start" font-size="11.5" font-family="ui-monospace, Consolas, monospace" fill="#111413">python -m app.cli</text>
+      <text x="38" y="752" text-anchor="start" font-size="12" font-family="ui-monospace, Consolas, monospace" fill="#111413">db-start</text>
+      <text x="134" y="752" text-anchor="start" font-size="11.5" fill="#4a524e">local Postgres</text>
+      <text x="38" y="778" text-anchor="start" font-size="12" font-family="ui-monospace, Consolas, monospace" fill="#111413">migrate</text>
+      <text x="134" y="778" text-anchor="start" font-size="11.5" fill="#4a524e">Alembic</text>
+      <text x="38" y="804" text-anchor="start" font-size="12" font-family="ui-monospace, Consolas, monospace" fill="#111413">seed-demo</text>
+      <text x="134" y="804" text-anchor="start" font-size="11.5" fill="#4a524e">14 demo PDFs</text>
+      <text x="38" y="830" text-anchor="start" font-size="12" font-family="ui-monospace, Consolas, monospace" fill="#111413">check-model</text>
+      <text x="134" y="830" text-anchor="start" font-size="11.5" fill="#4a524e">1 test call</text>
+      <text x="38" y="856" text-anchor="start" font-size="12" font-family="ui-monospace, Consolas, monospace" fill="#111413">evaluate</text>
+      <text x="134" y="856" text-anchor="start" font-size="11.5" fill="#4a524e">same workflow,</text>
+      <text x="134" y="872" text-anchor="start" font-size="11.5" fill="#4a524e">separate DB</text>
+      <line x1="230" y1="800" x2="248" y2="800" stroke="#111413" stroke-width="1.5" marker-end="url(#s1)"/>
+      <rect x="1272" y="680" width="210" height="232" rx="14" fill="none" stroke="#d5dad7" stroke-width="1.5"/>
+      <text x="1288" y="704" font-size="12.5" font-weight="600" letter-spacing="1.2" fill="#4a524e">QUALITY GATES</text>
+      <text x="1288" y="730" text-anchor="start" font-size="12.5" fill="#111413">pytest (own test DB)</text>
+      <text x="1288" y="752" text-anchor="start" font-size="12.5" fill="#111413">ruff · mypy</text>
+      <text x="1288" y="774" text-anchor="start" font-size="12.5" fill="#111413">OpenAPI contract check</text>
+      <text x="1288" y="796" text-anchor="start" font-size="12.5" fill="#111413">Alembic drift check</text>
+      <text x="1288" y="818" text-anchor="start" font-size="12.5" fill="#111413">Vitest · Playwright e2e</text>
+      <text x="1288" y="840" text-anchor="start" font-size="12.5" fill="#111413">GitHub Actions CI</text>
+      <text x="1288" y="862" text-anchor="start" font-size="12.5" fill="#4a524e">eval: 13 dev cases +</text>
+      <text x="1288" y="884" text-anchor="start" font-size="12.5" fill="#4a524e">20 held-out (frozen)</text>
     </svg>
-    <figcaption>The browser talks only to FastAPI: JSON over HTTP for actions, Server-Sent Events for run progress. One API process holds the routes, the assessment workflow (a background task, so the API can return a run ID at once) and a single model client. Search runs inside PostgreSQL (full-text ranking plus pgvector, fused by reciprocal rank); query and clause embeddings are computed locally, so search needs no key. The only runtime call that leaves the machine is the model client's HTTPS request to the Anthropic API for Claude Sonnet 5.5 (dashed: external), whose replies are constrained to each stage's JSON schema. The organizers' GPT-4o mini gateway is a supported alternative; it caps replies at 500 tokens, so there a cut-off reply is continued and joined before it is validated. Restarting the API fails an in-flight run; completed results stay saved.</figcaption>
+    <figcaption>Read it left to right. Three flows share one FastAPI process and one local PostgreSQL database. <b>A</b>: an admin uploads a policy PDF; code extracts, segments, tags and indexes it as a draft, a person reviews it, and publishing creates an immutable snapshot that later runs are pinned to. <b>B</b>: a question is screened, matched by hybrid search (Postgres full-text + pgvector, fused by reciprocal rank) and answered by one model call whose quotes are verified in code. <b>C</b>: a case run retrieves the clauses in force on its as-of date; analysis, validation and recommendation make one model call each, and code decides the status (coverage gate, five ordered rules, evidence scores). Embeddings are computed locally, so the only call leaving the machine is HTTPS to the model provider; if it fails, the run continues as a local review.</figcaption>
   </figure>
 </section>
 
 <section class="page" id="workflow">
   <header>
-    <h1>Clause — assessment <mark>workflow</mark></h1>
-    <div class="meta">services/api/app/workflow/ · orchestrator.py runs the stages in order<br>Five specialist roles, one backend, one model configuration</div>
+    <h1>Paul.ez — assessment <mark>workflow</mark></h1>
+    <div class="meta">services/api/app/workflow/ · orchestrator.py runs the stages in order<br>Five specialist roles and code gates, one backend, one model configuration</div>
   </header>
   <figure>
-    <svg viewBox="0 0 1500 940" role="img" font-family="Switzer, ui-sans-serif, system-ui, sans-serif" aria-label="An assessment runs six steps in a fixed order: retrieval, compliance analysis, risk, validation, recommendation and final checks. Three steps make one model call each; the rest are Python. If analysis finds material facts missing, the run pauses with up to three questions and, once answered, reruns from retrieval without pausing again. Risk is rescored after validation. Final checks apply five ordered outcome rules that only count validated findings.">
+    <svg viewBox="0 0 1500 940" role="img" font-family="Switzer, ui-sans-serif, system-ui, sans-serif" aria-label="An assessment starts with an input check, then runs six steps in a fixed order: retrieval, compliance analysis, risk, validation with a coverage gate, recommendation and final checks with evidence scores. Three steps make one model call each; the rest are Python. If analysis finds material facts missing, the run pauses with up to three questions and, once answered, reruns from the input check without pausing again. Risk is rescored after validation. If a model call fails or times out in automatic mode, the run continues as a local review without the model. Final checks apply five ordered outcome rules that only count validated findings and require every retrieved candidate to be accounted for.">
       <defs>
         <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111413"/></marker>
       </defs>
 
-      <!-- Stage boxes: x 90-660, tops every 132 -->
+      <!-- Input check: x 90-660, y 18-76 -->
+      <rect x="90" y="18" width="570" height="58" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+      <circle cx="124" cy="47" r="15" fill="none" stroke="#111413" stroke-width="1.5"/>
+      <text x="124" y="53" text-anchor="middle" font-family="Clash Display, Switzer, sans-serif" font-size="17" font-weight="700">0</text>
+      <text x="156" y="43" font-family="Clash Display, Switzer, sans-serif" font-size="18" font-weight="600">Input check</text>
+      <text x="156" y="65" font-size="14" fill="#111413">Declines override attempts and text unrelated to any policy</text>
+      <rect x="560" y="30" width="84" height="22" rx="11" fill="none" stroke="#4a524e"/>
+      <text x="602" y="45" text-anchor="middle" font-size="12.5" font-weight="600">Python</text>
+
+      <!-- Stage boxes: x 90-660, height 92, tops every 120 from 96 -->
       <g>
-        <rect x="90" y="40" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-        <rect x="90" y="172" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-        <rect x="90" y="304" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-        <rect x="90" y="436" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-        <rect x="90" y="568" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-        <rect x="90" y="700" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+        <rect x="90" y="96" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+        <rect x="90" y="216" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+        <rect x="90" y="336" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+        <rect x="90" y="456" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+        <rect x="90" y="576" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+        <rect x="90" y="696" width="570" height="92" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
       </g>
       <g font-family="Clash Display, Switzer, sans-serif" font-size="20" font-weight="700" text-anchor="middle">
-        <circle cx="124" cy="68" r="17" fill="#111413"/><text x="124" y="75" fill="#fbfcfb">1</text>
-        <circle cx="124" cy="200" r="17" fill="#111413"/><text x="124" y="207" fill="#fbfcfb">2</text>
-        <circle cx="124" cy="332" r="17" fill="#111413"/><text x="124" y="339" fill="#fbfcfb">3</text>
-        <circle cx="124" cy="464" r="17" fill="#111413"/><text x="124" y="471" fill="#fbfcfb">4</text>
-        <circle cx="124" cy="596" r="17" fill="#111413"/><text x="124" y="603" fill="#fbfcfb">5</text>
-        <circle cx="124" cy="728" r="17" fill="#111413"/><text x="124" y="735" fill="#fbfcfb">6</text>
+        <circle cx="124" cy="124" r="17" fill="#111413"/><text x="124" y="131" fill="#fbfcfb">1</text>
+        <circle cx="124" cy="244" r="17" fill="#111413"/><text x="124" y="251" fill="#fbfcfb">2</text>
+        <circle cx="124" cy="364" r="17" fill="#111413"/><text x="124" y="371" fill="#fbfcfb">3</text>
+        <circle cx="124" cy="484" r="17" fill="#111413"/><text x="124" y="491" fill="#fbfcfb">4</text>
+        <circle cx="124" cy="604" r="17" fill="#111413"/><text x="124" y="611" fill="#fbfcfb">5</text>
+        <circle cx="124" cy="724" r="17" fill="#111413"/><text x="124" y="731" fill="#fbfcfb">6</text>
       </g>
       <g font-family="Clash Display, Switzer, sans-serif" font-size="20" font-weight="600">
-        <text x="156" y="75">Retrieval</text>
-        <text x="156" y="207">Compliance analysis</text>
-        <text x="156" y="339">Risk</text>
-        <text x="156" y="471">Validation</text>
-        <text x="156" y="603">Recommendation</text>
-        <text x="156" y="735">Final checks</text>
+        <text x="156" y="131">Retrieval</text>
+        <text x="156" y="251">Compliance analysis</text>
+        <text x="156" y="371">Risk</text>
+        <text x="156" y="491">Validation + coverage gate</text>
+        <text x="156" y="611">Recommendation</text>
+        <text x="156" y="731">Final checks</text>
       </g>
       <!-- Tags -->
       <g font-size="12.5" font-weight="600" text-anchor="middle">
-        <rect x="560" y="55" width="84" height="22" rx="11" fill="none" stroke="#4a524e"/><text x="602" y="70">Python</text>
-        <rect x="544" y="187" width="100" height="22" rx="11" fill="#ddff3c"/><text x="594" y="202">model call</text>
-        <rect x="560" y="319" width="84" height="22" rx="11" fill="none" stroke="#4a524e"/><text x="602" y="334">Python</text>
-        <rect x="488" y="451" width="156" height="22" rx="11" fill="#ddff3c"/><text x="566" y="466">Python + model call</text>
-        <rect x="544" y="583" width="100" height="22" rx="11" fill="#ddff3c"/><text x="594" y="598">model call</text>
-        <rect x="560" y="715" width="84" height="22" rx="11" fill="none" stroke="#4a524e"/><text x="602" y="730">Python</text>
+        <rect x="560" y="111" width="84" height="22" rx="11" fill="none" stroke="#4a524e"/><text x="602" y="126">Python</text>
+        <rect x="544" y="231" width="100" height="22" rx="11" fill="#ddff3c"/><text x="594" y="246">model call</text>
+        <rect x="560" y="351" width="84" height="22" rx="11" fill="none" stroke="#4a524e"/><text x="602" y="366">Python</text>
+        <rect x="488" y="471" width="156" height="22" rx="11" fill="#ddff3c"/><text x="566" y="486">Python + model call</text>
+        <rect x="544" y="591" width="100" height="22" rx="11" fill="#ddff3c"/><text x="594" y="606">model call</text>
+        <rect x="560" y="711" width="84" height="22" rx="11" fill="none" stroke="#4a524e"/><text x="602" y="726">Python</text>
       </g>
       <!-- Details -->
       <g font-size="15" fill="#111413">
-        <text x="156" y="101">Hybrid search on the run's snapshot and date: top 10 hits,</text>
-        <text x="156" y="121">plus cited, exception and definition clauses (max 14)</text>
-        <text x="156" y="233">Facts marked provided, inferred or unknown; one finding per</text>
-        <text x="156" y="253">requirement with clause IDs and quotes; up to 3 questions</text>
-        <text x="156" y="365">demo-risk-v1: high for a breach about customer data or access,</text>
-        <text x="156" y="385">medium for other mandatory breaches; unknowns get no severity</text>
-        <text x="156" y="497">Code: each quote must match a retrieved clause. Model: does the</text>
-        <text x="156" y="517">text support the claim? It may downgrade to unknown, never add</text>
-        <text x="156" y="629">Actions only for validated gaps; each names its finding and a</text>
-        <text x="156" y="649">clause it may cite; unsupported actions are dropped</text>
-        <text x="156" y="761">Schemas, references and action support checked; citations are</text>
-        <text x="156" y="781">built from stored clause text; ordered rules set the status</text>
+        <text x="156" y="157">Hybrid search on the run's snapshot and date: top 10 hits,</text>
+        <text x="156" y="177">plus cited, exception and definition clauses (max 14)</text>
+        <text x="156" y="277">Facts marked provided, inferred or unknown; one finding per</text>
+        <text x="156" y="297">retrieved candidate with clause IDs and quotes; up to 3 questions</text>
+        <text x="156" y="397">demo-risk-v1: high for a breach about customer data or access,</text>
+        <text x="156" y="417">medium for other mandatory breaches; unknowns get no severity</text>
+        <text x="156" y="517">Code: each quote must match a retrieved clause. Model: does the</text>
+        <text x="156" y="537">text support the claim? Gate: no retrieved candidate left open</text>
+        <text x="156" y="637">Actions only for validated gaps; each names its finding and a</text>
+        <text x="156" y="657">clause it may cite; unsupported actions are dropped</text>
+        <text x="156" y="757">Ordered rules set the status; citations come from stored text;</text>
+        <text x="156" y="777">code scores each verdict's evidence 0–100 (not a probability)</text>
       </g>
 
       <!-- Main flow with handoff labels -->
       <g stroke="#111413" stroke-width="1.6" fill="none">
-        <line x1="375" y1="132" x2="375" y2="170" marker-end="url(#a2)"/>
-        <line x1="375" y1="264" x2="375" y2="302" marker-end="url(#a2)"/>
-        <line x1="375" y1="396" x2="375" y2="434" marker-end="url(#a2)"/>
-        <line x1="375" y1="528" x2="375" y2="566" marker-end="url(#a2)"/>
-        <line x1="375" y1="660" x2="375" y2="698" marker-end="url(#a2)"/>
-        <line x1="375" y1="792" x2="375" y2="830" marker-end="url(#a2)"/>
+        <line x1="375" y1="76" x2="375" y2="94" marker-end="url(#a2)"/>
+        <line x1="375" y1="188" x2="375" y2="214" marker-end="url(#a2)"/>
+        <line x1="375" y1="308" x2="375" y2="334" marker-end="url(#a2)"/>
+        <line x1="375" y1="428" x2="375" y2="454" marker-end="url(#a2)"/>
+        <line x1="375" y1="548" x2="375" y2="574" marker-end="url(#a2)"/>
+        <line x1="375" y1="668" x2="375" y2="694" marker-end="url(#a2)"/>
+        <line x1="375" y1="788" x2="375" y2="826" marker-end="url(#a2)"/>
       </g>
       <g font-family="ui-monospace, Consolas, monospace" font-size="13.5" fill="#4a524e">
-        <text x="387" y="156">evidence.bundle</text>
-        <text x="387" y="288">findings.proposed <tspan font-family="Switzer, sans-serif" fill="#6b726e">(no questions)</tspan></text>
-        <text x="387" y="420">risks.scored</text>
-        <text x="387" y="552">findings.validated</text>
-        <text x="387" y="684">actions.proposed</text>
+        <text x="387" y="206">evidence.bundle</text>
+        <text x="387" y="326">findings.proposed <tspan font-family="Switzer, sans-serif" fill="#6b726e">(no questions)</tspan></text>
+        <text x="387" y="446">risks.scored</text>
+        <text x="387" y="566">findings.validated</text>
+        <text x="387" y="686">actions.proposed</text>
       </g>
-      <rect x="215" y="832" width="320" height="46" rx="23" fill="#111413"/>
-      <text x="375" y="861" text-anchor="middle" font-size="15" font-weight="600" fill="#fbfcfb">Completed: assessment JSON saved</text>
+      <rect x="215" y="828" width="320" height="46" rx="23" fill="#111413"/>
+      <text x="375" y="857" text-anchor="middle" font-size="15" font-weight="600" fill="#fbfcfb">Completed: assessment JSON saved</text>
 
       <!-- Risk rescored after validation -->
-      <polyline points="90,482 52,482 52,350 88,350" stroke="#111413" stroke-width="1.4" stroke-dasharray="6 4" fill="none" marker-end="url(#a2)"/>
-      <text transform="translate(40 416) rotate(-90)" text-anchor="middle" font-size="13" fill="#4a524e">rescored</text>
+      <polyline points="90,502 52,502 52,382 88,382" stroke="#111413" stroke-width="1.4" stroke-dasharray="6 4" fill="none" marker-end="url(#a2)"/>
+      <text transform="translate(40 442) rotate(-90)" text-anchor="middle" font-size="13" fill="#4a524e">rescored</text>
 
       <!-- Clarification loop -->
-      <line x1="660" y1="218" x2="758" y2="218" stroke="#111413" stroke-width="1.6" marker-end="url(#a2)"/>
-      <text x="709" y="208" text-anchor="middle" font-size="13" fill="#4a524e">facts missing</text>
-      <rect x="760" y="176" width="280" height="86" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-      <text x="780" y="206" font-family="ui-monospace, Consolas, monospace" font-size="15" font-weight="600">waiting_for_user</text>
-      <text x="780" y="230" font-size="14.5">Run pauses with up to 3 questions;</text>
-      <text x="780" y="250" font-size="14.5">"I don't know" is an allowed answer</text>
-      <polyline points="900,176 900,86 662,86" stroke="#111413" stroke-width="1.6" fill="none" marker-end="url(#a2)"/>
+      <line x1="660" y1="262" x2="758" y2="262" stroke="#111413" stroke-width="1.6" marker-end="url(#a2)"/>
+      <text x="709" y="252" text-anchor="middle" font-size="13" fill="#4a524e">facts missing</text>
+      <rect x="760" y="219" width="280" height="86" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+      <text x="780" y="249" font-family="ui-monospace, Consolas, monospace" font-size="15" font-weight="600">waiting_for_user</text>
+      <text x="780" y="273" font-size="14.5">Run pauses with up to 3 questions;</text>
+      <text x="780" y="293" font-size="14.5">"I don't know" is an allowed answer</text>
+      <polyline points="900,219 900,47 662,47" stroke="#111413" stroke-width="1.6" fill="none" marker-end="url(#a2)"/>
       <g font-size="13.5" fill="#111413">
-        <text x="912" y="110">answers saved · POST /resume</text>
-        <text x="912" y="128" fill="#4a524e">reruns from 1 with no second pause;</text>
-        <text x="912" y="146" fill="#4a524e">unanswered facts stay unknown</text>
+        <text x="912" y="120">answers saved · POST /resume</text>
+        <text x="912" y="138" fill="#4a524e">answers screened, rerun from step 0</text>
+        <text x="912" y="156" fill="#4a524e">with no second pause; unanswered</text>
+        <text x="912" y="174" fill="#4a524e">facts stay unknown</text>
       </g>
 
       <!-- Limits -->
-      <rect x="1120" y="176" width="340" height="226" rx="10" fill="none" stroke="#4a524e" stroke-width="1.4"/>
-      <text x="1140" y="208" font-family="Clash Display, Switzer, sans-serif" font-size="19" font-weight="600">Limits per attempt</text>
+      <rect x="1180" y="20" width="280" height="180" rx="10" fill="none" stroke="#4a524e" stroke-width="1.4"/>
+      <text x="1198" y="50" font-family="Clash Display, Switzer, sans-serif" font-size="19" font-weight="600">Limits per attempt</text>
+      <g font-size="14">
+        <text x="1198" y="80">≤ 8 model calls; a normal run uses 3</text>
+        <text x="1198" y="104">120 s per run, plus a per-call timeout</text>
+        <text x="1198" y="128">1 schema repair per stage, counted</text>
+        <text x="1198" y="152">Cancel checked between stages</text>
+        <text x="1198" y="176">Nothing published after a cancel</text>
+      </g>
+
+      <!-- Local review fallback -->
+      <rect x="760" y="334" width="700" height="128" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5" stroke-dasharray="7 5"/>
+      <text x="784" y="366" font-family="Clash Display, Switzer, sans-serif" font-size="19" font-weight="600">Model error or timeout → local review</text>
+      <rect x="1356" y="350" width="84" height="22" rx="11" fill="none" stroke="#4a524e"/>
+      <text x="1398" y="365" text-anchor="middle" font-size="12.5" font-weight="600">no model</text>
       <g font-size="14.5">
-        <text x="1140" y="240">≤ 8 model calls; a normal run uses 3</text>
-        <text x="1140" y="268">120 s deadline; waiting time excluded</text>
-        <text x="1140" y="296">1 schema repair per stage, counted</text>
-        <text x="1140" y="324">Cancel checked between stages</text>
-        <text x="1140" y="352">Nothing published after a cancel</text>
-        <text x="1140" y="380">Technical failure: run fails, no verdict</text>
+        <text x="784" y="396">In auto mode the run continues with no model: same retrieval and code checks;</text>
+        <text x="784" y="418">the user confirms each retrieved clause after reading its source. Unconfirmed</text>
+        <text x="784" y="440">checks stay unknown, so it cannot clear a case. Required mode fails the run.</text>
       </g>
 
       <!-- Outcome rules -->
-      <line x1="660" y1="746" x2="758" y2="746" stroke="#111413" stroke-width="1.6" marker-end="url(#a2)"/>
-      <text x="709" y="736" text-anchor="middle" font-size="13" fill="#4a524e">status</text>
-      <rect x="760" y="470" width="700" height="332" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-      <text x="784" y="506" font-family="Clash Display, Switzer, sans-serif" font-size="20" font-weight="600">Outcome rules · first match wins</text>
+      <line x1="660" y1="742" x2="758" y2="742" stroke="#111413" stroke-width="1.6" marker-end="url(#a2)"/>
+      <text x="709" y="732" text-anchor="middle" font-size="13" fill="#4a524e">status</text>
+      <rect x="760" y="486" width="700" height="320" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
+      <text x="784" y="520" font-family="Clash Display, Switzer, sans-serif" font-size="20" font-weight="600">Outcome rules · first match wins</text>
       <g font-size="15">
-        <text x="784" y="552"><tspan font-weight="700">1 </tspan> A validated violation</text>
-        <text x="784" y="596"><tspan font-weight="700">2 </tspan> A validated conflict between policies</text>
-        <text x="784" y="640"><tspan font-weight="700">3 </tspan> An unknown, or a claim validation did not confirm</text>
-        <text x="784" y="684"><tspan font-weight="700">4 </tspan> At least one validated requirement met</text>
-        <text x="784" y="728"><tspan font-weight="700">5 </tspan> No applicable requirement found</text>
+        <text x="784" y="560"><tspan font-weight="700">1 </tspan> A validated violation</text>
+        <text x="784" y="600"><tspan font-weight="700">2 </tspan> A validated conflict between policies</text>
+        <text x="784" y="640"><tspan font-weight="700">3 </tspan> An unknown, unconfirmed claim or open candidate</text>
+        <text x="784" y="680"><tspan font-weight="700">4 </tspan> At least one validated requirement met</text>
+        <text x="784" y="720"><tspan font-weight="700">5 </tspan> No applicable requirement found</text>
       </g>
       <g font-family="ui-monospace, Consolas, monospace" font-size="13.5" font-weight="600">
-        <rect x="1196" y="534" width="244" height="26" rx="5" fill="#b42318" fill-opacity="0.1"/><text x="1210" y="552" fill="#b42318">non_compliant</text>
-        <rect x="1196" y="578" width="244" height="26" rx="5" fill="#8a5a00" fill-opacity="0.1"/><text x="1210" y="596" fill="#8a5a00">conflicting_policy</text>
-        <rect x="1196" y="622" width="244" height="26" rx="5" fill="#8a5a00" fill-opacity="0.1"/><text x="1210" y="640" fill="#8a5a00">insufficient_information</text>
-        <rect x="1196" y="666" width="244" height="26" rx="5" fill="#1d6b45" fill-opacity="0.1"/><text x="1210" y="684" fill="#1d6b45">compliant_within_scope</text>
-        <rect x="1196" y="710" width="244" height="26" rx="5" fill="#6b726e" fill-opacity="0.12"/><text x="1210" y="728" fill="#4a524e">out_of_scope</text>
+        <rect x="1216" y="542" width="224" height="26" rx="5" fill="#b42318" fill-opacity="0.1"/><text x="1230" y="560" fill="#b42318">non_compliant</text>
+        <rect x="1216" y="582" width="224" height="26" rx="5" fill="#8a5a00" fill-opacity="0.1"/><text x="1230" y="600" fill="#8a5a00">conflicting_policy</text>
+        <rect x="1216" y="622" width="224" height="26" rx="5" fill="#8a5a00" fill-opacity="0.1"/><text x="1230" y="640" fill="#8a5a00">insufficient_information</text>
+        <rect x="1216" y="662" width="224" height="26" rx="5" fill="#1d6b45" fill-opacity="0.1"/><text x="1230" y="680" fill="#1d6b45">compliant_within_scope</text>
+        <rect x="1216" y="702" width="224" height="26" rx="5" fill="#6b726e" fill-opacity="0.12"/><text x="1230" y="720" fill="#4a524e">out_of_scope</text>
       </g>
-      <line x1="784" y1="754" x2="1440" y2="754" stroke="#d5dad7"/>
-      <text x="784" y="782" font-size="13.5" fill="#4a524e">Only validated findings count, so an unconfirmed claim can never make a result compliant.</text>
+      <line x1="784" y1="742" x2="1440" y2="742" stroke="#d5dad7"/>
+      <text x="784" y="766" font-size="13.5" fill="#4a524e">Only validated findings count, so an unconfirmed claim can never make a result compliant.</text>
+      <text x="784" y="788" font-size="13.5" fill="#4a524e">Compliant also needs every retrieved candidate assessed or justifiably excluded.</text>
     </svg>
-    <figcaption>Each numbered step is one role with its own function and output schema. After every step the run saves a progress event (streamed to the browser over SSE) and a handoff record naming the sender, receiver and message type shown on the arrows; the trace view reads those records. Retrieval and risk are deterministic code; analysis, the validation support check and recommendation are one model call each. If retrieval finds no clauses, analysis is skipped and the result is out of scope. These are application-level handoffs inside one process, not the standardized Agent2Agent protocol.</figcaption>
+    <figcaption>Each numbered step is one role with its own function and output schema. After every step the run saves a progress event (streamed to the browser over SSE) and a handoff record naming the sender, receiver and message type shown on the arrows; the trace view reads those records. The input check, retrieval, risk, the coverage gate and the evidence scores are deterministic code; analysis, the validation support check and recommendation are one model call each. The input check runs before any model call and again on the retrieved evidence, so an off-topic request is declined without one. The coverage gate requires a confirmed finding or justified exclusion for every retrieved candidate before a result can be compliant. These are application-level handoffs inside one process, not the standardized Agent2Agent protocol.</figcaption>
   </figure>
 </section>
 

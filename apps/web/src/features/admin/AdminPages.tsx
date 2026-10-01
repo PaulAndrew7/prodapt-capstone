@@ -195,7 +195,7 @@ export function Settings() {
         </fieldset>
         <div className="grid gap-4 py-6 md:grid-cols-[14rem_minmax(0,1fr)]">
           <p className="font-semibold">Motion</p>
-          <p className="text-ink-2">Clause follows your system&rsquo;s reduced motion setting. With it on, highlights and verdicts appear without animation.</p>
+          <p className="text-ink-2">Paul.ez follows your system&rsquo;s reduced motion setting. With it on, highlights and verdicts appear without animation.</p>
         </div>
         <div className="grid gap-4 py-6 md:grid-cols-[14rem_minmax(0,1fr)]">
           <p className="font-semibold">Data source</p>

@@ -14,7 +14,7 @@ import type {
   Policy,
   PolicyVersion,
   RunEvent,
-  UploadPolicyInput, DraftReview, DraftReviewInput, Publication, PolicyGraph, GraphInput,
+  UploadPolicyInput, DraftReview, DraftReviewInput, Publication,
 } from "./types";
 
 const BASE = "/api/v1";
@@ -161,9 +161,5 @@ export class HttpApi implements ComplianceApi {
   }
   publishPolicy(versionId: string, expectedRevision: number) {
     return request<Publication>(`/admin/policy-versions/${encodeURIComponent(versionId)}/publish`, { method: "POST", body: JSON.stringify({ expected_revision: expectedRevision }) });
-  }
-  getPolicyGraph(input: GraphInput) {
-    const params = new URLSearchParams(Object.entries(input).filter(([, value]) => Boolean(value)) as [string, string][]);
-    return request<PolicyGraph>(`/policy-graph?${params}`);
   }
 }

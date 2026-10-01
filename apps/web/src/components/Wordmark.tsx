@@ -13,7 +13,7 @@ export function Wordmark({ className, size = "md", ref }: { className?: string; 
       )}
     >
       <span aria-hidden className="wordmark-bar absolute inset-x-[-0.06em] bg-mark" />
-      <span className="relative">Clause</span>
+      <span className="relative">Paul.ez</span>
     </span>
   );
 }

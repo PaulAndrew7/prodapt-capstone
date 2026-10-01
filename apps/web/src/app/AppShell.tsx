@@ -10,7 +10,6 @@ import { api } from "@/lib/api";
 const primary = [
   { to: "/app/cases", label: "Cases" },
   { to: "/app/policies", label: "Policies" },
-  { to: "/app/policies/graph", label: "Knowledge graph" },
   { to: "/app/ask", label: "Ask a question" },
   ...(api.mode === "fixture" ? [{ to: "/app/reviews", label: "Reviews" }] : []),
 ];
@@ -53,7 +52,7 @@ export function AppHeader({ sticky = true, activePath }: { sticky?: boolean; act
   return (
   <header className={clsx("z-10 border-b-2 border-ink bg-paper", sticky && "sticky top-0")}>
     <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-2 px-4 md:px-8">
-      <Link to="/" className="mr-4 shrink-0" aria-label="Clause home">
+      <Link to="/" className="mr-4 shrink-0" aria-label="Paul.ez home">
         <Wordmark />
       </Link>
 

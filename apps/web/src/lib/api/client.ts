@@ -7,7 +7,7 @@ import type {
   Policy,
   PolicyVersion,
   RunEvent,
-  UploadPolicyInput, DraftReview, DraftReviewInput, Publication, PolicyGraph, GraphInput,
+  UploadPolicyInput, DraftReview, DraftReviewInput, Publication,
 } from "./types";
 
 export interface NewCaseInput {
@@ -53,5 +53,4 @@ export interface ComplianceApi {
   getDraftReview(versionId: string): Promise<DraftReview>;
   saveDraftReview(versionId: string, input: DraftReviewInput): Promise<DraftReview>;
   publishPolicy(versionId: string, expectedRevision: number): Promise<Publication>;
-  getPolicyGraph(input: GraphInput): Promise<PolicyGraph>;
 }

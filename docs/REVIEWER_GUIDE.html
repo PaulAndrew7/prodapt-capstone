@@ -78,7 +78,7 @@
 </tr>
 <tr>
 <td>Knowledge graph</td>
-<td>A bounded visualization of stored policy relationships and finding provenance. No Neo4j service or general graph-reasoning engine.</td>
+<td><strong>Not implemented.</strong> Clause references, exceptions, and overrides are stored as PostgreSQL rows, and retrieval follows them one step. There is no graph page, Neo4j service, entity extraction, or graph reasoning.</td>
 </tr>
 <tr>
 <td>Three.js</td>
@@ -1181,11 +1181,6 @@ B: semantic rank 1 only → 1/61 ≈ 0.01639
 <td>Real admin API; demo auth maps to an administrator</td>
 </tr>
 <tr>
-<td>Policy knowledge graph</td>
-<td>Inspect stored relationships by date/snapshot and optional case provenance</td>
-<td>Bounded visual view; not graph-machine-learning or general logical inference</td>
-</tr>
-<tr>
 <td>Printable case report</td>
 <td>Shows saved assessment, facts, sources, limits, execution, coverage</td>
 <td>Browser print/PDF uses saved content; not a separately generated verdict</td>
@@ -1228,7 +1223,7 @@ B: semantic rank 1 only → 1/61 ≈ 0.01639
 <p>Publishing creates a snapshot containing ready, non-draft versions. It keeps published versions immutable through the admin interface. An activity date chooses the newest started version per policy within the snapshot, checks its end date, and excludes drafts. Old versions remain available for historical runs. If the newest started version expired, the selection does not silently revive an earlier version.</p>
 <p><strong>Date and snapshot answer different questions:</strong> the date identifies which rules were in force for the activity; the snapshot identifies which published collection was available to this attempt. A future published version can be present in a snapshot but not yet eligible on today's activity date. A clarified run keeps its original snapshot, even if a newer publication happens while the user is answering.</p>
 <p>The current snapshot records versions and index-revision metadata. That supports traceability; it is not a universal replay guarantee across changed model binaries, provider revisions, changed code, or manual database edits. Numerical embeddings and model output can vary with runtime and provider behavior.</p>
-<p>The graph endpoint returns policy, version, and clause nodes with containment and stored reference/exception/override edges. Case mode adds saved findings linked to their requirement clauses. The view caps visible clauses at <strong>60</strong>, reports truncation, and shows source links and relation provenance. An edge labelled supports expresses a saved link; graph drawing does not independently certify support or resolve precedence.</p>
+<p>Stored clause relations are not shown on a page of their own. A graph view was removed because it suggested a full knowledge graph while it only drew these stored links. Retrieval still uses them for bounded expansion.</p>
 </section><section class="chapter" id="chapter-21" aria-labelledby="title-21"><h2 id="title-21">21. Tech stack: what each technology contributes</h2>
 <p>These versions and roles come from the repository manifests and code, not an assessment of the latest ecosystem release. Exact resolved installations are tracked in <code>uv.lock</code> and <a class="file-link" href="../pnpm-lock.yaml"><code>pnpm-lock.yaml</code></a>; broad dependency ranges in a manifest are not the same as the resolved versions.</p>
 <div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable comparison table"><table>
@@ -1405,7 +1400,7 @@ B: semantic rank 1 only → 1/61 ≈ 0.01639
 </tr>
 <tr>
 <td><a class="file-link" href="../services/api/app/domain/policy_management.py"><code>services/api/app/domain/policy_management.py</code></a></td>
-<td>Upload/review/publication/graph schemas, metadata and candidate/relation constraints</td>
+<td>Upload/review/publication schemas, metadata and candidate/relation constraints</td>
 </tr>
 <tr>
 <td><a class="file-link" href="../services/api/app/persistence/models.py"><code>services/api/app/persistence/models.py</code></a></td>
@@ -1485,10 +1480,6 @@ B: semantic rank 1 only → 1/61 ≈ 0.01639
 <tr>
 <td><a class="file-link" href="../services/api/app/api/policy_admin.py"><code>services/api/app/api/policy_admin.py</code></a></td>
 <td>Admin PDF upload, complete draft review, optimistic revision checks, publication, audit rows, new snapshots</td>
-</tr>
-<tr>
-<td><a class="file-link" href="../services/api/app/api/policy_graph.py"><code>services/api/app/api/policy_graph.py</code></a></td>
-<td>Bounded dated/snapshot graph and saved case finding links</td>
 </tr>
 </tbody>
 </table></div>
@@ -1653,7 +1644,7 @@ B: semantic rank 1 only → 1/61 ≈ 0.01639
 </tr>
 <tr>
 <td><a class="file-link" href="../apps/web/src/lib/api/httpApi.ts"><code>apps/web/src/lib/api/httpApi.ts</code></a></td>
-<td>Fetch/error wrapper, live endpoints, SSE subscription, upload/review/publication/graph requests</td>
+<td>Fetch/error wrapper, live endpoints, SSE subscription, upload/review/publication requests</td>
 </tr>
 <tr>
 <td><a class="file-link" href="../apps/web/src/lib/api/fixtureApi.ts"><code>apps/web/src/lib/api/fixtureApi.ts</code></a></td>
@@ -1780,7 +1771,7 @@ B: semantic rank 1 only → 1/61 ≈ 0.01639
 </tr>
 <tr>
 <td><a class="file-link" href="../apps/web/src/features/policies/PolicyLibrary.tsx"><code>apps/web/src/features/policies/PolicyLibrary.tsx</code></a></td>
-<td>Policy/version browsing and management/graph navigation</td>
+<td>Policy/version browsing and management navigation</td>
 </tr>
 <tr>
 <td><a class="file-link" href="../apps/web/src/features/policies/PolicyDetail.tsx"><code>apps/web/src/features/policies/PolicyDetail.tsx</code></a></td>
@@ -1805,10 +1796,6 @@ B: semantic rank 1 only → 1/61 ≈ 0.01639
 <tr>
 <td><a class="file-link" href="../apps/web/src/features/policies/PolicyManagement.tsx"><code>apps/web/src/features/policies/PolicyManagement.tsx</code></a></td>
 <td>Upload and complete draft review/publication UI</td>
-</tr>
-<tr>
-<td><a class="file-link" href="../apps/web/src/features/policies/PolicyGraph.tsx"><code>apps/web/src/features/policies/PolicyGraph.tsx</code></a></td>
-<td>Bounded graph controls, stored nodes/edges, detail/source inspection</td>
 </tr>
 <tr>
 <td><a class="file-link" href="../apps/web/src/features/review/ReviewQueue.tsx"><code>apps/web/src/features/review/ReviewQueue.tsx</code></a></td>
@@ -2054,7 +2041,7 @@ B: semantic rank 1 only → 1/61 ≈ 0.01639
 </tr>
 <tr>
 <td><code>test_policies_api.py</code>, <code>test_policy_management.py</code></td>
-<td>Source access, policy visibility, upload/review/publication/graph</td>
+<td>Source access, policy visibility, upload/review/publication</td>
 </tr>
 <tr>
 <td><code>test_assessment_api.py</code>, <code>test_workflow_rules.py</code></td>
@@ -2157,8 +2144,8 @@ uv run python -m app.cli evaluate --split dev
 <p>“Yes, so I also measure status accuracy, completion, and cautious misses. The latest run has one cautious miss. Useful abstention needs to be distinguished from excessive abstention.”</p>
 <h3>“Can a run survive a server restart?”</h3>
 <p>“Its saved data survives, but an active computation does not resume from a checkpoint. Startup marks interrupted queued/running attempts failed. A separate durable worker or stateful graph checkpoint system would be needed for that guarantee.”</p>
-<h3>“What is the knowledge graph doing?”</h3>
-<p>“It visualizes stored policy/version/clause relations and saved finding links within a date and snapshot. Retrieval uses bounded stored links for context. The graph does not independently infer precedence or implement a general graph RAG engine.”</p>
+<h3>“Is there a knowledge graph?”</h3>
+<p>“No. Clause references, exceptions, and overrides are stored links, and retrieval follows them one step so an exception reaches the model with its requirement. There is no entity extraction, graph database, graph query, or inference. An earlier page that drew these links was removed because it implied more than that.”</p>
 <h3>“Are the policies and data real?”</h3>
 <p>“No. Kestrel Mutual and its policies are synthetic. That makes the demo reproducible and inspectable. It limits claims about real document layouts, ambiguous enterprise policies, and unseen domains.”</p>
 <h3>“Why haven't you completed held-out evaluation?”</h3>

@@ -114,7 +114,7 @@ export function IntroLoader({
 
   return (
     <div ref={root} className="fixed inset-0 z-50" role="status">
-      <span className="sr-only">Loading Clause</span>
+      <span className="sr-only">Loading Paul.ez</span>
       <div ref={curtain} className="absolute inset-x-0 top-0 -bottom-[2px] border-b-2 border-ink bg-paper" />
       <div className="absolute inset-0 flex items-center justify-center">
         <span
@@ -126,7 +126,7 @@ export function IntroLoader({
           <span ref={bar} className="wordmark-bar absolute inset-x-[-0.06em] origin-left bg-mark" style={{ transform: "scaleX(0)" }} />
           {/* Clipped only at the bottom, so the letters rise out of the baseline. */}
           <span className="relative block" style={{ clipPath: "inset(-50% -20% 0 -20%)" }}>
-            {"Clause".split("").map((ch, i) => (
+            {"Paul.ez".split("").map((ch, i) => (
               <motion.span
                 key={i}
                 className="inline-block"

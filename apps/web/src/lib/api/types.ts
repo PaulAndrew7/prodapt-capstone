@@ -123,34 +123,6 @@ export interface DraftReview {
   source_sha256: string;
 }
 export interface Publication { version_id: string; snapshot_id: string; published_at: string }
-export interface GraphNode {
-  id: string;
-  kind: "policy" | "version" | "clause" | "case" | "finding";
-  label: string;
-  href: string;
-  text: string | null;
-  source_url: string | null;
-  status: string | null;
-}
-export interface GraphEdge {
-  id: string;
-  source: string;
-  target: string;
-  kind: "contains" | "references" | "excepts" | "overrides" | "supports";
-  approved: boolean;
-  provenance: string;
-}
-export interface PolicyGraph {
-  snapshot_id: string;
-  as_of: string;
-  policy_id: string | null;
-  case_id: string | null;
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-  truncated: boolean;
-  total_clauses: number;
-}
-export interface GraphInput { policy_id?: string; as_of?: string; snapshot_id?: string; case_id?: string }
 
 export interface Citation {
   id: string;

@@ -151,7 +151,10 @@ export function AssessingStage({
             className="absolute left-1/2 top-[42%] aspect-square w-[88%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.16]"
             style={{ backgroundImage: "radial-gradient(var(--ink) 1.3px, transparent 1.6px)", backgroundSize: "13px 13px" }}
           />
-          <AvatarView mode="working" expression={expression} size="100%" talking={typing} />
+          {/* Positioned so she paints above the absolutely placed screentone. */}
+          <div className="relative size-full">
+            <AvatarView mode="working" expression={expression} size="100%" talking={typing} />
+          </div>
         </div>
       </div>
       {/* Stacked, the bubble's tail points down at her, so the control moves below her. */}
