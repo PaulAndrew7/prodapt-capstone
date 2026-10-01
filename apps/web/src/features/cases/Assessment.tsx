@@ -6,7 +6,10 @@ import clsx from "clsx";
 import type { AgentMessage, Assessment, Citation, Fact, Finding } from "@/lib/api/types";
 import { RequirementStatusWord, VerdictHeadline } from "@/components/Status";
 import { Button } from "@/components/Button";
+import { ConfidenceFactors, ConfidenceMeter, ConfidenceSummary } from "@/components/Confidence";
 import { useSectionRef } from "@/features/policies/useSectionRef";
+import { CoverageInspector } from "./CoverageInspector";
+import { ExecutionNotice } from "@/components/ExecutionNotice";
 
 function CitationButtons({
   finding,
@@ -50,6 +53,7 @@ function FindingRow({
   expanded,
   onToggle,
   onOpen,
+  localReview = false,
 }: {
   finding: Finding;
   index: number;
@@ -58,12 +62,13 @@ function FindingRow({
   expanded: boolean;
   onToggle: () => void;
   onOpen: (findingId: string, citationId: string) => void;
+  localReview?: boolean;
 }) {
   const reduce = useReducedMotion();
   const panelId = `${finding.id}-detail`;
   return (
     <li className={clsx(finding.status === "not_applicable" && "text-ink-2")}>
-      <div className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 py-4 md:grid-cols-[3rem_minmax(0,1fr)_9rem_auto] md:items-baseline">
+      <div className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 py-4 md:grid-cols-[3rem_minmax(0,1fr)_9rem_8rem_auto] md:items-baseline">
         <span className="tnum font-display text-3xl font-bold leading-none">{index + 1}</span>
         <button
           type="button"
@@ -81,6 +86,9 @@ function FindingRow({
         </button>
         <span className="col-start-2 mt-1 md:col-start-auto md:mt-0">
           <RequirementStatusWord status={finding.status} />
+        </span>
+        <span className="col-start-2 mt-1 md:col-start-auto md:mt-0">
+          {finding.confidence && <ConfidenceMeter confidence={finding.confidence} />}
         </span>
         <span className="col-start-2 mt-1 md:col-start-auto md:mt-0">
           <CitationButtons finding={finding} citations={citations} onOpen={onOpen} />
@@ -135,7 +143,14 @@ function FindingRow({
                     </ul>
                   </div>
                 )}
-                <p className="text-ink-2">Evidence check: {supportText[finding.support]}</p>
+                <p className="text-ink-2">Evidence check: {localReview && finding.support === "validated"
+                  ? "source and recorded disposition checked in code; interpretation requires human review"
+                  : supportText[finding.support]}</p>
+                {finding.confidence && (
+                  <div className="border-t border-rule pt-3">
+                    <ConfidenceFactors confidence={finding.confidence} />
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -189,6 +204,7 @@ export function AssessmentBody({
               <FindingRow
                 key={f.id}
                 finding={f}
+                localReview={assessment.execution?.mode === "local_review"}
                 index={i}
                 citations={citations}
                 facts={factMap}
@@ -300,12 +316,13 @@ export function RequirementTable({
   }
   return (
     <div className="-mx-1 overflow-x-auto px-1">
-      <table className="w-full min-w-[720px] border-collapse text-left">
+      <table className="w-full min-w-[760px] border-collapse text-left">
         <caption className="sr-only">Requirement matrix</caption>
         <thead>
           <tr className="border-b-2 border-ink text-sm">
             <th scope="col" className="py-3 pr-4 font-semibold">Requirement</th>
             <th scope="col" className="py-3 pr-4 font-semibold">Result</th>
+            <th scope="col" className="py-3 pr-4 font-semibold">Evidence score</th>
             <th scope="col" className="py-3 pr-4 font-semibold">Known and missing facts</th>
             <th scope="col" className="py-3 font-semibold">Evidence</th>
           </tr>
@@ -316,6 +333,9 @@ export function RequirementTable({
               <th scope="row" className="py-4 pr-4 font-semibold">{f.title}</th>
               <td className="py-4 pr-4">
                 <RequirementStatusWord status={f.status} />
+              </td>
+              <td className="py-4 pr-4">
+                {f.confidence ? <ConfidenceMeter confidence={f.confidence} className="whitespace-nowrap" /> : <span className="text-sm text-ink-2">Not scored</span>}
               </td>
               <td className="py-4 pr-4 text-sm">
                 <ul className="space-y-0.5">
@@ -411,6 +431,9 @@ export function AssessmentView({
     <div>
       <VerdictHeadline status={assessment.status} reveal={reveal} />
       <p className="mt-3 max-w-[56ch] text-xl leading-snug">{assessment.summary}</p>
+      <ExecutionNotice execution={assessment.execution} />
+      {assessment.confidence && <ConfidenceSummary confidence={assessment.confidence} subject="result" />}
+      <CoverageInspector assessment={assessment} onOpenEvidence={onOpenEvidence} />
       <Tabs.Root defaultValue="assessment" className="mt-8">
         <Tabs.List aria-label="Assessment views" className="flex gap-7 border-b-2 border-ink">
           <Tabs.Trigger value="assessment" className={tabTrigger}>

@@ -77,12 +77,11 @@ def _summary(v: m.PolicyVersion) -> PolicyVersionSummary:
 
 def _active_version_id(versions: list[m.PolicyVersion], today: date) -> str | None:
     live = [v for v in versions if v.status == PolicyVersionStatus.PUBLISHED]
-    in_effect = [
-        v
-        for v in live
-        if v.effective_from <= today and (v.effective_to is None or v.effective_to >= today)
-    ]
-    pick = max(in_effect or live, key=lambda v: v.effective_from, default=None)
+    pick = max(
+        (v for v in live if v.effective_from <= today), key=lambda v: v.effective_from, default=None
+    )
+    if pick and pick.effective_to is not None and pick.effective_to < today:
+        return None
     return pick.id if pick else None
 
 
@@ -111,6 +110,8 @@ def list_policies(session: DbSession, principal: CurrentPrincipal) -> Page[Polic
     items = []
     for p in rows:
         versions = [v for v in p.versions if _visible(v, principal)]
+        if not versions:
+            continue
         items.append(
             Policy(
                 id=p.id,

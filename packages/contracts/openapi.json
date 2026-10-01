@@ -366,6 +366,292 @@
         }
       }
     },
+    "/api/v1/admin/policies/upload": {
+      "post": {
+        "tags": [
+          "policy management"
+        ],
+        "summary": "Upload Policy",
+        "operationId": "upload_policy_api_v1_admin_policies_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_policy_api_v1_admin_policies_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftReview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/policy-versions/{version_id}/review": {
+      "get": {
+        "tags": [
+          "policy management"
+        ],
+        "summary": "Get Review",
+        "operationId": "get_review_api_v1_admin_policy_versions__version_id__review_get",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftReview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "policy management"
+        ],
+        "summary": "Save Review",
+        "operationId": "save_review_api_v1_admin_policy_versions__version_id__review_post",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftReviewInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftReview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/policy-versions/{version_id}/publish": {
+      "post": {
+        "tags": [
+          "policy management"
+        ],
+        "summary": "Publish Policy",
+        "operationId": "publish_policy_api_v1_admin_policy_versions__version_id__publish_post",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Publication"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/policy-graph": {
+      "get": {
+        "tags": [
+          "knowledge graph"
+        ],
+        "summary": "Policy Graph",
+        "operationId": "policy_graph_api_v1_policy_graph_get",
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 256
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Policy Id"
+            }
+          },
+          {
+            "name": "as_of",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "name": "snapshot_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 256
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Id"
+            }
+          },
+          {
+            "name": "case_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 256
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyGraph"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/search": {
       "post": {
         "tags": [
@@ -1029,6 +1315,36 @@
               }
             ],
             "title": "Hypothetical"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Confidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "coverage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceCoverage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExecutionInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -1061,6 +1377,26 @@
         ],
         "title": "AssessmentStatus",
         "description": "Displayed result, chosen by the ordered rules in §5.2 (first match wins)."
+      },
+      "Body_upload_policy_api_v1_admin_policies_upload_post": {
+        "properties": {
+          "metadata": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Metadata"
+          },
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "metadata",
+          "file"
+        ],
+        "title": "Body_upload_policy_api_v1_admin_policies_upload_post"
       },
       "CaseDetail": {
         "properties": {
@@ -1177,6 +1513,16 @@
             },
             "type": "array",
             "title": "Agent Messages"
+          },
+          "execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExecutionInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -1437,6 +1783,24 @@
         ],
         "title": "ClauseKind"
       },
+      "ClauseReview": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ClauseKind"
+          },
+          "candidate": {
+            "type": "boolean",
+            "title": "Candidate"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "candidate"
+        ],
+        "title": "ClauseReview"
+      },
       "ClauseWithSource": {
         "properties": {
           "id": {
@@ -1519,6 +1883,410 @@
           "spans"
         ],
         "title": "ClauseWithSource"
+      },
+      "Confidence": {
+        "properties": {
+          "score": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score"
+          },
+          "band": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Band"
+          },
+          "basis": {
+            "type": "string",
+            "title": "Basis"
+          },
+          "factors": {
+            "items": {
+              "$ref": "#/components/schemas/ConfidenceFactor"
+            },
+            "type": "array",
+            "title": "Factors"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "score",
+          "band",
+          "basis",
+          "factors"
+        ],
+        "title": "Confidence",
+        "description": "Evidence score computed in code from recorded checks (app/workflow/confidence.py).\n\nA ranking of how well a verdict is backed, not a probability that it is correct."
+      },
+      "ConfidenceFactor": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "points": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Points"
+          },
+          "max_points": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Max Points"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "label",
+          "points",
+          "max_points"
+        ],
+        "title": "ConfidenceFactor"
+      },
+      "CoverageRow": {
+        "properties": {
+          "clause_id": {
+            "type": "string",
+            "title": "Clause Id"
+          },
+          "policy_title": {
+            "type": "string",
+            "title": "Policy Title"
+          },
+          "policy_version_id": {
+            "type": "string",
+            "title": "Policy Version Id"
+          },
+          "version_label": {
+            "type": "string",
+            "title": "Version Label"
+          },
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "heading": {
+            "type": "string",
+            "title": "Heading"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "page_index": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Page Index"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          },
+          "retrieval_reason": {
+            "type": "string",
+            "title": "Retrieval Reason"
+          },
+          "candidate_basis": {
+            "type": "string",
+            "enum": [
+              "clause_kind",
+              "reviewed_corpus",
+              "proposed_finding"
+            ],
+            "title": "Candidate Basis"
+          },
+          "finding_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Finding Ids"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "assessed",
+              "not_applicable",
+              "unassessed",
+              "unconfirmed"
+            ],
+            "title": "State"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "clause_id",
+          "policy_title",
+          "policy_version_id",
+          "version_label",
+          "section",
+          "heading",
+          "text",
+          "page_index",
+          "source_url",
+          "retrieval_reason",
+          "candidate_basis",
+          "finding_ids",
+          "state",
+          "note"
+        ],
+        "title": "CoverageRow"
+      },
+      "DraftReview": {
+        "properties": {
+          "version": {
+            "$ref": "#/components/schemas/PolicyVersion"
+          },
+          "candidate_clause_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Candidate Clause Ids"
+          },
+          "relations": {
+            "items": {
+              "$ref": "#/components/schemas/StoredRelation"
+            },
+            "type": "array",
+            "title": "Relations"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "review_complete": {
+            "type": "boolean",
+            "title": "Review Complete"
+          },
+          "warnings_acknowledged": {
+            "type": "boolean",
+            "title": "Warnings Acknowledged"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "source_sha256": {
+            "type": "string",
+            "title": "Source Sha256"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version",
+          "candidate_clause_ids",
+          "relations",
+          "revision",
+          "review_complete",
+          "warnings_acknowledged",
+          "reviewed_at",
+          "source_sha256"
+        ],
+        "title": "DraftReview"
+      },
+      "DraftReviewInput": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 ._-]{0,31}$",
+            "title": "Label"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          },
+          "clauses": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ClauseReview"
+            },
+            "propertyNames": {
+              "maxLength": 256,
+              "minLength": 1
+            },
+            "type": "object",
+            "maxProperties": 1000,
+            "title": "Clauses"
+          },
+          "relations": {
+            "items": {
+              "$ref": "#/components/schemas/RelationReview"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "title": "Relations"
+          },
+          "review_confirmed": {
+            "type": "boolean",
+            "title": "Review Confirmed",
+            "default": false
+          },
+          "acknowledge_warnings": {
+            "type": "boolean",
+            "title": "Acknowledge Warnings",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "label",
+          "effective_from",
+          "expected_revision",
+          "clauses"
+        ],
+        "title": "DraftReviewInput"
+      },
+      "EvidenceCoverage": {
+        "properties": {
+          "gate_version": {
+            "type": "string",
+            "const": "retrieved-candidates-v1",
+            "title": "Gate Version",
+            "default": "retrieved-candidates-v1"
+          },
+          "candidate_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Candidate Count"
+          },
+          "accounted_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Accounted Count"
+          },
+          "unresolved_clause_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unresolved Clause Ids"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/CoverageRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "candidate_count",
+          "accounted_count",
+          "unresolved_clause_ids",
+          "rows"
+        ],
+        "title": "EvidenceCoverage",
+        "description": "Accounting for retrieved candidates, not proof that retrieval found every obligation."
+      },
+      "ExecutionInfo": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "local_review"
+            ],
+            "title": "Mode"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "configured_model",
+              "no_model",
+              "forced_offline",
+              "model_failure"
+            ],
+            "title": "Reason"
+          },
+          "engine_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engine Version"
+          },
+          "failed_stage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "analysis",
+                  "validation",
+                  "recommendation",
+                  "lookup"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failed Stage"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "mode",
+          "reason"
+        ],
+        "title": "ExecutionInfo"
       },
       "Fact": {
         "properties": {
@@ -1630,6 +2398,16 @@
             },
             "type": "array",
             "title": "Missing Facts"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Confidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -1646,6 +2424,121 @@
           "missing_facts"
         ],
         "title": "Finding"
+      },
+      "GraphEdge": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "contains",
+              "references",
+              "excepts",
+              "overrides",
+              "supports"
+            ],
+            "title": "Kind"
+          },
+          "approved": {
+            "type": "boolean",
+            "title": "Approved",
+            "default": true
+          },
+          "provenance": {
+            "type": "string",
+            "title": "Provenance",
+            "default": "stored"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "target",
+          "kind"
+        ],
+        "title": "GraphEdge"
+      },
+      "GraphNode": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "policy",
+              "version",
+              "clause",
+              "case",
+              "finding"
+            ],
+            "title": "Kind"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "href": {
+            "type": "string",
+            "title": "Href"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "href"
+        ],
+        "title": "GraphNode"
       },
       "HTTPValidationError": {
         "properties": {
@@ -1729,6 +2622,26 @@
           "snapshot_id": {
             "type": "string",
             "title": "Snapshot Id"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Confidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExecutionInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -1994,6 +2907,75 @@
         ],
         "title": "Policy"
       },
+      "PolicyGraph": {
+        "properties": {
+          "snapshot_id": {
+            "type": "string",
+            "title": "Snapshot Id"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "policy_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Id"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/GraphNode"
+            },
+            "type": "array",
+            "title": "Nodes"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/GraphEdge"
+            },
+            "type": "array",
+            "title": "Edges"
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated"
+          },
+          "total_clauses": {
+            "type": "integer",
+            "title": "Total Clauses"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "as_of",
+          "policy_id",
+          "nodes",
+          "edges",
+          "truncated",
+          "total_clauses"
+        ],
+        "title": "PolicyGraph"
+      },
       "PolicyVersion": {
         "properties": {
           "id": {
@@ -2131,6 +3113,46 @@
         ],
         "title": "PolicyVersionSummary"
       },
+      "Publication": {
+        "properties": {
+          "version_id": {
+            "type": "string",
+            "title": "Version Id"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "title": "Snapshot Id"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Published At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version_id",
+          "snapshot_id",
+          "published_at"
+        ],
+        "title": "Publication"
+      },
+      "PublishInput": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision"
+        ],
+        "title": "PublishInput"
+      },
       "Recommendation": {
         "properties": {
           "id": {
@@ -2188,6 +3210,50 @@
         ],
         "title": "RecommendationKind"
       },
+      "RelationReview": {
+        "properties": {
+          "source_clause_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Source Clause Id"
+          },
+          "target_clause_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Target Clause Id"
+          },
+          "relation": {
+            "type": "string",
+            "enum": [
+              "references",
+              "excepts",
+              "overrides"
+            ],
+            "title": "Relation"
+          },
+          "approved": {
+            "type": "boolean",
+            "title": "Approved",
+            "default": false
+          },
+          "rationale": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Rationale",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_clause_id",
+          "target_clause_id",
+          "relation"
+        ],
+        "title": "RelationReview"
+      },
       "RequirementStatus": {
         "type": "string",
         "enum": [
@@ -2220,6 +3286,11 @@
             "type": "object",
             "maxProperties": 3,
             "title": "Answers"
+          },
+          "finish_local_review": {
+            "type": "boolean",
+            "title": "Finish Local Review",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -2315,7 +3386,7 @@
           "canceled"
         ],
         "title": "RunState",
-        "description": "Workflow state. A timeout is `failed`, never a compliance verdict."
+        "description": "Workflow state. Model errors may switch engines; application failures stay failed."
       },
       "RunStatus": {
         "properties": {
@@ -2395,6 +3466,16 @@
               }
             ],
             "title": "Finished At"
+          },
+          "execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExecutionInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -2634,6 +3715,75 @@
           "text_end"
         ],
         "title": "SourceSpan"
+      },
+      "StoredRelation": {
+        "properties": {
+          "source_clause_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Source Clause Id"
+          },
+          "target_clause_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Target Clause Id"
+          },
+          "relation": {
+            "type": "string",
+            "enum": [
+              "references",
+              "excepts",
+              "overrides"
+            ],
+            "title": "Relation"
+          },
+          "approved": {
+            "type": "boolean",
+            "title": "Approved",
+            "default": false
+          },
+          "rationale": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Rationale",
+            "default": ""
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "source_heading": {
+            "type": "string",
+            "title": "Source Heading"
+          },
+          "target_heading": {
+            "type": "string",
+            "title": "Target Heading"
+          },
+          "target_version_id": {
+            "type": "string",
+            "title": "Target Version Id"
+          },
+          "provenance": {
+            "type": "string",
+            "title": "Provenance"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_clause_id",
+          "target_clause_id",
+          "relation",
+          "id",
+          "source_heading",
+          "target_heading",
+          "target_version_id",
+          "provenance"
+        ],
+        "title": "StoredRelation"
       },
       "SupportState": {
         "type": "string",

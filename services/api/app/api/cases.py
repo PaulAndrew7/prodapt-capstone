@@ -80,7 +80,15 @@ def get_launcher(
 ) -> RunLauncher:
     s = get_settings()
     return RunLauncher(
-        WorkflowDeps(factory, model, get_embedder(), s.run_max_model_calls, s.run_deadline_seconds)
+        WorkflowDeps(
+            factory,
+            model,
+            get_embedder(),
+            s.run_max_model_calls,
+            s.run_deadline_seconds,
+            allow_fallback=s.llm_mode != "required",
+            call_timeout_seconds=s.llm_call_timeout_seconds,
+        )
     )
 
 
@@ -136,6 +144,7 @@ def _run_status(session: Session, run: m.AssessmentRun) -> RunStatus:
         created_at=run.created_at,
         started_at=run.started_at,
         finished_at=run.finished_at,
+        execution=run.config.get("execution"),
     )
 
 
@@ -200,6 +209,7 @@ def _detail(session: Session, case: m.Case) -> CaseDetail:
             )
             for a in agent_messages
         ],
+        execution=run.config.get("execution") if run else None,
     )
 
 
@@ -286,7 +296,7 @@ def start_run(
     latest = records.latest_run(session, case.id)
     if latest is not None and latest.state in ACTIVE:
         raise AppError(409, "run_active", "This case already has a run in progress.")
-    if launcher.deps.model is None:
+    if launcher.deps.model is None and not launcher.deps.allow_fallback:
         raise AppError(
             503,
             "model_not_configured",
@@ -338,6 +348,22 @@ def resume_run(
     if unknown_ids:
         raise AppError(422, "unknown_question", f"Unknown question IDs: {', '.join(unknown_ids)}.")
     values = {q.id: (body.answers.get(q.id) or "").strip() or None for q in questions}
+    local = run.config.get("execution", {}).get("mode") == "local_review"
+    if body.finish_local_review and not local:
+        raise AppError(
+            422, "not_local_review", "Only a local review can finish with remaining checks unknown."
+        )
+    if local:
+        if any(
+            values[q.id] is not None and values[q.id] not in (q.choices or []) for q in questions
+        ):
+            raise AppError(
+                422,
+                "invalid_confirmation",
+                "Choose a listed disposition or leave the check unknown.",
+            )
+        if body.finish_local_review:
+            run.config = {**run.config, "local_review_complete": True}
     message = m.CaseMessage(
         id=m.new_id("msg"),
         case_id=run.case_id,
@@ -349,7 +375,15 @@ def resume_run(
     session.flush()
     answers = [Answer(q.id, q.fact_key, q.question, values[q.id], message.id) for q in questions]
     run.state = RunState.QUEUED
-    append_event(session, run.id, EventType.RUN_RESUMED, {"answers": [asdict(a) for a in answers]})
+    append_event(
+        session,
+        run.id,
+        EventType.RUN_RESUMED,
+        {
+            "answers": [asdict(a) for a in answers],
+            "execution_mode": "local_review" if local else "llm",
+        },
+    )
     session.get_one(m.Case, run.case_id).updated_at = records.now()
     session.commit()
     launcher.launch(background, run.id)

@@ -27,7 +27,9 @@ Downloaded from the Fontshare CDN on 2026-09-25 and self-hosted as woff2.
 |---|---|---|---|
 | BAAI/bge-small-en-v1.5 (384-d English embeddings), ONNX build `Qdrant/bge-small-en-v1.5-onnx-Q` loaded through fastembed | https://huggingface.co/BAAI/bge-small-en-v1.5 | MIT | `services/api/app/retrieval/embeddings.py`; downloaded at first use into `MODEL_CACHE_DIR`, not committed |
 
-| GPT-4o mini (OpenAI), the runtime language model | Reached through the project organizers' gateway with a key they supply | Used under the provider's and organizers' terms; not bundled, trained or fine-tuned here | `services/api/app/workflow/llm.py` through the OpenAI Python SDK (Apache-2.0) |
+| Claude Sonnet 5.5 (Anthropic), the runtime language model | Anthropic API with the user's own key | Used under Anthropic's terms; not bundled, trained or fine-tuned here | `services/api/app/workflow/claude_model.py` through the Anthropic Python SDK (MIT) |
+| GPT-4o mini (OpenAI), supported alternative | Through the project organizers' gateway with a lab key | Used under OpenAI's and the organizers' terms; not bundled, trained or fine-tuned here | `services/api/app/workflow/llm.py` through the OpenAI Python SDK (Apache-2.0) |
+| Claude Haiku 4.5 (Anthropic), cheaper option for test runs | Anthropic API with the user's own key | Used under Anthropic's terms; not bundled, trained or fine-tuned here | `services/api/app/workflow/claude_model.py` through the Anthropic Python SDK (MIT) |
 
 Python and JavaScript dependencies are pinned in `services/api/uv.lock` and `pnpm-lock.yaml` under their own licenses.
 

@@ -36,3 +36,9 @@ it("resets completed stages and starts retrieval again after clarification", () 
   expect(deriveStages(resumed)).toEqual({ retrieval: "active", analysis: "pending", risk: "pending", validation: "pending", recommendation: "pending" });
   expect(deriveStages([...resumed, event(6, "retrieval.completed")]).analysis).toBe("active");
 });
+
+it("preserves retrieved evidence and resets model stages after fallback", () => {
+  const events = [event(1, "run.started"), event(2, "retrieval.completed"),
+    event(3, "analysis.completed"), event(4, "validation.completed"), event(5, "run.fallback")];
+  expect(deriveStages(events)).toEqual({ retrieval: "done", analysis: "active", risk: "pending", validation: "pending", recommendation: "pending" });
+});

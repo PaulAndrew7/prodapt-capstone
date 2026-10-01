@@ -136,7 +136,7 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
 
 def cmd_check_model(_: argparse.Namespace) -> int:
     """One small structured request through the same client the workflow uses, to confirm
-    the gateway URL, key, model alias and JSON mode before running an assessment."""
+    the provider, key, model name (and a gateway's URL and JSON mode) before an assessment."""
     from pydantic import BaseModel
 
     from app.workflow.llm import SETUP_HINT, CallBudget, ModelError, get_model_client
@@ -149,7 +149,13 @@ def cmd_check_model(_: argparse.Namespace) -> int:
         print(f"No language model is configured. {SETUP_HINT}")
         return 1
     s = get_settings()
-    print(f"Model {model.name} at {s.llm_base_url} (JSON mode {s.llm_json_mode})")
+    if s.llm_provider == "anthropic":
+        print(f"Model {model.name} (structured outputs)")
+    else:
+        print(
+            f"Model {model.name} at {s.llm_base_url} (JSON mode {s.llm_json_mode}, "
+            f"max {s.llm_max_output_tokens} output tokens)"
+        )
     budget = CallBudget(model, max_calls=2, deadline_seconds=s.run_deadline_seconds)
     started = time.monotonic()
     try:

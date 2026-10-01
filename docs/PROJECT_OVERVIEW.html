@@ -1,0 +1,1077 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clause Project Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #FBFCFB; --paper-2: #F0F3F1; --ink: #111413; --ink-2: #4A524E; --rule: #D5DBD8;
+  --mark: #DDFF3C; --mark-ink: #111413; --bad: #B42318; --warn: #9A6700; --good: #1E7A46; --info: #2B5FB3;
+  --code-bg: #F0F3F1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1211; --paper-2: #181C1B; --ink: #E8ECEA; --ink-2: #A2ACA7; --rule: #2C3331;
+    --mark: #DDFF3C; --mark-ink: #111413; --bad: #FF7B6E; --warn: #F2C04C; --good: #5FD08E; --info: #8AB4FF;
+    --code-bg: #181C1B;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F1211; --paper-2: #181C1B; --ink: #E8ECEA; --ink-2: #A2ACA7; --rule: #2C3331;
+  --mark: #DDFF3C; --mark-ink: #111413; --bad: #FF7B6E; --warn: #F2C04C; --good: #5FD08E; --info: #8AB4FF;
+  --code-bg: #181C1B;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 16px/1.62 "IBM Plex Sans", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration-color: var(--ink-2); text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--ink); }
+code, pre, kbd { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .88em; }
+:not(pre) > code { background: var(--code-bg); padding: .1em .35em; border-radius: 3px; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); border-left: 3px solid var(--ink); padding: 14px 16px; overflow-x: auto; line-height: 1.5; margin: 16px 0; }
+h1, h2, h3 { font-family: "Bricolage Grotesque", system-ui, sans-serif; line-height: 1.12; letter-spacing: -.01em; }
+h1 { font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: 800; margin: 0 0 16px; }
+h2 { font-size: clamp(1.6rem, 3.2vw, 2.2rem); font-weight: 800; margin: 0 0 8px; }
+h3 { font-size: 1.2rem; font-weight: 600; margin: 32px 0 8px; }
+h4 { font-size: 1rem; margin: 22px 0 6px; }
+p, li { max-width: 72ch; }
+.mark { background: linear-gradient(transparent 12%, var(--mark) 12%, var(--mark) 88%, transparent 88%); color: var(--mark-ink); padding: 0 .12em; }
+.muted { color: var(--ink-2); }
+.small { font-size: .9rem; }
+
+.layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); max-width: 1320px; margin: 0 auto; }
+nav.toc {
+  position: sticky; top: 0; height: 100dvh; overflow-y: auto; padding: 28px 20px 40px 24px;
+  border-right: 2px solid var(--ink); font-size: .9rem;
+}
+nav.toc .brand { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.5rem; margin-bottom: 4px; }
+nav.toc ol { list-style: none; padding: 0; margin: 16px 0 0; counter-reset: s; }
+nav.toc li { counter-increment: s; margin: 0; }
+nav.toc li a { display: block; padding: 4px 6px; text-decoration: none; color: var(--ink-2); border-radius: 3px; }
+nav.toc li a::before { content: counter(s, decimal-leading-zero) "  "; font-family: "IBM Plex Mono", monospace; font-size: .78em; }
+nav.toc li a:hover { color: var(--ink); background: var(--paper-2); }
+nav.toc li a.active { color: var(--mark-ink); background: var(--mark); }
+.theme-btn { margin-top: 14px; font: inherit; font-size: .85rem; background: none; color: var(--ink); border: 2px solid var(--ink); padding: 4px 10px; cursor: pointer; }
+.theme-btn:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--info); outline-offset: 2px; }
+
+main { padding: 40px 56px 120px; min-width: 0; overflow-wrap: break-word; }
+section { padding: 48px 0 8px; border-top: 2px solid var(--ink); margin-top: 48px; }
+section:first-of-type { border-top: 0; margin-top: 0; padding-top: 8px; }
+.eyebrow { font-family: "IBM Plex Mono", monospace; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 6px; }
+.lede { font-size: 1.2rem; max-width: 62ch; }
+
+.say { border: 2px solid var(--ink); background: var(--mark); color: var(--mark-ink); padding: 14px 18px; margin: 20px 0; max-width: 78ch; }
+.say::before { content: "Say it like this"; display: block; font-family: "IBM Plex Mono", monospace; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.note { border-left: 4px solid var(--warn); background: var(--paper-2); padding: 12px 16px; margin: 18px 0; max-width: 78ch; }
+.note strong:first-child { color: var(--warn); }
+
+.table-wrap { overflow-x: auto; margin: 16px 0 20px; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { text-align: left; vertical-align: top; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--rule); }
+th { font-weight: 600; border-bottom: 2px solid var(--ink); white-space: nowrap; }
+td code { white-space: nowrap; }
+td.wrap code { white-space: normal; }
+
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 18px 0; }
+.card { border: 2px solid var(--ink); padding: 14px 16px; }
+.card h4 { margin-top: 0; }
+.card p { margin: 6px 0 0; }
+.stat { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 2.2rem; line-height: 1; }
+
+details { border: 1px solid var(--rule); border-left: 3px solid var(--ink); margin: 10px 0; padding: 0 14px; max-width: 86ch; }
+details[open] { padding-bottom: 10px; }
+summary { cursor: pointer; padding: 10px 0; font-weight: 600; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "+"; display: inline-block; width: 1.2em; font-family: "IBM Plex Mono", monospace; }
+details[open] > summary::before { content: "–"; }
+
+.pill { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: .75rem; padding: 1px 7px; border: 1.5px solid currentColor; border-radius: 999px; white-space: nowrap; }
+.pill.model { color: var(--info); }
+.pill.code { color: var(--good); }
+.pill.done { color: var(--good); }
+.pill.proto { color: var(--warn); }
+.pill.todo { color: var(--bad); }
+
+figure { margin: 22px 0; }
+figure svg { width: 100%; height: auto; display: block; max-width: 980px; }
+figcaption { font-size: .88rem; color: var(--ink-2); margin-top: 8px; max-width: 78ch; }
+svg .box { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+svg .box-mark { fill: var(--mark); stroke: var(--ink); stroke-width: 2; }
+svg .box-soft { fill: var(--paper-2); stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
+svg .t { fill: var(--ink); font: 600 14px "IBM Plex Sans", sans-serif; }
+svg .t-mark { fill: var(--mark-ink); font: 600 14px "IBM Plex Sans", sans-serif; }
+svg .s { fill: var(--ink-2); font: 12px "IBM Plex Sans", sans-serif; }
+svg .s-mark { fill: #3a4a00; font: 12px "IBM Plex Sans", sans-serif; }
+svg .m { fill: var(--ink-2); font: 11px "IBM Plex Mono", monospace; }
+svg .line { stroke: var(--ink); stroke-width: 2; fill: none; }
+svg .line-soft { stroke: var(--ink-2); stroke-width: 1.5; fill: none; stroke-dasharray: 4 4; }
+svg .arrow { fill: var(--ink); }
+svg .model-tag { fill: var(--info); font: 600 11px "IBM Plex Mono", monospace; }
+svg .code-tag { fill: var(--good); font: 600 11px "IBM Plex Mono", monospace; }
+
+ol.steps { padding-left: 0; list-style: none; counter-reset: st; }
+ol.steps > li { counter-increment: st; position: relative; padding-left: 44px; margin: 14px 0; }
+ol.steps > li::before { content: counter(st); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border: 2px solid var(--ink); display: grid; place-items: center; font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: .85rem; }
+
+.tree { font-family: "IBM Plex Mono", monospace; font-size: .86rem; line-height: 1.7; background: var(--code-bg); padding: 16px; overflow-x: auto; white-space: pre; }
+.tree b { font-weight: 500; color: var(--ink); }
+.tree i { font-style: normal; color: var(--ink-2); }
+
+.mobile-toc { display: none; }
+@media (max-width: 980px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  nav.toc { display: none; }
+  main { padding: 24px 16px 80px; }
+  .mobile-toc { display: block; margin: 12px 0 0; }
+  .mobile-toc ol { columns: 2; column-gap: 20px; padding-left: 20px; font-size: .9rem; }
+}
+@media print {
+  nav.toc, .theme-btn, .mobile-toc { display: none; }
+  .layout { grid-template-columns: 1fr; }
+  main { padding: 0; }
+  details { border: 0; }
+  details > *:not(summary) { display: block; }
+  section { break-before: page; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <div class="brand">Clause</div>
+  <div class="muted small">Project guide for the review</div>
+  <button class="theme-btn" type="button" id="themeBtn">Theme: system</button>
+  <ol id="tocList">
+    <li><a href="#pitch">The 60-second pitch</a></li>
+    <li><a href="#demo">What the user does</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#stack">Tech stack and why</a></li>
+    <li><a href="#repo">Repository map</a></li>
+    <li><a href="#corpus">The policy corpus</a></li>
+    <li><a href="#ingestion">Ingestion pipeline</a></li>
+    <li><a href="#database">Database schema</a></li>
+    <li><a href="#search">Hybrid search</a></li>
+    <li><a href="#workflow">The assessment workflow</a></li>
+    <li><a href="#guardrails">How it avoids making things up</a></li>
+    <li><a href="#rules">Result rules, risk, confidence</a></li>
+    <li><a href="#llm">The model client</a></li>
+    <li><a href="#api">API and run lifecycle</a></li>
+    <li><a href="#trace">Trace one request end to end</a></li>
+    <li><a href="#frontend">Frontend</a></li>
+    <li><a href="#evaluation">Evaluation and results</a></li>
+    <li><a href="#testing">Testing and CI</a></li>
+    <li><a href="#running">Running it</a></li>
+    <li><a href="#files">File-by-file guide</a></li>
+    <li><a href="#limits">Limitations and next steps</a></li>
+    <li><a href="#qa">Reviewer questions</a></li>
+    <li><a href="#glossary">Glossary</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- 01 ------------------------------------------------------------------------------ -->
+<section id="pitch">
+  <p class="eyebrow">Capstone project · status as of 29 September 2026</p>
+  <h1>Clause: every verdict <span class="mark">pinned to its clause</span></h1>
+  <div class="note"><strong>Superseded on 1 October 2026.</strong> This overview describes the project on 29 September, when it ran on GPT-4o mini through the organizers' gateway. Since then the runtime model is Claude Sonnet 5.5 through the Anthropic API, and the coverage gate, local review, input check, confidence scores and policy management were added. For the current state read <a href="APP_GUIDE_CLAUDE.html">APP_GUIDE_CLAUDE.html</a> or <a href="REVIEWER_GUIDE.html">REVIEWER_GUIDE.html</a>.</div>
+  <p class="lede">Clause is a policy compliance assistant. An employee describes a business activity in plain English ("we want to send customer records to an analytics vendor"). Clause finds the internal policy clauses that apply, decides requirement by requirement whether the plan meets them, and returns a structured assessment with gaps, risks and next actions. Every finding links to the exact clause, page and policy version behind it.</p>
+
+  <div class="say">People ask "are we allowed to do this?" and today the answer means reading several long policies. Clause reads them for you, but it never gives an answer it can't point to. The language model proposes findings; my code checks every quote against the stored policy text, a second model pass checks the reasoning, and plain Python rules decide the final result. If a fact is missing, the result says "insufficient information". It never guesses "compliant".</div>
+
+  <div class="grid-2">
+    <div class="card"><div class="stat">5</div><h4>workflow stages</h4><p>Retrieval, analysis, risk, validation, recommendation, then final checks. Only 3 of them call the model.</p></div>
+    <div class="card"><div class="stat">0</div><h4>false "compliant" results</h4><p>On the development set, across every run. No scenario labelled non-compliant was ever called compliant.</p></div>
+    <div class="card"><div class="stat">100%</div><h4>citations valid</h4><p>Every quote the model proposed, in the final runs, was found word for word in the cited clause (33/33 in the latest).</p></div>
+    <div class="card"><div class="stat">0.839</div><h4>hybrid Recall@10</h4><p>Keyword + vector search finds 84% of labelled clauses in the top ten, against 0.704 for keyword alone.</p></div>
+  </div>
+
+  <h3>The problem it solves</h3>
+  <ul>
+    <li>Policies are long, versioned and cross-reference each other (exceptions, definitions, later versions).</li>
+    <li>A plain chatbot over policies can invent clauses, misquote them, or say "you're fine" when a key fact was never mentioned.</li>
+    <li>Compliance answers need to be <em>auditable</em>: which clause, which version, which page, which facts.</li>
+  </ul>
+
+  <h3>Three ideas that make it different</h3>
+  <ol>
+    <li><strong>Findings are structured records, not prose.</strong> Each finding has a requirement, a status (met, violated, unknown, not applicable, conflict), the facts it rests on and validated citations.</li>
+    <li><strong>Unknown stays unknown.</strong> Facts have three origins: provided, inferred, unknown. "We haven't got approval" is a violation; "approval wasn't mentioned" is unknown. The system never turns a missing fact into a verdict.</li>
+    <li><strong>The model never decides alone.</strong> It picks clause IDs and quotes; the server builds citations from the database, rejects anything that doesn't match, and ordered Python rules decide the headline result.</li>
+  </ol>
+
+  <div class="note"><strong>Honesty points to state up front.</strong> The policy corpus is fictional (an invented insurer, Kestrel Mutual). The evaluation is small (13 development scenarios; 20 held-out scenarios are written but still waiting for label review before their single run). It runs as a local, single-user demo. Some screens (review queue, reports, evaluation lab, settings) are clearly labelled prototypes.</div>
+
+  <nav class="mobile-toc" aria-label="Contents"><strong>Contents</strong><ol id="mobileToc"></ol></nav>
+</section>
+
+<!-- 02 ------------------------------------------------------------------------------ -->
+<section id="demo">
+  <p class="eyebrow">Product</p>
+  <h2>What the user does</h2>
+  <ol class="steps">
+    <li><strong>Describe the activity.</strong> On <code>/app/cases/new</code> they type the scenario, pick a business area and an "as of" date (which decides which policy versions are in force).</li>
+    <li><strong>Watch it work.</strong> A run starts in the background. A stage track (Retrieve → Analyze → Assess risk → Validate → Recommend) fills in live, driven by server-sent events from the real stages. A small reactive avatar mirrors the run state.</li>
+    <li><strong>Answer up to three questions.</strong> If a missing fact decides a requirement, the run pauses and asks (with an "I don't know" option). Answers are authoritative: the model can't overrule them.</li>
+    <li><strong>Read the assessment.</strong> Headline status, summary, a requirement table with per-finding confidence, gaps and risks, and next actions with the role who should do them and how to check it's done.</li>
+    <li><strong>Open the evidence.</strong> Clicking a citation opens a drawer with the clause, the quoted passage highlighted, the version and a link to the original PDF page.</li>
+  </ol>
+  <p>Two more live features: the <strong>policy library</strong> (browse policies, versions, clauses and the original PDFs, compare versions) and <strong>Ask a question</strong> (a short cited answer, e.g. "Who must approve sharing customer data with a vendor?").</p>
+
+  <h3>The worked example (the saved demo case)</h3>
+  <pre>We plan to send customer records to an external analytics vendor. We have not obtained
+written data-owner approval. I do not know whether the vendor review is complete.</pre>
+  <div class="table-wrap"><table>
+    <tr><th>Stage</th><th>What happens</th></tr>
+    <tr><td>Retrieval</td><td>Search finds Customer Data Sharing §4.2 (data-owner approval), Vendor Due Diligence §3.1 (vendor register), plus their definitions and exception §4.4.</td></tr>
+    <tr><td>Analysis</td><td>§4.2 → <strong>violated</strong> (the requester <em>stated</em> approval was not obtained). §3.1 → <strong>unknown</strong> (vendor review status is unknown, named as a missing fact).</td></tr>
+    <tr><td>Risk</td><td>§4.2 breach concerns customer data and is mandatory → <strong>high</strong> severity. The unknown gets no severity.</td></tr>
+    <tr><td>Validation</td><td>Quotes "requires written approval from the data owner" and "hold Approved status in the vendor register" are found in the stored text. The model check confirms both findings.</td></tr>
+    <tr><td>Recommendation</td><td>"Obtain written approval from the data owner" (role: Data owner, check: signed approval) and "Confirm the vendor holds Approved status in the register".</td></tr>
+    <tr><td>Final rules</td><td>A validated violation exists → <strong>non_compliant</strong>, confidence 100/100 (high). The unknown is still listed: "one other requirement cannot be checked until missing facts are known."</td></tr>
+  </table></div>
+  <p class="muted small">The real run of this case is saved in the local database as <code>case_201b49f1fb7f48ccaa05157ec6336451</code>, so it can be shown without a live model call.</p>
+</section>
+
+<!-- 03 ------------------------------------------------------------------------------ -->
+<section id="architecture">
+  <p class="eyebrow">System</p>
+  <h2>Architecture</h2>
+  <p>One browser app, one API process, one database. The only thing that leaves the machine at runtime is the language model request.</p>
+  <figure>
+    <svg viewBox="0 0 980 440" role="img" aria-labelledby="archTitle">
+      <title id="archTitle">System architecture: browser, FastAPI process, PostgreSQL, local embedding model, external language model</title>
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrow"/></marker></defs>
+      <!-- browser -->
+      <rect x="20" y="40" width="220" height="190" class="box"/>
+      <text x="36" y="68" class="t">Browser</text>
+      <text x="36" y="90" class="s">React 19 + Vite + TypeScript</text>
+      <text x="36" y="118" class="m">TanStack Query (server data)</text>
+      <text x="36" y="136" class="m">Zustand runStore (SSE events)</text>
+      <text x="36" y="154" class="m">ComplianceApi seam:</text>
+      <text x="36" y="172" class="m"> HttpApi | FixtureApi</text>
+      <text x="36" y="200" class="s">Vite proxies /api, /health</text>
+      <text x="36" y="216" class="s">to :8000 (same origin)</text>
+      <!-- API -->
+      <rect x="320" y="20" width="380" height="330" class="box"/>
+      <text x="336" y="48" class="t">FastAPI process (uvicorn :8000)</text>
+      <rect x="336" y="64" width="348" height="58" class="box-soft"/>
+      <text x="348" y="86" class="t">HTTP API · app/api/</text>
+      <text x="348" y="106" class="m">policies · search · lookup · cases · runs · SSE</text>
+      <rect x="336" y="134" width="348" height="112" class="box-mark"/>
+      <text x="348" y="156" class="t-mark">Workflow · app/workflow/ (background task)</text>
+      <text x="348" y="178" class="s-mark">retrieval → analysis → risk → validation →</text>
+      <text x="348" y="196" class="s-mark">recommendation → final rules</text>
+      <text x="348" y="222" class="s-mark">CallBudget: max 8 model calls, 120 s</text>
+      <rect x="336" y="258" width="168" height="76" class="box-soft"/>
+      <text x="348" y="280" class="t">Ingestion</text>
+      <text x="348" y="298" class="m">PDF → clauses</text>
+      <text x="348" y="314" class="m">→ chunks → vectors</text>
+      <rect x="516" y="258" width="168" height="76" class="box-soft"/>
+      <text x="528" y="280" class="t">Embedder</text>
+      <text x="528" y="298" class="m">bge-small-en-v1.5</text>
+      <text x="528" y="314" class="m">local ONNX, 384-d</text>
+      <!-- DB -->
+      <rect x="780" y="40" width="180" height="190" class="box"/>
+      <text x="796" y="68" class="t">PostgreSQL 16</text>
+      <text x="796" y="88" class="s">+ pgvector 0.8.1</text>
+      <text x="796" y="116" class="m">full-text (tsvector)</text>
+      <text x="796" y="134" class="m">vectors (cosine)</text>
+      <text x="796" y="152" class="m">cases, runs, events</text>
+      <text x="796" y="170" class="m">clauses, spans</text>
+      <text x="796" y="198" class="s">port 5433, var/postgres</text>
+      <text x="796" y="214" class="s">no Docker (pgserver wheel)</text>
+      <!-- LLM -->
+      <rect x="780" y="290" width="180" height="120" class="box-soft"/>
+      <text x="796" y="316" class="t">Language model</text>
+      <text x="796" y="336" class="s">GPT-4o mini via the</text>
+      <text x="796" y="352" class="s">organizers' gateway</text>
+      <text x="796" y="376" class="m">alt: Claude Haiku 4.5</text>
+      <text x="796" y="394" class="m">(the only external call)</text>
+      <!-- storage -->
+      <rect x="20" y="290" width="220" height="120" class="box-soft"/>
+      <text x="36" y="316" class="t">Files on disk</text>
+      <text x="36" y="338" class="m">var/storage originals</text>
+      <text x="36" y="356" class="m">var/models embeddings</text>
+      <text x="36" y="374" class="m">data/demo PDFs + manifest</text>
+      <text x="36" y="392" class="m">data/evaluation labels</text>
+      <!-- arrows -->
+      <path d="M240 110 H316" class="line" marker-end="url(#ah)"/>
+      <text x="248" y="102" class="m">JSON</text>
+      <path d="M316 160 H240" class="line" marker-end="url(#ah)"/>
+      <text x="248" y="176" class="m">SSE</text>
+      <path d="M700 120 H776" class="line" marker-end="url(#ah)" marker-start="url(#ah)"/>
+      <text x="712" y="112" class="m">SQL</text>
+      <path d="M700 230 C740 230 740 350 776 350" class="line" marker-end="url(#ah)"/>
+      <text x="706" y="262" class="m">HTTPS</text>
+      <path d="M336 300 H244" class="line-soft" marker-end="url(#ah)"/>
+    </svg>
+    <figcaption>Also in the repo as <code>docs/architecture/architecture.pdf</code> (system and workflow pages), generated from <code>docs/architecture/diagram/architecture.html</code>.</figcaption>
+  </figure>
+
+  <div class="say">It's deliberately a small system: one FastAPI process serves the API and runs each assessment as a background task; PostgreSQL does both keyword and vector search, so there's no separate vector database; embeddings are computed locally, so policy text never leaves the machine for search. The only external call is the language model.</div>
+
+  <h3>Why this shape</h3>
+  <ul>
+    <li><strong>One process, not API + worker + queue.</strong> A student-scale, single-user demo doesn't need distributed workers. Cost: restarting the API interrupts an active run. On startup, <code>fail_interrupted_runs</code> marks those runs failed with a clear message; completed results are never lost.</li>
+    <li><strong>Postgres for everything.</strong> Full-text search, pgvector similarity, relational data and the event log in one transactional store. Simpler to run, and the snapshot/date/organization filters apply to both search channels in the same SQL.</li>
+    <li><strong>No Docker.</strong> PostgreSQL 16 + pgvector ship inside a Python wheel (<code>pixeltable-pgserver</code>), so <code>uv sync</code> installs the database. <code>python -m app.cli db-start</code> runs it on port 5433. Pinned to 0.5.1 because 0.6.0's Windows pgvector build crashes on CPUs without AVX-512.</li>
+  </ul>
+</section>
+
+<!-- 04 ------------------------------------------------------------------------------ -->
+<section id="stack">
+  <p class="eyebrow">Technology</p>
+  <h2>Tech stack and why</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Layer</th><th>Choice</th><th>Why</th></tr>
+    <tr><td>API</td><td>FastAPI, Pydantic v2, Python 3.12</td><td>Typed request/response contracts, automatic OpenAPI, easy background tasks and streaming responses.</td></tr>
+    <tr><td>Data access</td><td>SQLAlchemy 2, Alembic</td><td>Typed ORM models; migrations are explicit (<code>cli migrate</code>), never on startup.</td></tr>
+    <tr><td>Database</td><td>PostgreSQL 16 + pgvector (pixeltable-pgserver)</td><td>Full-text + vectors + relational in one place; no Docker needed.</td></tr>
+    <tr><td>PDF parsing</td><td>pypdf</td><td>Digital PDFs with a text layer; scans are rejected with a clear error (no OCR).</td></tr>
+    <tr><td>Embeddings</td><td>fastembed (ONNX) + BAAI/bge-small-en-v1.5, 384 dims</td><td>Runs on CPU, ~70 MB, no API key, no policy text sent out.</td></tr>
+    <tr><td>Model client</td><td>official <code>openai</code> SDK pointed at the gateway; <code>anthropic</code> SDK as an alternative</td><td>The organizers' gateway speaks the OpenAI chat-completions format.</td></tr>
+    <tr><td>Frontend</td><td>React 19, TypeScript, Vite, Tailwind 4</td><td>Fast dev loop, typed API mirror, route-level code splitting.</td></tr>
+    <tr><td>Client state</td><td>TanStack Query (server data), Zustand (run events, preferences)</td><td>Query caches and refetches case data; one small store deduplicates streamed events.</td></tr>
+    <tr><td>UI pieces</td><td>Radix primitives, Phosphor icons, Motion, Lenis, three.js / react-three-fiber</td><td>Accessible dialogs/tabs/tooltips; the 3D policy stack and motion are front-door showcase only and switch off for reduced motion or no WebGL.</td></tr>
+    <tr><td>Tooling</td><td>uv, ruff, mypy (strict), pytest; pnpm via corepack, Vitest, Playwright + axe</td><td>Reproducible installs, strict typing, accessibility checks in the browser tests.</td></tr>
+  </table></div>
+</section>
+
+<!-- 05 ------------------------------------------------------------------------------ -->
+<section id="repo">
+  <p class="eyebrow">Codebase</p>
+  <h2>Repository map</h2>
+  <div class="tree"><b>apps/web/</b>                 <i>React + Vite frontend</i>
+  src/app/                 <i>router, app shell, providers (query client, theme)</i>
+  src/features/cases/      <i>new case, case workspace, conversation, assessment, evidence drawer</i>
+  src/features/policies/   <i>policy library, policy detail, version diff, Ask a question</i>
+  src/features/avatar/     <i>reactive SVG figure + pure reducer controller</i>
+  src/features/front-door/ <i>landing page, 3D policy stack, animated exhibits</i>
+  src/lib/api/             <i>ComplianceApi interface, HttpApi (live), FixtureApi (offline), types</i>
+  src/lib/events/          <i>runStore: deduplicated SSE events, stage/phase derivation</i>
+  src/components/          <i>Button, Status words, StageTrack, HighlightMark, Confidence</i>
+  e2e/                     <i>Playwright flow, highlight and accessibility (axe) tests</i>
+<b>services/api/</b>             <i>FastAPI service</i>
+  app/main.py              <i>creates the app, middleware, routers, startup cleanup</i>
+  app/config.py            <i>validated settings from .env</i>
+  app/cli.py               <i>db-start/stop, migrate, seed-demo, search, evaluate, check-model</i>
+  app/api/                 <i>HTTP routes: health, policies, search+lookup, cases+runs+SSE</i>
+  app/domain/contracts.py  <i>every public Pydantic contract (mirrored in TypeScript)</i>
+  app/persistence/         <i>SQLAlchemy models and sessions</i>
+  app/ingestion/           <i>pdf.py, segment.py, chunking.py, pipeline.py</i>
+  app/retrieval/           <i>embeddings.py, search.py (hybrid + RRF)</i>
+  app/workflow/            <i>THE CORE: orchestrator + one module per stage + model client</i>
+  app/evaluation.py        <i>evaluation harness and report writer</i>
+  migrations/              <i>Alembic schema (one initial migration)</i>
+  tests/                   <i>212 pytest tests; ScriptedModel stands in for the LLM</i>
+<b>packages/contracts/</b>       <i>exported openapi.json + shared JSON fixtures</i>
+<b>data/demo/</b>                <i>Kestrel Mutual policies: Markdown source, PDFs, manifest with hashes</i>
+<b>data/evaluation/</b>          <i>hand-labelled dev (13) and held-out test (20) scenarios</i>
+<b>scripts/</b>                  <i>build_demo_corpus.py: Markdown → reproducible PDFs + manifest</i>
+<b>docs/</b>                     <i>architecture, decisions, ADRs, evaluation results + analysis, tasks</i>
+<b>.github/workflows/ci.yml</b>  <i>lint, types, migrations, OpenAPI check, corpus rebuild, tests, seed</i></div>
+</section>
+
+<!-- 06 ------------------------------------------------------------------------------ -->
+<section id="corpus">
+  <p class="eyebrow">Data</p>
+  <h2>The policy corpus</h2>
+  <p>A fictional insurer, <strong>Kestrel Mutual</strong>: 11 policies, 14 versions, 111 clauses. Written as Markdown (<code>data/demo/policies/*.md</code>, front matter + numbered headings) and rendered to PDFs by <code>scripts/build_demo_corpus.py</code> with ReportLab in "invariant" mode, so the PDFs are byte-for-byte reproducible. <code>data/demo/manifest.json</code> records each PDF's SHA-256; the seeder refuses a PDF that doesn't match. CI rebuilds the corpus and fails if anything changed.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Version</th><th>Policy</th><th>Effective</th><th>Status</th></tr>
+    <tr><td><code>ds_v1</code></td><td>Customer Data Sharing v1</td><td>2026-01-01 → 2026-09-30</td><td>published</td></tr>
+    <tr><td><code>ds_v2</code></td><td>Customer Data Sharing v2 (adds §4.5 retention period)</td><td>2026-10-01 →</td><td>published</td></tr>
+    <tr><td><code>ea_v1</code> / <code>ea_v2</code></td><td>Expense Approval</td><td>v1 to 2026-03-31, v2 from 2026-04-01</td><td>superseded / published</td></tr>
+    <tr><td><code>cm_v1</code> / <code>cm_v2</code></td><td>Change Management</td><td>v2 from 2026-11-01</td><td>published / <strong>draft</strong></td></tr>
+    <tr><td><code>ac_v1</code>, <code>co_v1</code>, <code>gv_v1</code>, <code>ir_v1</code>, <code>md_v1</code>, <code>rd_v1</code>, <code>rw_v1</code>, <code>vd_v1</code></td><td>Access Control, Customer Onboarding, Policy Governance, Incident Response, Model Development, Retention and Deletion, Remote Working, Vendor Due Diligence</td><td>various</td><td>published</td></tr>
+  </table></div>
+  <p>The corpus was designed to exercise the hard cases: <strong>versions</strong> (the "as of" date picks ds_v1 or ds_v2), a <strong>draft</strong> that must never be used, <strong>exceptions</strong> (ds §4.4 regulator requests replace §4.2), <strong>definitions</strong>, cross-references, and one real <strong>conflict</strong> (Retention §5.2 "delete derived data" vs Model Development §2.2 "keep it for the model's life").</p>
+  <div class="say">I used a fictional corpus on purpose: real policies are confidential or copyrighted, and a designed corpus lets me plant versions, exceptions and a conflict so the evaluation actually tests them. Every screen labels it "Demo corpus: fictional policies".</div>
+</section>
+
+<!-- 07 ------------------------------------------------------------------------------ -->
+<section id="ingestion">
+  <p class="eyebrow">Backend · app/ingestion/</p>
+  <h2>Ingestion pipeline</h2>
+  <p>Turns a PDF into clauses that can be searched and cited, keeping the exact character offsets back into the original page text. Entry point: <code>ingest_version()</code> in <code>pipeline.py</code>, called by <code>seed_demo()</code>.</p>
+  <figure>
+    <svg viewBox="0 0 980 150" role="img" aria-labelledby="ingT">
+      <title id="ingT">Ingestion: PDF bytes, extract pages, segment into clauses, spans, chunks, embeddings, integrity check, ready</title>
+      <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrow"/></marker></defs>
+      <g>
+        <rect x="10" y="30" width="120" height="70" class="box"/><text x="22" y="58" class="t">PDF bytes</text><text x="22" y="80" class="m">sha256, size</text>
+        <rect x="150" y="30" width="120" height="70" class="box"/><text x="162" y="58" class="t">extract</text><text x="162" y="80" class="m">pdf.py</text>
+        <rect x="290" y="30" width="140" height="70" class="box"/><text x="302" y="58" class="t">segment</text><text x="302" y="80" class="m">segment.py</text>
+        <rect x="450" y="30" width="120" height="70" class="box"/><text x="462" y="58" class="t">chunk</text><text x="462" y="80" class="m">chunking.py</text>
+        <rect x="590" y="30" width="120" height="70" class="box"/><text x="602" y="58" class="t">embed</text><text x="602" y="80" class="m">embeddings.py</text>
+        <rect x="730" y="30" width="110" height="70" class="box"/><text x="742" y="58" class="t">integrity</text><text x="742" y="80" class="m">checks</text>
+        <rect x="860" y="30" width="110" height="70" class="box-mark"/><text x="872" y="58" class="t-mark">ready</text><text x="872" y="80" class="s-mark">one commit</text>
+        <path d="M130 65 H146" class="line" marker-end="url(#ah2)"/><path d="M270 65 H286" class="line" marker-end="url(#ah2)"/><path d="M430 65 H446" class="line" marker-end="url(#ah2)"/><path d="M570 65 H586" class="line" marker-end="url(#ah2)"/><path d="M710 65 H726" class="line" marker-end="url(#ah2)"/><path d="M840 65 H856" class="line" marker-end="url(#ah2)"/>
+        <text x="10" y="130" class="s">Everything for a version is written in one transaction and only marked index_status=ready after the checks pass.</text>
+      </g>
+    </svg>
+  </figure>
+  <ol class="steps">
+    <li><strong>Extract</strong> (<code>pdf.py → extract_pages</code>): checks the <code>%PDF-</code> signature, encryption, page limit; extracts text per page with pypdf; warns about pages with under 20 characters; rejects a PDF where no page has text ("needs OCR").</li>
+    <li><strong>Segment</strong> (<code>segment.py → segment</code>): splits page text into numbered clauses. Removes running headers/footers (lines repeated on ≥60% of pages). Heading detection is conservative: a line like <code>4.2 Data-owner approval</code> counts only if its number is a plausible successor of the previous heading (1 → 2, 2 → 2.1, 2.1 → 2.2) and its title starts with a capital and doesn't end like a sentence, so a wrapped line like "14 days." is not a heading. Each source line becomes a <code>Piece</code> recording where it sits in the raw page and in the clause text. Clauses are classified (definition / requirement / exception / general) with regexes ("must", "only if", "means", "exception", "instead of clause"), and cross-references ("clause 4.2") are collected.</li>
+    <li><strong>Store clauses and spans</strong> (<code>pipeline.py</code>): clause IDs are readable (<code>ds_v1_4_4.2</code>). <code>merge_spans</code> collapses line pieces into one <code>SourceSpan</code> per page, so a clause crossing pages keeps both locations.</li>
+    <li><strong>Relations</strong>: a clause's references become <code>clause_relations</code>; if the citing clause is an exception, the relation is <code>excepts</code> (e.g. §4.4 excepts §4.2), otherwise <code>references</code>. These are marked "extracted", i.e. heuristic.</li>
+    <li><strong>Chunk</strong> (<code>chunking.py</code>): a chunk never crosses a clause boundary. Short clauses stay whole; long ones split on sentences into ~350-token windows with up to 40 tokens overlap. Each chunk gets a prefix "Policy title &gt; 4 External sharing &gt; 4.2 Data-owner approval", which is weighted higher in full-text search.</li>
+    <li><strong>Embed</strong> (<code>retrieval/embeddings.py</code>): passages embedded as-is; queries get the BGE instruction prefix ("Represent this sentence for searching relevant passages: "), as the model card recommends. The model revision is stored with every chunk.</li>
+    <li><strong>Integrity</strong> (<code>_check_integrity</code>): every clause has a span inside its page text; no chunk is orphaned. Only then <code>index_status = ready</code>.</li>
+  </ol>
+  <p><strong>Idempotency:</strong> re-ingesting the same bytes under the same label is a no-op; different bytes under an existing label raise <code>version_conflict</code> ("upload it as a new version"). Original files are stored under a content-hash key, never the user's file name (<code>storage.py</code>, with a path-escape check).</p>
+</section>
+
+<!-- 08 ------------------------------------------------------------------------------ -->
+<section id="database">
+  <p class="eyebrow">Backend · app/persistence/models.py · migrations/</p>
+  <h2>Database schema</h2>
+  <p>One Alembic migration creates the whole schema. Conventions: text primary keys (prefixed random IDs like <code>run_…</code>, readable IDs for seed data), enums stored as VARCHAR + CHECK constraints (easier to extend than Postgres enum types), every tenant-owned row carries <code>organization_id</code> and every query filters on it.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Group</th><th>Tables</th><th>Notes</th></tr>
+    <tr><td>Identity</td><td><code>organizations, users, memberships</code></td><td>Seeded demo org and three fictional users; role = requester / reviewer / admin.</td></tr>
+    <tr><td>Policies</td><td><code>policies, policy_versions, document_pages, clauses, source_spans, clause_relations, chunks</code></td><td><code>chunks.search_vector</code> is a generated tsvector (prefix weight A, text weight B) with a GIN index; <code>chunks.embedding</code> is <code>vector(384)</code>. A CHECK forbids "published" unless the index is ready.</td></tr>
+    <tr><td>Snapshots</td><td><code>policy_snapshots, snapshot_versions</code></td><td>An immutable set of policy versions an assessment runs against. RESTRICT foreign keys: a version cited by a saved assessment can't be deleted.</td></tr>
+    <tr><td>Cases</td><td><code>cases, scenario_revisions, messages, facts</code></td><td>Each run gets a new immutable scenario revision with everything the user has said. A CHECK enforces <code>(origin = 'unknown') = (value IS NULL)</code>: unknown means no value, at the database level.</td></tr>
+    <tr><td>Runs</td><td><code>assessment_runs, run_events, agent_messages</code></td><td>The run holds state, config (model, prompt versions, retrieval settings), budget, usage and the final assessment JSON. <code>run_events</code> is the gap-free progress log that SSE replays; <code>agent_messages</code> are the stage handoffs shown in the trace.</td></tr>
+    <tr><td>Unused / future</td><td><code>citations, findings, risks, recommendations</code> (normalized), <code>requirements, reviews, jobs, audit_events, uploads</code></td><td>Designed in the first, larger plan. The simplified build stores the assessment as one validated JSON document on the run. Append-only triggers exist on <code>audit_events</code>, <code>reviews</code>, <code>run_events</code>.</td></tr>
+  </table></div>
+  <div class="note"><strong>Be ready for:</strong> "why are some tables empty?" Answer: the schema was designed for the full plan (reviews, a job queue, normalized findings for cross-case queries). When I cut scope to meet the deadline, the assessment became one JSON document validated by the Pydantic contract. It's documented in <code>docs/architecture/decisions.md</code>; I'd use the normalized tables once a feature needs to query findings across cases.</div>
+</section>
+
+<!-- 09 ------------------------------------------------------------------------------ -->
+<section id="search">
+  <p class="eyebrow">Backend · app/retrieval/search.py</p>
+  <h2>Hybrid search</h2>
+  <p>Two channels run over the same eligible chunks, then merge:</p>
+  <ul>
+    <li><strong>Eligible chunks</strong> (<code>_eligible_chunks</code>): same organization, in the chosen snapshot, not a draft, and in force on the "as of" date (<code>effective_from ≤ date ≤ effective_to</code>), optionally limited to chosen policies.</li>
+    <li><strong>Lexical</strong>: Postgres full-text. The question's stemmed words are OR-ed into a <code>tsquery</code> (so a natural question still matches), ranked by <code>ts_rank_cd</code>, top 20.</li>
+    <li><strong>Dense</strong>: pgvector cosine distance to the query embedding (exact scan; the corpus is small), top 20.</li>
+    <li><strong>Fusion</strong>: reciprocal rank fusion, then one best chunk per clause, then the top N.</li>
+  </ul>
+  <pre>score(chunk) = Σ over channels  1 / (60 + rank_in_channel)</pre>
+  <p>RRF only uses ranks, so it doesn't need the two channels' scores to be comparable. The score is an ordering, never shown as a probability. Each hit carries both ranks and a backend-built citation.</p>
+  <div class="say">Keyword search is precise on policy vocabulary; embeddings catch paraphrases like "analytics vendor" vs "third party". On my development set hybrid Recall@10 is 0.839 against 0.704 for keywords alone. I fuse them with reciprocal rank fusion because it's simple, tuning-free and uses ranks rather than incomparable scores.</div>
+  <p>Try it: <code>uv run python -m app.cli search "who approves temporary production access"</code> prints each hit with its lexical and dense rank.</p>
+</section>
+
+<!-- 10 ------------------------------------------------------------------------------ -->
+<section id="workflow">
+  <p class="eyebrow">Backend · app/workflow/ · the core</p>
+  <h2>The assessment workflow</h2>
+  <p>Five specialist roles run as ordinary Python functions in a fixed order (<code>orchestrator.py → _stages</code>), inside a FastAPI background task. Only three steps call the model; the rest is deterministic code.</p>
+  <figure>
+    <svg viewBox="0 0 980 330" role="img" aria-labelledby="wfT">
+      <title id="wfT">Workflow: retrieval (code), analysis (model), optional clarification pause, risk (code), validation (code plus model), recommendation (model), final rules (code), publish</title>
+      <defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrow"/></marker></defs>
+      <rect x="10" y="40" width="140" height="96" class="box"/><text x="22" y="66" class="t">1 Retrieval</text><text x="22" y="86" class="m">retrieval.py</text><text x="22" y="104" class="s">top 10 + related,</text><text x="22" y="120" class="s">max 14 clauses</text><text x="22" y="30" class="code-tag">CODE</text>
+      <rect x="175" y="40" width="140" height="96" class="box"/><text x="187" y="66" class="t">2 Analysis</text><text x="187" y="86" class="m">analysis.py</text><text x="187" y="104" class="s">facts, findings,</text><text x="187" y="120" class="s">≤3 questions</text><text x="187" y="30" class="model-tag">MODEL CALL 1</text>
+      <rect x="340" y="40" width="140" height="96" class="box"/><text x="352" y="66" class="t">3 Risk</text><text x="352" y="86" class="m">risk.py</text><text x="352" y="104" class="s">rubric</text><text x="352" y="120" class="s">demo-risk-v1</text><text x="352" y="30" class="code-tag">CODE</text>
+      <rect x="505" y="40" width="140" height="96" class="box"/><text x="517" y="66" class="t">4 Validation</text><text x="517" y="86" class="m">validation.py</text><text x="517" y="104" class="s">quote checks, then</text><text x="517" y="120" class="s">support check</text><text x="517" y="30" class="model-tag">CODE + CALL 2</text>
+      <rect x="670" y="40" width="140" height="96" class="box"/><text x="682" y="66" class="t">5 Recommend</text><text x="682" y="86" class="m">recommendation.py</text><text x="682" y="104" class="s">actions for</text><text x="682" y="120" class="s">validated gaps</text><text x="682" y="30" class="model-tag">MODEL CALL 3</text>
+      <rect x="835" y="40" width="135" height="96" class="box-mark"/><text x="847" y="66" class="t-mark">6 Final rules</text><text x="847" y="86" class="m" style="fill:#3a4a00">outcome.py</text><text x="847" y="104" class="s-mark">status, summary,</text><text x="847" y="120" class="s-mark">confidence</text><text x="847" y="30" class="code-tag">CODE</text>
+      <path d="M150 88 H171" class="line" marker-end="url(#ah3)"/><path d="M315 88 H336" class="line" marker-end="url(#ah3)"/><path d="M480 88 H501" class="line" marker-end="url(#ah3)"/><path d="M645 88 H666" class="line" marker-end="url(#ah3)"/><path d="M810 88 H831" class="line" marker-end="url(#ah3)"/>
+      <!-- clarification loop -->
+      <rect x="175" y="200" width="230" height="70" class="box-soft"/><text x="187" y="224" class="t">Waiting for user</text><text x="187" y="244" class="s">clarification.required event;</text><text x="187" y="260" class="s">user answers or "I don't know"</text>
+      <path d="M245 136 V196" class="line" marker-end="url(#ah3)"/><text x="252" y="170" class="m">unknown fact decides → ask</text>
+      <path d="M175 235 C60 235 40 180 80 140" class="line-soft" marker-end="url(#ah3)"/><text x="10" y="266" class="m">resume: rerun all stages</text><text x="10" y="280" class="m">with answers, no 2nd pause</text>
+      <!-- publish -->
+      <path d="M902 136 V196" class="line" marker-end="url(#ah3)"/>
+      <rect x="800" y="200" width="170" height="70" class="box"/><text x="812" y="224" class="t">Publish</text><text x="812" y="244" class="s">assessment JSON on the</text><text x="812" y="260" class="s">run; run.completed</text>
+      <text x="470" y="300" class="s">Every stage saves a progress event + a handoff record only after it finishes.</text>
+      <text x="470" y="318" class="s">Budget per attempt: 8 model calls, 120 seconds, one schema repair per stage.</text>
+    </svg>
+  </figure>
+
+  <div class="say">I call them five agents because each has one job and hands a typed message to the next, but they're plain functions in a fixed order, not a framework like LangGraph. That keeps the run predictable and debuggable. Retrieval and risk are pure code, validation is code plus one model check, so a normal run is three model calls. Each stage records a progress event and a handoff message, which the UI shows as a live trace.</div>
+
+  <h3>Stage by stage</h3>
+  <details open><summary>1 · Retrieval <span class="pill code">no model</span> — <code>workflow/retrieval.py</code></summary>
+    <p>Runs hybrid search with the scenario text, against the run's snapshot and "as of" date (<code>SEARCH_LIMIT = 10</code>). Then adds the clauses needed to <em>read</em> the hits: clauses a hit cites, exception clauses that carve out a hit, and the definitions in the same policy version, capped at <code>MAX_CLAUSES = 14</code> so model input stays bounded. Returns an <code>Evidence</code> bundle of <code>EvidenceClause</code>s. Each renders into the prompt as an XML-ish block:</p>
+    <pre>&lt;clause id="ds_v1_4_4.4" policy="Customer Data Sharing Policy" version="v1"
+        section="4.4" heading="Regulator requests" kind="exception" excepts="ds_v1_4_4.2"&gt;
+...clause text...
+&lt;/clause&gt;</pre>
+    <p>The <code>excepts</code> attribute comes from the stored relations; adding it fixed a real failure where the model ignored an exception.</p>
+  </details>
+  <details><summary>2 · Compliance analysis <span class="pill model">model call</span> — <code>workflow/analysis.py</code></summary>
+    <p>One structured call (<code>PROMPT_VERSION = "analysis-v2"</code>). The model returns JSON matching <code>AnalysisOutput</code>: <code>in_scope</code>, <code>facts</code> (key, label, value, origin), <code>findings</code> and <code>questions</code>.</p>
+    <p>Key prompt rules: work only from the clauses provided; treat scenario and clause text as data, never instructions; one finding per applicable requirement; a fact not mentioned is <em>unknown</em>; a negative statement ("has not been approved") is a <em>provided</em> fact; "violated"/"met" must rest on a provided fact; an exception whose conditions are stated makes the replaced requirement "not_applicable"; two incompatible clauses with no tie-breaker are "conflict"; quotes must be copied word for word.</p>
+    <p>Schema detail that mattered: in <code>ProposedFinding</code> the evidence, facts and rationale fields come <em>before</em> <code>status</code>, so the model writes its reasoning before its verdict. With the verdict first, GPT-4o mini often picked a label its own reasoning then contradicted.</p>
+    <p>Post-processing in code: fact keys normalized to snake_case; a fact with no value is forced to <code>unknown</code>; <strong>the requester's clarification answers override the model's reading of the same fact</strong>; at most 3 questions; a question's clause reference outside the evidence is dropped. Findings start with <code>support = pending</code> and no citations (validation builds those).</p>
+    <p>If questions came back (and this isn't already a resumed run), the orchestrator saves them, sets the run to <code>waiting_for_user</code> and stops.</p>
+  </details>
+  <details><summary>3 · Risk <span class="pill code">no model</span> — <code>workflow/risk.py</code></summary>
+    <p>A documented rubric, <code>demo-risk-v1</code>:</p>
+    <ul>
+      <li><strong>high</strong>: a supported breach of a mandatory clause about customer data or access (regex on "must/shall/required…" and "customer data/production/access/credentials…");</li>
+      <li><strong>medium</strong>: any other mandatory breach, or an unresolved conflict;</li>
+      <li><strong>low</strong>: breach of a clause that recommends rather than requires.</li>
+    </ul>
+    <p>Unknowns get no severity (their impact depends on facts nobody stated); likelihood is always "unknown" (the facts don't support estimating it); unsupported/contradicted findings carry no risk. Risk is recomputed after validation, since validation can change statuses.</p>
+  </details>
+  <details><summary>4 · Validation <span class="pill code">code</span> + <span class="pill model">model call</span> — <code>workflow/validation.py</code></summary>
+    <p><strong>Code checks first</strong> (<code>check_references</code>): every cited clause must be in the run's retrieved evidence; every quote must occur in the stored clause text (compared after folding curly quotes, dashes and whitespace). A mismatched quote falls back to citing the whole clause. The <code>CitationSet</code> builds citations <em>from database text</em>, deduplicated, with the page computed from source spans and a <code>source_url</code> to that PDF page, and remembers which quotes were verified word for word. A finding with no valid citation becomes <code>unsupported</code>.</p>
+    <p><strong>Then one model check</strong> (<code>validation-v2</code>): for each remaining finding, a skeptical reviewer returns a reason, then a verdict: supported / unsupported / contradicted, plus an optional <code>suggested_status: "unknown"</code>. Code applies it:</p>
+    <ul>
+      <li>supported (or suggests the finding's own status) → <code>validated</code>;</li>
+      <li>contradicted + suggests unknown on a violated/met finding → <strong>downgraded</strong> to unknown (the claim rested on a fact nobody stated);</li>
+      <li>otherwise → <code>contradicted</code> / <code>unsupported</code>, with the reason appended to the rationale;</li>
+      <li>no answer for a finding → stays <code>pending</code> (can't decide the result).</li>
+    </ul>
+    <p>Validation can confirm, reject or downgrade. It can <strong>never create a new verdict</strong>.</p>
+  </details>
+  <details><summary>5 · Recommendation <span class="pill model">model call</span> — <code>workflow/recommendation.py</code></summary>
+    <p>Only <em>validated</em> gaps (violated, unknown, conflict) get actions; if there are none, no model call. Each proposed action must link to at least one of those findings and may cite only clauses those findings already cite; anything else is dropped and counted in the limitations. Output fields: action, suggested role (e.g. "Data owner"), completion criteria (an observable check like a signed document), kind mandatory/optional.</p>
+  </details>
+  <details><summary>6 · Final checks <span class="pill code">no model</span> — <code>workflow/outcome.py</code>, <code>workflow/confidence.py</code></summary>
+    <p><code>derive_status</code> applies five ordered rules (next section), <code>summarize</code> writes a plain-English summary from the findings, <code>limitations</code> lists what wasn't checked (corpus scope, unconfirmed findings, removed citations, dropped actions, unanswered questions, "not legal advice"), and <code>confidence</code> scores each finding and the result. The whole thing is validated by the <code>Assessment</code> Pydantic contract and published.</p>
+  </details>
+
+  <h3>Concurrency and cancellation</h3>
+  <ul>
+    <li>Every state change takes a row lock on the run (<code>SELECT … FOR UPDATE</code> in <code>lock_run</code>), so cancel and publish can't both win.</li>
+    <li>Between stages and before publishing, the attempt re-checks that the run is still <code>running</code>; if it was canceled it raises <code>Canceled</code> and publishes nothing.</li>
+    <li><code>append_event</code> computes the next sequence number under that lock, so the event log is gap-free.</li>
+    <li>Timestamps are set in Python, not by Postgres <code>now()</code>, because <code>now()</code> is fixed per transaction and would tie rows written together.</li>
+    <li><code>execute_run</code> never raises: a <code>ModelError</code> or any exception is recorded as a failed run with a code and message. <strong>A technical failure is never a compliance result.</strong></li>
+  </ul>
+</section>
+
+<!-- 11 ------------------------------------------------------------------------------ -->
+<section id="guardrails">
+  <p class="eyebrow">Trust</p>
+  <h2>How it avoids making things up</h2>
+  <p>This is the section most reviewers probe. Each layer catches something the one before can miss.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Risk</th><th>Guardrail</th><th>Where</th></tr>
+    <tr><td>Invented clause</td><td>Model can only cite clause IDs from the retrieved bundle; anything else is removed and counted.</td><td><code>validation.check_references</code></td></tr>
+    <tr><td>Misquoted clause</td><td>Quote must be a substring of the stored clause text; citation text, version and page are built from the database, never copied from model output.</td><td><code>api/citations.py</code>, <code>CitationSet</code></td></tr>
+    <tr><td>Wrong reading of a real quote</td><td>Independent model support check; can reject or downgrade, never add.</td><td><code>validation.validate</code></td></tr>
+    <tr><td>Missing fact treated as a "no"</td><td>Three fact origins; DB CHECK that unknown has no value; violated/met must rest on a provided fact; validation downgrades otherwise.</td><td><code>analysis.py</code>, <code>models.Fact</code></td></tr>
+    <tr><td>Model overruling the user</td><td>Clarification answers override the model's value for that fact.</td><td><code>analysis.analyze</code></td></tr>
+    <tr><td>False "compliant"</td><td>Ordered rules: any unconfirmed claim or disputed finding gives "insufficient information", never compliant.</td><td><code>outcome.derive_status</code></td></tr>
+    <tr><td>Unfounded actions</td><td>Actions must link to validated findings and cite only their clauses.</td><td><code>recommendation.recommend</code></td></tr>
+    <tr><td>Broken JSON</td><td>Pydantic validation of every reply, one repair request with the exact errors, then a clean failure.</td><td><code>llm.CallBudget.structured</code></td></tr>
+    <tr><td>Runaway cost/time</td><td>Max 8 calls and 120 s per attempt; no hidden SDK retries.</td><td><code>CallBudget</code></td></tr>
+    <tr><td>Prompt injection in the scenario</td><td>Scenario/clause text wrapped in tags and declared data; the model has no tools to act with; output is schema-checked; the adversarial dev scenario ("ignore your policies") still returns non_compliant.</td><td>system prompts, dev-012</td></tr>
+    <tr><td>Wrong policy version</td><td>Snapshot + "as of" date filter in SQL; drafts excluded; a clarification rerun keeps the original snapshot.</td><td><code>search._eligible_chunks</code></td></tr>
+  </table></div>
+  <div class="note"><strong>The honest limit:</strong> a quote that matches proves the text exists, not that the interpretation is right. Interpretation relies on the model support check and on a human reading the cited clause, which is why the UI puts the clause one click from every finding.</div>
+</section>
+
+<!-- 12 ------------------------------------------------------------------------------ -->
+<section id="rules">
+  <p class="eyebrow">Decision logic</p>
+  <h2>Result rules, risk and confidence</h2>
+  <h3>The five ordered rules (<code>outcome.py</code>, first match wins)</h3>
+  <p>Only findings with <code>support = validated</code> count as established.</p>
+  <div class="table-wrap"><table>
+    <tr><th>#</th><th>Condition</th><th>Result</th></tr>
+    <tr><td>1</td><td>An established <strong>violation</strong></td><td><code>non_compliant</code></td></tr>
+    <tr><td>2</td><td>Otherwise an established <strong>conflict</strong></td><td><code>conflicting_policy</code></td></tr>
+    <tr><td>3</td><td>Otherwise an established <strong>unknown</strong>, or any violated/met/conflict/not-applicable claim validation didn't confirm, or any disputed finding</td><td><code>insufficient_information</code></td></tr>
+    <tr><td>4</td><td>Otherwise at least one established <strong>met</strong></td><td><code>compliant_within_scope</code></td></tr>
+    <tr><td>5</td><td>Otherwise (nothing applies)</td><td><code>out_of_scope</code> ("this is not a compliant result")</td></tr>
+  </table></div>
+  <pre>def derive_status(findings):
+    established = [f for f in findings if f.support == VALIDATED]
+    statuses = {f.status for f in established}
+    if VIOLATED in statuses: return NON_COMPLIANT
+    if CONFLICT in statuses: return CONFLICTING_POLICY
+    unconfirmed = any(f.support != VALIDATED and (f.status in CLAIMS or f.support == CONTRADICTED)
+                      for f in findings)
+    if UNKNOWN in statuses or unconfirmed: return INSUFFICIENT_INFORMATION
+    if MET in statuses: return COMPLIANT_WITHIN_SCOPE
+    return OUT_OF_SCOPE</pre>
+  <div class="say">The model never gives the overall verdict. It proposes requirement-level findings; validation decides which are established; then five rules in Python pick the result. Violations win first, and anything unconfirmed can only push the result to "insufficient information". That's why an unconfirmed claim can never produce "compliant".</div>
+
+  <h3>Confidence score (<code>confidence.py</code>)</h3>
+  <p>Added at the user's request, computed in code from checks the run already recorded, never asked of the model. Per finding, out of 100:</p>
+  <div class="table-wrap"><table>
+    <tr><th>Factor</th><th>Max</th><th>Points</th></tr>
+    <tr><td>Validation</td><td>40</td><td>confirmed 40 · not checked 10 · rejected 0</td></tr>
+    <tr><td>Quote</td><td>20</td><td>word-for-word match 20 · whole clause only 10 · none 0</td></tr>
+    <tr><td>Facts</td><td>25</td><td>verdict rests on stated facts 25 · some inferred 12 · relies on an unknown 5 · none 0; for an unknown finding: missing fact named 25, else 10</td></tr>
+    <tr><td>Search rank</td><td>15</td><td>clause ranked 1–3 → 15 · 4–10 → 10 · added only as related → 5</td></tr>
+  </table></div>
+  <p>Bands: <strong>high ≥ 80</strong>, <strong>medium ≥ 50</strong>, else low. The overall result takes the deciding finding's score: the <em>strongest</em> violation for non-compliant (one breach is enough), the <em>weakest</em> met finding for compliant (every one must hold). Lookup answers have their own version. The evaluation reports accuracy per band, which is the measured link between score and correctness.</p>
+  <div class="note"><strong>If asked "isn't that a made-up number?":</strong> it's an evidence score, not a probability. Every point traces to a recorded check and is shown in the UI ("How it was scored"). I chose it over model self-rating (poorly calibrated) and over running the model several times (about 3× the cost and time). Measured caveat: after prompt tuning, most results score high, so the bands now discriminate less (8 of 11 high-band results correct in the latest run).</div>
+</section>
+
+<!-- 13 ------------------------------------------------------------------------------ -->
+<section id="llm">
+  <p class="eyebrow">Backend · app/workflow/llm.py · claude_model.py</p>
+  <h2>The model client</h2>
+  <p>All model access goes through one interface, <code>ModelClient.complete(stage, system, prompt, schema, timeout) → ModelReply</code>. <code>get_model_client()</code> picks the implementation from <code>LLM_PROVIDER</code>:</p>
+  <ul>
+    <li><code>openai_compatible</code> → <code>GatewayModel</code>: the official OpenAI SDK pointed at <code>LLM_BASE_URL</code>. This is what runs: <strong>GPT-4o mini</strong> (<code>gpt-4o-mini-2024-07-18</code>) through the organizers' gateway.</li>
+    <li><code>anthropic</code> → <code>ClaudeModel</code>: Claude (e.g. Haiku 4.5) with native structured outputs. Added while the organizers' key was missing; kept as an alternative. One provider at a time, no automatic fallback.</li>
+    <li><code>none</code> → no client; starting a run or a lookup returns a clear <code>model_not_configured</code> error, while browsing and search still work.</li>
+  </ul>
+
+  <h3>Fitting the organizers' gateway</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Gateway constraint</th><th>Setting</th><th>How the code handles it</th></tr>
+    <tr><td>Always serves gpt-4o-mini; says not to send a model name</td><td><code>LLM_MODEL</code> unset</td><td>The SDK's <code>omit</code> sentinel strips <code>model</code> from the request.</td></tr>
+    <tr><td>Accepts <code>response_format</code> only as the string "json"/"text"; no JSON-schema mode</td><td><code>LLM_JSON_MODE=json</code></td><td>The stage's JSON Schema goes into the system message; the reply is validated in code.</td></tr>
+    <tr><td>Rejects <code>max_tokens</code> above 500</td><td><code>LLM_MAX_OUTPUT_TOKENS=500</code></td><td>Continuation: if <code>finish_reason == "length"</code>, trim to the last complete line, send it back as the assistant turn with "continue exactly where you stopped", join the pieces (dropping repeated text and code fences), at most 3 continuations.</td></tr>
+    <tr><td>Default temperature 1.0</td><td><code>LLM_TEMPERATURE=0</code></td><td>Steadier verdicts (runs still vary by a scenario or two).</td></tr>
+  </table></div>
+  <p>Why trim to the last complete line: in testing, GPT-4o mini restarts the line it was cut off in, or drops characters at a mid-line seam, and both broke the JSON. After the fix, 7 of 13 dev assessments needed a continuation and none failed on it.</p>
+
+  <h3>CallBudget.structured: the retry/validation loop</h3>
+  <pre>for attempt in range(2):                      # the first try + at most one repair
+    check call limit (8) and deadline (120 s)
+    reply = model.complete(stage, system, prompt, schema, timeout=remaining)
+    record calls, HTTP requests, tokens, served model
+    try:    return OutputModel.model_validate_json(reply.text)
+    except ValidationError as exc:
+        if attempt == 1: raise ModelError("invalid_model_output")
+        prompt += "Your previous reply did not match the schema (field: error …). Reply again."</pre>
+  <p>Provider errors are mapped to stable codes (<code>model_timeout</code>, <code>model_auth</code>, <code>model_not_found</code>, <code>model_rate_limited</code>, <code>model_bad_request</code>, <code>model_unreachable</code>, <code>model_refused</code>, <code>model_truncated</code>) with a <code>retryable</code> flag. SDK retries are off (<code>max_retries=0</code>) so every request is counted and the deadline holds. The API key is read server-side only and never sent to the browser or logged. <code>python -m app.cli check-model</code> sends one tiny structured request to verify the setup.</p>
+  <h3>Lookup (Ask a question) — <code>workflow/lookup.py</code></h3>
+  <p>Same retrieval, one model call (max 2 with repair), answer in ≤3 sentences with clause IDs and quotes. Citations are rebuilt and checked like validation's. An "answerable" reply with no valid citation is <strong>withheld</strong>; support is "validated" only if every citation resolved.</p>
+</section>
+
+<!-- 14 ------------------------------------------------------------------------------ -->
+<section id="api">
+  <p class="eyebrow">Backend · app/api/</p>
+  <h2>API and run lifecycle</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Method</th><th>Path</th><th>Purpose</th></tr>
+    <tr><td>GET</td><td><code>/health/live</code>, <code>/health/ready</code></td><td>Liveness; readiness checks database, migrations at head, storage writable, embeddings and model configured.</td></tr>
+    <tr><td>GET</td><td><code>/api/v1/policies</code></td><td>Policies with versions and the version active today.</td></tr>
+    <tr><td>GET</td><td><code>/api/v1/policy-versions/{id}</code> · <code>/clauses</code> · <code>/pages/{i}</code> · <code>/source?page=N</code></td><td>Version with clauses; clauses with source spans; raw page text; the original PDF (a <code>?page</code> redirects to <code>#page=N</code>).</td></tr>
+    <tr><td>GET</td><td><code>/api/v1/clauses/{id}</code></td><td>One clause (e.g. the clause a question refers to).</td></tr>
+    <tr><td>POST</td><td><code>/api/v1/search</code></td><td>Hybrid evidence search.</td></tr>
+    <tr><td>POST</td><td><code>/api/v1/lookup</code></td><td>Cited short answer (needs a model).</td></tr>
+    <tr><td>GET/POST</td><td><code>/api/v1/cases</code>, <code>/cases/{id}</code></td><td>List, create (text 20–4000 chars, business area, as-of date), detail.</td></tr>
+    <tr><td>POST</td><td><code>/api/v1/cases/{id}/messages</code></td><td>Add a follow-up detail (409 while a run is active).</td></tr>
+    <tr><td>POST</td><td><code>/api/v1/cases/{id}/runs</code></td><td>Start a run (202). <code>Idempotency-Key</code> header: repeating it returns the same run.</td></tr>
+    <tr><td>GET</td><td><code>/api/v1/runs/{id}</code></td><td>Run status, pending questions, assessment, error.</td></tr>
+    <tr><td>POST</td><td><code>/api/v1/runs/{id}/resume</code></td><td>Answers keyed by question ID (<code>null</code> = "I don't know"); only a waiting run resumes.</td></tr>
+    <tr><td>POST</td><td><code>/api/v1/runs/{id}/cancel</code></td><td>Stops further stages; a finished run is unchanged.</td></tr>
+    <tr><td>GET</td><td><code>/api/v1/runs/{id}/events</code></td><td>Server-sent events; replays after <code>?after=</code> or <code>Last-Event-ID</code>; 204 when the run has ended.</td></tr>
+  </table></div>
+  <p>Cross-cutting: <code>RequestIdMiddleware</code> gives every response an <code>X-Request-ID</code>; all errors use one envelope <code>{code, message, request_id, retryable, details}</code> and internal exception text never reaches the client (<code>errors.py</code>). Every lookup checks the caller's organization; draft versions are hidden from requesters. <code>AUTH_MODE=demo</code> maps every request to the seeded demo admin, and production settings refuse to start in demo mode or with default secrets (<code>config.py</code>).</p>
+
+  <h3>Run states</h3>
+  <figure>
+    <svg viewBox="0 0 980 170" role="img" aria-labelledby="stT">
+      <title id="stT">Run states: queued to running; running to waiting_for_user, completed, failed or canceled; waiting_for_user to queued on resume</title>
+      <defs><marker id="ah4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="arrow"/></marker></defs>
+      <rect x="10" y="60" width="120" height="44" class="box"/><text x="36" y="87" class="t">queued</text>
+      <rect x="190" y="60" width="120" height="44" class="box"/><text x="216" y="87" class="t">running</text>
+      <rect x="380" y="6" width="170" height="44" class="box-soft"/><text x="394" y="33" class="t">waiting_for_user</text>
+      <rect x="620" y="6" width="130" height="44" class="box-mark"/><text x="640" y="33" class="t-mark">completed</text>
+      <rect x="620" y="62" width="130" height="44" class="box"/><text x="656" y="89" class="t">failed</text>
+      <rect x="620" y="118" width="130" height="44" class="box"/><text x="646" y="145" class="t">canceled</text>
+      <path d="M130 82 H186" class="line" marker-end="url(#ah4)"/>
+      <path d="M310 72 L376 34" class="line" marker-end="url(#ah4)"/>
+      <path d="M310 78 C450 70 520 36 616 28" class="line" marker-end="url(#ah4)"/>
+      <path d="M310 84 H616" class="line" marker-end="url(#ah4)"/>
+      <path d="M310 94 C450 120 520 140 616 140" class="line" marker-end="url(#ah4)"/>
+      <path d="M380 40 C250 20 80 20 70 56" class="line-soft" marker-end="url(#ah4)"/><text x="130" y="18" class="m">resume (answers)</text>
+      <text x="770" y="33" class="s">assessment saved</text>
+      <text x="770" y="89" class="s">model/internal error, budget,</text><text x="770" y="105" class="s">or "interrupted" after restart</text>
+      <text x="770" y="145" class="s">user cancel (any active state)</text>
+    </svg>
+  </figure>
+  <p><strong>SSE design:</strong> progress is a saved event log, not in-memory pub/sub. The stream endpoint replays events after the client's last sequence, then polls every 0.5 s until the run ends, with a keep-alive comment every 15 s. Because events are stored, a browser that reconnects (EventSource does this automatically and sends <code>Last-Event-ID</code>) sees nothing lost or duplicated. SSE rather than WebSockets because the data flows one way and SSE reconnects on its own over plain HTTP.</p>
+</section>
+
+<!-- 15 ------------------------------------------------------------------------------ -->
+<section id="trace">
+  <p class="eyebrow">Walkthrough</p>
+  <h2>Trace one request end to end</h2>
+  <p>If the reviewer says "show me what happens when I click Assess", follow this path in the code.</p>
+  <ol class="steps">
+    <li><strong>Browser:</strong> <code>ScenarioComposer.tsx</code> calls <code>api.createCase()</code> → <code>HttpApi</code> POSTs <code>/api/v1/cases</code>, then navigates to <code>/app/cases/{id}?run=start</code>.</li>
+    <li><strong>API:</strong> <code>cases.create_case</code> → <code>records.create_case</code> saves the case (title from the first sentence) and the user's message.</li>
+    <li><strong>Browser:</strong> <code>CaseWorkspace.tsx</code> sees <code>run=start</code> and calls <code>api.startRun()</code> with a fresh <code>Idempotency-Key</code>.</li>
+    <li><strong>API:</strong> <code>cases.start_run</code> locks the case row, returns the existing run if the key was used before, refuses if a run is active (409), if no model (503) or no snapshot (503). <code>records.create_run</code> writes a new scenario revision and a queued run with its config and budget, appends <code>run.queued</code>, commits, and schedules <code>execute_run</code> as a background task. Response 202 with the run ID.</li>
+    <li><strong>Browser:</strong> <code>useCaseRun</code> opens an <code>EventSource</code> on <code>/runs/{id}/events</code>; every event goes into <code>runStore.ingest</code> (deduplicated by event ID and sequence).</li>
+    <li><strong>Background task:</strong> <code>orchestrator.execute_run</code> → <code>_begin</code> (queued → running, <code>run.started</code>) → <code>_stages</code>: retrieval → analysis → (maybe <code>_ask</code> and stop) → risk → validation → recommendation → final rules → <code>_publish</code>. Each <code>_stage_done</code> commits a public event and an <code>agent_messages</code> handoff.</li>
+    <li><strong>API stream:</strong> the SSE generator picks up each new <code>run_events</code> row and sends it.</li>
+    <li><strong>Browser:</strong> <code>deriveStages</code> turns completion events into the stage track; on <code>run.completed</code> the query cache for the case is invalidated, <code>GET /cases/{id}</code> returns the assessment, and <code>AssessmentView</code> renders it, switching the pane to the assessment.</li>
+    <li><strong>Evidence:</strong> clicking a citation opens <code>EvidenceDrawer</code>, which loads the policy version and highlights the quote only if it is an exact substring of the clause text; "Open original" goes to <code>/policy-versions/{id}/source?page=N</code>.</li>
+  </ol>
+</section>
+
+<!-- 16 ------------------------------------------------------------------------------ -->
+<section id="frontend">
+  <p class="eyebrow">apps/web</p>
+  <h2>Frontend</h2>
+  <h3>The one seam: <code>ComplianceApi</code></h3>
+  <p><code>src/lib/api/client.ts</code> defines an interface with every call the UI makes (list/get/create cases, start/subscribe/resume/cancel runs, policies, clauses, lookup). Two implementations:</p>
+  <ul>
+    <li><code>HttpApi</code> (live, <code>VITE_API_MODE=http</code>): same-origin fetch through the Vite proxy, error envelope → typed error, <code>EventSource</code> for runs with runtime validation of every event (<code>isRunEvent</code>), closes the stream on a terminal event.</li>
+    <li><code>FixtureApi</code> (default): plays authored scenarios with realistic timing, so the whole UI was built and demoed before the backend existed. Every screen shows a "Fixture data" tag in this mode.</li>
+  </ul>
+  <p>Components never call <code>fetch</code> directly. <code>src/lib/api/types.ts</code> mirrors <code>contracts.py</code> field for field; <code>packages/contracts/openapi.json</code> is exported from the same Pydantic models, and a shared fixture keeps both sides honest.</p>
+
+  <h3>State</h3>
+  <ul>
+    <li><strong>TanStack Query</strong> caches server data (<code>["case", id]</code>, <code>["cases"]</code>, <code>["policies"]</code>…); mutations invalidate them.</li>
+    <li><strong>Zustand <code>runStore</code></strong>: one deduplicating store of run events. <code>derivePhase</code> (last event → idle/queued/running/waiting/completed/failed/canceled) and <code>deriveStages</code> (completion events → pending/active/done/skipped; a resume resets every stage) are pure functions with unit tests.</li>
+    <li><strong><code>useCaseRun</code></strong> subscribes to the case's latest run, feeds the store, and refreshes the case on events that change it. A historical completed run is not re-streamed.</li>
+  </ul>
+
+  <h3>Screens</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Route</th><th>Screen</th><th>Live?</th></tr>
+    <tr><td><code>/</code></td><td>Front door (landing): intro loader, 3D policy stack (three.js), animated exhibits of each feature, Lenis smooth scroll</td><td><span class="pill proto">showcase</span></td></tr>
+    <tr><td><code>/app</code></td><td>Overview: scenario composer, recent cases, upcoming policy versions, drafts, cases waiting for answers</td><td><span class="pill done">live</span></td></tr>
+    <tr><td><code>/app/cases</code>, <code>/cases/new</code>, <code>/cases/:id</code></td><td>Case index; new case; workspace with conversation, clarification, facts, stage track, avatar, assessment, evidence drawer, print report, JSON export</td><td><span class="pill done">live</span></td></tr>
+    <tr><td><code>/app/policies</code>, <code>/policies/:p/versions/:v</code></td><td>Library; policy detail with clauses, source page links, version diff</td><td><span class="pill done">live</span></td></tr>
+    <tr><td><code>/app/ask</code></td><td>Ask a question (cited lookup with confidence)</td><td><span class="pill done">live</span></td></tr>
+    <tr><td><code>/app/reviews</code>, <code>/reports</code>, <code>/evaluation</code>, <code>/settings</code></td><td>Review queue, reports, evaluation lab, settings</td><td><span class="pill proto">prototype</span> labelled in live mode</td></tr>
+  </table></div>
+  <p class="small muted">The hypothetical ("what if") panel and reviewer dispositions have client methods, but their backend endpoints were deferred; they work only on fixture data.</p>
+
+  <h3>Key components</h3>
+  <ul>
+    <li><code>Assessment.tsx</code>: verdict headline, summary, findings with citation buttons, requirement table (with the confidence column), gaps and risks, next actions, and the run timeline built from agent handoffs.</li>
+    <li><code>Conversation.tsx</code>: transcript, fact list with origin tags (provided / inferred / unknown), <code>ClarificationBlock</code> (choice or text answers plus "I don't know"), composer.</li>
+    <li><code>EvidenceDrawer.tsx</code>: finding → clause → original page without leaving the case; returns focus to the button that opened it.</li>
+    <li><code>Confidence.tsx</code>: meter + "How it was scored" factor list, with the note that it's not a probability.</li>
+    <li><code>features/avatar/controller.ts</code>: the avatar is a <strong>pure reducer</strong> over app events (composer focus, run phase, evidence open). It never calls a model or infers emotions; it only mirrors real state. It can be turned off, and the app works fully without it.</li>
+  </ul>
+  <h3>Accessibility and design</h3>
+  <p>"Highlighter" visual direction: paper, ink and a lime marker (the same highlight marks the cited quote). Status is conveyed by text and icon, not color alone; full keyboard operation with visible focus; reduced-motion support; 3D only when WebGL is available. Playwright runs axe accessibility checks. Design system: <code>DESIGN.md</code>, <code>docs/design/FRONTEND_PLAN.md</code>.</p>
+</section>
+
+<!-- 17 ------------------------------------------------------------------------------ -->
+<section id="evaluation">
+  <p class="eyebrow">Measurement · app/evaluation.py · docs/evaluation/</p>
+  <h2>Evaluation and results</h2>
+  <h3>Method</h3>
+  <ul>
+    <li><strong>Labelled scenarios</strong> in <code>data/evaluation/{dev,test}/scenarios.json</code>. Each has the scenario, as-of date, labelled facts, the expected status of each relevant clause (<code>requirements</code>), acceptable overall statuses, a category and notes. 13 development scenarios (reviewed against the clause text), 20 held-out scenarios (authored, <strong>not yet reviewed, never run</strong>).</li>
+    <li><strong>Categories:</strong> explicit violations and thresholds, missing material facts, exceptions and conditional requirements, conflicts and version changes, multiple policies, single-policy questions, irrelevant/out-of-corpus, adversarial or misleading.</li>
+    <li><strong><code>python -m app.cli evaluate --split dev</code></strong> creates a separate <code>clause_eval</code> database (so evaluation cases never appear in the demo), migrates and seeds it, then for each scenario measures retrieval and runs the <em>same</em> workflow through the normal records, with clarification off (unstated facts stay unknown).</li>
+    <li>Answer keys are read only by the scorer; they are never indexed or put into prompts. The held-out split refuses to run until every label is reviewed. Each run writes a uniquely named raw JSON file plus <code>results-&lt;split&gt;.md</code>, with scenario and corpus hashes.</li>
+  </ul>
+  <h3>Metrics</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Metric</th><th>Definition</th></tr>
+    <tr><td>Recall@10 (hybrid / keyword)</td><td>Share of labelled clauses in the top ten search results</td></tr>
+    <tr><td>Evidence bundle recall</td><td>Share of labelled clauses in what the analysis stage actually reads</td></tr>
+    <tr><td>Final-status accuracy</td><td>Result is one of the acceptable labels; a failed run counts as wrong</td></tr>
+    <tr><td>False-compliant results</td><td>Labelled non-compliant but answered compliant: the error that matters most</td></tr>
+    <tr><td>Citation validity</td><td>Proposed citations that named a retrieved clause and quoted it exactly</td></tr>
+    <tr><td>Requirement labels matched</td><td>Labelled clause statuses reproduced by a finding</td></tr>
+    <tr><td>Accuracy by confidence band</td><td>How often each band was right</td></tr>
+  </table></div>
+
+  <h3>Results on the development set (GPT-4o mini, temperature 0)</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Measurement</th><th>Before tuning (v1, 5 runs)</th><th>After tuning (v2, 3 runs)</th></tr>
+    <tr><td>Final status correct</td><td>5–7 / 13</td><td><strong>10, 10, 9 / 13</strong></td></tr>
+    <tr><td>False "compliant"</td><td>0 of 6</td><td><strong>0 of 6</strong> every run</td></tr>
+    <tr><td>Citations valid</td><td>22/24 to 33/33</td><td>36/36, 35/35, 33/33</td></tr>
+    <tr><td>Labelled requirements matched</td><td>17–25 / 44</td><td>23, 23, 22 / 44</td></tr>
+    <tr><td>Median run time</td><td>8.1–11.7 s</td><td>10.0, 8.7, 8.6 s</td></tr>
+    <tr><td>Recall@10 hybrid / keyword / bundle</td><td colspan="2">0.839 / 0.704 / 0.856 (retrieval doesn't use the model)</td></tr>
+  </table></div>
+
+  <h3>What prompt tuning fixed (traced to stage outputs first)</h3>
+  <ol>
+    <li><strong>A stated "no" was recorded as unknown.</strong> "The data owner has not approved it" became <code>data_owner_approval: null</code>, and validation correctly downgraded the violation. Fix: negative statements are provided facts.</li>
+    <li><strong>Verdict before reasoning.</strong> The model wrote a reason that contradicted its own label. Fix: reasoning fields first in both schemas. This round alone took accuracy from 5 to 10.</li>
+    <li><strong>Exceptions ignored.</strong> Fix: <code>excepts="…"</code> attribute from stored relations, plus an explicit exception rule.</li>
+    <li><strong>Unmentioned requirements skipped.</strong> Fix: report them as unknown; use the version in force on the date.</li>
+  </ol>
+  <p>Two code fixes came from the same traces: "contradicted but suggests the same status" counts as agreement, and a disputed unknown/not-applicable blocks a compliant result.</p>
+
+  <h3>Remaining failures (explain these openly)</h3>
+  <ul>
+    <li><strong>dev-003:</strong> the later policy version's new clause (Data Sharing v2 §4.5, a retention period) is in the bundle but the model skips it → compliant instead of insufficient information.</li>
+    <li><strong>dev-009:</strong> in the planted conflict, the model sometimes picks a winner itself instead of reporting a conflict → compliant instead of conflicting_policy. These two are the misses that lean toward compliance (neither is labelled non-compliant, so they aren't "false compliant" by the metric, but they're the most important to explain).</li>
+    <li><strong>Validation sometimes too strict</strong> (dev-002, dev-006) → insufficient information, which is the cautious direction.</li>
+    <li><strong>One technical failure</strong> in the latest run (dev-007): the validation stage's JSON failed twice, so the run failed cleanly rather than guessing.</li>
+    <li><strong>Retrieval:</strong> purpose-limitation clauses (ds §4.3) are rarely retrieved because scenarios describe what is sent, not why.</li>
+  </ul>
+  <div class="note"><strong>Caveats to state before they're asked:</strong> 13 scenarios is small, and the prompts were tuned on them, so 9–10/13 is optimistic; the held-out run is the real test. Runs vary by one or two scenarios even at temperature 0. Results describe this fictional corpus, not general accuracy.</div>
+  <div class="say">I measured before I tuned. The first model runs got about half right, but every miss was cautious, never a false "compliant". I read the stage traces, found four specific causes, fixed them on development data only, and reached 9–10 of 13 with zero false compliant results and every citation valid. The 20 held-out scenarios are kept separate and will be run once after their labels are reviewed.</div>
+</section>
+
+<!-- 18 ------------------------------------------------------------------------------ -->
+<section id="testing">
+  <p class="eyebrow">Quality</p>
+  <h2>Testing and CI</h2>
+  <div class="grid-2">
+    <div class="card"><div class="stat">212</div><h4>backend tests (pytest)</h4><p>Segmentation, ingestion, schema, config, contracts, policies API, request validation, workflow rules, confidence, the assessment API end to end, gateway and Claude clients, evaluation and label checks.</p></div>
+    <div class="card"><div class="stat">6</div><h4>Vitest files</h4><p>Run store, HTTP client (event validation), avatar reducer, confidence component, workspace readiness, contract fixtures.</p></div>
+    <div class="card"><div class="stat">3</div><h4>Playwright specs</h4><p>Main flow, evidence highlights, and axe accessibility checks, run in the installed Chrome.</p></div>
+  </div>
+  <ul>
+    <li><strong>Testing without a model:</strong> <code>tests/scripted.py</code> defines <code>ScriptedModel</code>, a stand-in that returns queued replies per stage. Tests inject it via FastAPI dependency overrides (<code>get_model_client</code>, <code>get_session_factory</code>), so the full workflow — including bad JSON, repairs, timeouts, cancel races and clarification — is tested deterministically.</li>
+    <li><strong>Model clients</strong> are tested against a small local HTTP stub server that imitates the gateway (continuations, JSON modes, error codes).</li>
+    <li><strong>Database tests</strong> use a separate <code>clause_test</code> database, created and migrated automatically; each test runs in a transaction that's rolled back. Skipped if Postgres is down.</li>
+    <li><strong>Label tests</strong> (<code>test_evaluation_labels.py</code>) check every labelled clause ID exists in the corpus.</li>
+  </ul>
+  <h3>CI (<code>.github/workflows/ci.yml</code>)</h3>
+  <p>API job: <code>uv sync --frozen</code> → start Postgres the same way as on a laptop → ruff lint + format check → mypy strict → migrations apply to an empty DB and <code>alembic check</code> confirms they match the models → OpenAPI file is up to date → corpus PDFs rebuild byte-identical → pytest → seed the demo. Web job: typecheck, Vitest, production build.</p>
+</section>
+
+<!-- 19 ------------------------------------------------------------------------------ -->
+<section id="running">
+  <p class="eyebrow">Operation</p>
+  <h2>Running it</h2>
+  <pre># once
+cd services/api
+uv sync
+uv run python -m app.cli db-start      # PostgreSQL 16 + pgvector on :5433
+uv run python -m app.cli migrate
+uv run python -m app.cli seed-demo     # ingests the PDFs; first run downloads the embedding model
+uv run python -m app.cli check-model   # verifies the LLM settings in .env
+
+# every time: terminal 1
+uv run python -m app.cli db-start
+uv run uvicorn app.main:app --port 8000
+
+# terminal 2 (repo root)
+$env:VITE_API_MODE="http"; corepack pnpm --dir apps/web dev     # PowerShell
+# open http://localhost:5173/app</pre>
+  <p>Model settings in <code>.env</code> (git-ignored): <code>LLM_PROVIDER=openai_compatible</code>, <code>LLM_BASE_URL</code>, <code>LLM_API_KEY</code>, <code>LLM_JSON_MODE=json</code>, <code>LLM_MAX_OUTPUT_TOKENS=500</code>, <code>LLM_TEMPERATURE=0</code>. Other useful commands: <code>cli search "…"</code>, <code>cli evaluate --split dev [--retrieval-only]</code>, <code>cli export-openapi --check</code>. API docs at <code>http://localhost:8000/docs</code>.</p>
+  <p class="small muted">Without <code>VITE_API_MODE</code>, the web app runs entirely on fixture data — a safe fallback if the model or network fails during the review.</p>
+</section>
+
+<!-- 20 ------------------------------------------------------------------------------ -->
+<section id="files">
+  <p class="eyebrow">Reference</p>
+  <h2>File-by-file guide</h2>
+  <p>What each file does, and the one thing worth saying about it.</p>
+
+  <h3>services/api/app — core</h3>
+  <div class="table-wrap"><table>
+    <tr><th>File</th><th>Role</th><th>Worth saying</th></tr>
+    <tr><td><code>main.py</code></td><td>Builds the FastAPI app: request-ID middleware, CORS, error handlers, routers.</td><td class="wrap">The lifespan hook marks runs interrupted by a restart as failed.</td></tr>
+    <tr><td><code>config.py</code></td><td>Pydantic settings from env/<code>.env</code>.</td><td class="wrap">Validates LLM settings (key required, URL has no credentials/query) and refuses dev defaults in production.</td></tr>
+    <tr><td><code>cli.py</code></td><td>Operational commands.</td><td class="wrap"><code>evaluate</code> switches to a separate <code>_eval</code> database before seeding.</td></tr>
+    <tr><td><code>localdb.py</code></td><td>Runs PostgreSQL from the pgserver wheel.</td><td class="wrap">initdb with a UTF-8 locale so full-text splits words at typographic quotes; detached so Ctrl+C doesn't stop it.</td></tr>
+    <tr><td><code>seed.py</code></td><td>Seeds org, users, 14 versions, the demo snapshot.</td><td class="wrap">Idempotent; checks each PDF hash against the manifest.</td></tr>
+    <tr><td><code>storage.py</code></td><td>Original-file storage.</td><td class="wrap">Keys from content hashes; path traversal blocked.</td></tr>
+    <tr><td><code>evaluation.py</code></td><td>Evaluation harness and Markdown/JSON reports.</td><td class="wrap">Same workflow as production; held-out split locked until reviewed.</td></tr>
+    <tr><td><code>domain/contracts.py</code></td><td>All public Pydantic contracts and enums.</td><td class="wrap">Single source of truth, mirrored in TypeScript and exported as OpenAPI; <code>extra="forbid"</code> everywhere.</td></tr>
+    <tr><td><code>persistence/models.py</code>, <code>db.py</code></td><td>ORM schema; engine and session helpers.</td><td class="wrap"><code>get_session_factory</code> exists so tests can make background work share the test transaction.</td></tr>
+  </table></div>
+
+  <h3>services/api/app/api — HTTP routes</h3>
+  <div class="table-wrap"><table>
+    <tr><th>File</th><th>Role</th><th>Worth saying</th></tr>
+    <tr><td><code>deps.py</code></td><td>Resolves the principal (user, org, role).</td><td class="wrap">Demo auth; every query filters on the principal's organization.</td></tr>
+    <tr><td><code>errors.py</code></td><td>Error envelope and handlers.</td><td class="wrap">Internals never leak; request ID links the client error to the server log.</td></tr>
+    <tr><td><code>health.py</code></td><td>Live/ready.</td><td class="wrap">Ready compares the DB's Alembic version to the migration head.</td></tr>
+    <tr><td><code>policies.py</code></td><td>Library, versions, clauses, pages, original PDF.</td><td class="wrap">Drafts hidden from requesters; <code>?page=N</code> redirects to the PDF anchor.</td></tr>
+    <tr><td><code>search.py</code></td><td><code>/search</code> and <code>/lookup</code>.</td><td class="wrap">Lookup returns 503 with a clear hint when no model is set.</td></tr>
+    <tr><td><code>citations.py</code></td><td>Clause → contract, quote matching, page resolution, citation builder.</td><td class="wrap">The only place citations are made; canonical folding is for matching only, never display.</td></tr>
+    <tr><td><code>cases.py</code></td><td>Cases, runs, resume, cancel, SSE.</td><td class="wrap">Idempotency key, row locks, replayable event stream.</td></tr>
+  </table></div>
+
+  <h3>services/api/app/workflow — the assessment</h3>
+  <div class="table-wrap"><table>
+    <tr><th>File</th><th>Role</th><th>Worth saying</th></tr>
+    <tr><td><code>orchestrator.py</code></td><td>Runs the stages; persistence helpers; failure handling.</td><td class="wrap">Fixed order, lock per state change, cancel checked between stages, never raises.</td></tr>
+    <tr><td><code>records.py</code></td><td>Creates cases, messages, revisions, runs.</td><td class="wrap">Shared by the API and the evaluation so both use identical records.</td></tr>
+    <tr><td><code>retrieval.py</code></td><td>Evidence bundle.</td><td class="wrap">Top 10 + cited/exception/definition clauses, cap 14.</td></tr>
+    <tr><td><code>analysis.py</code></td><td>Model call 1: facts, findings, questions.</td><td class="wrap">User answers override model facts; reasoning before status.</td></tr>
+    <tr><td><code>risk.py</code></td><td>Severity rubric.</td><td class="wrap">No model; no severity for unknowns; likelihood always unknown.</td></tr>
+    <tr><td><code>validation.py</code></td><td>Citation checks + model call 2.</td><td class="wrap">Can confirm, reject or downgrade; never invent.</td></tr>
+    <tr><td><code>recommendation.py</code></td><td>Model call 3: actions.</td><td class="wrap">Only for validated gaps; unlinked actions dropped.</td></tr>
+    <tr><td><code>outcome.py</code></td><td>Status rules, summary, limitations.</td><td class="wrap">Five ordered rules; unconfirmed can't be compliant.</td></tr>
+    <tr><td><code>confidence.py</code></td><td>Evidence scores.</td><td class="wrap">40/20/25/15 factors; not a probability.</td></tr>
+    <tr><td><code>lookup.py</code></td><td>Ask a question.</td><td class="wrap">Answer withheld if nothing valid is cited.</td></tr>
+    <tr><td><code>llm.py</code></td><td>Model interface, gateway client, call budget.</td><td class="wrap">Continuation for the 500-token cap; one repair; no hidden retries.</td></tr>
+    <tr><td><code>claude_model.py</code></td><td>Anthropic client.</td><td class="wrap">Same interface; native structured outputs.</td></tr>
+  </table></div>
+
+  <h3>services/api/app — ingestion and retrieval</h3>
+  <div class="table-wrap"><table>
+    <tr><th>File</th><th>Role</th><th>Worth saying</th></tr>
+    <tr><td><code>ingestion/pdf.py</code></td><td>Text per page.</td><td class="wrap">Rejects scans/encrypted/oversized with stable error categories.</td></tr>
+    <tr><td><code>ingestion/segment.py</code></td><td>Clauses with exact offsets.</td><td class="wrap">Successor-number heading rule; header/footer removal.</td></tr>
+    <tr><td><code>ingestion/chunking.py</code></td><td>Clause-aligned chunks.</td><td class="wrap">~350 tokens, 40 overlap, never across clauses.</td></tr>
+    <tr><td><code>ingestion/pipeline.py</code></td><td>Writes a whole version atomically.</td><td class="wrap">Integrity checks before "ready".</td></tr>
+    <tr><td><code>retrieval/embeddings.py</code></td><td>fastembed wrapper.</td><td class="wrap">Lazy import, thread lock, query instruction prefix.</td></tr>
+    <tr><td><code>retrieval/search.py</code></td><td>Hybrid search.</td><td class="wrap">RRF k=60, one chunk per clause, snapshot/date filters.</td></tr>
+  </table></div>
+
+  <h3>apps/web/src</h3>
+  <div class="table-wrap"><table>
+    <tr><th>File</th><th>Role</th></tr>
+    <tr><td><code>main.tsx</code>, <code>app/router.tsx</code></td><td>Entry; routes with lazy loading; prototype screens swapped for a label in live mode.</td></tr>
+    <tr><td><code>app/providers.tsx</code>, <code>AppShell.tsx</code></td><td>Query client, icons, tooltips, theme preference; app header/nav.</td></tr>
+    <tr><td><code>lib/api/*</code></td><td>Interface, live and fixture implementations, types.</td></tr>
+    <tr><td><code>lib/events/runStore.ts</code></td><td>Event dedupe; phase and stage derivation.</td></tr>
+    <tr><td><code>features/cases/*</code></td><td>Composer, index, workspace, conversation, assessment, evidence drawer, print report, <code>useCaseRun</code>.</td></tr>
+    <tr><td><code>features/policies/*</code></td><td>Library, detail, version diff, ask.</td></tr>
+    <tr><td><code>features/avatar/*</code></td><td>Reducer controller, SVG figure, panel, on/off preference.</td></tr>
+    <tr><td><code>features/front-door/*</code></td><td>Landing page, 3D stack, exhibits.</td></tr>
+    <tr><td><code>components/*</code></td><td>Button, status words, stage track, highlight mark, confidence, feedback states.</td></tr>
+    <tr><td><code>fixtures/*</code></td><td>Authored demo data for fixture mode.</td></tr>
+  </table></div>
+</section>
+
+<!-- 21 ------------------------------------------------------------------------------ -->
+<section id="limits">
+  <p class="eyebrow">Scope</p>
+  <h2>Limitations and next steps</h2>
+  <h3>Limitations (as documented in the README)</h3>
+  <ul>
+    <li>Development-set results only; held-out labels await review, then one run.</li>
+    <li>Two misses lean toward compliance: a new clause in a later version skipped; the model picking a conflict winner.</li>
+    <li>500-token gateway replies need continuations, which add latency.</li>
+    <li>Small fictional evaluation; results describe this corpus.</li>
+    <li>Valid citations ≠ correct interpretation.</li>
+    <li>One process, one user; demo auth; a restart fails an in-flight run.</li>
+    <li>Digital PDFs only (no OCR, no DOCX, no upload UI; the corpus is ingested from the CLI).</li>
+    <li>Review, reports, evaluation lab, settings are prototypes.</li>
+  </ul>
+  <h3>What I'd do next, in order</h3>
+  <ol>
+    <li>Review and freeze the held-out labels, then run them once and publish the numbers.</li>
+    <li>Fix the two compliance-leaning misses: a code rule that forces every requirement clause of the in-force version into a finding, and a rule that "not applicable because another policy wins" needs a clause that says so.</li>
+    <li>Reviewed clause links (e.g. §4.2 → §4.3) or a reranker for purpose-limitation retrieval.</li>
+    <li>Reviewer dispositions (the <code>reviews</code> table and UI already exist).</li>
+    <li>Real authentication and a worker process if more than one person uses it.</li>
+  </ol>
+</section>
+
+<!-- 22 ------------------------------------------------------------------------------ -->
+<section id="qa">
+  <p class="eyebrow">Preparation</p>
+  <h2>Reviewer questions, with answers</h2>
+  <details><summary>Are these really "agents"? Why not LangGraph or CrewAI?</summary>
+    <p>They're five specialist roles, each with one responsibility and a typed handoff record, but implemented as ordinary functions in a fixed order. A framework adds dynamic routing I didn't need, and makes runs harder to reproduce and debug. With a fixed order I get deterministic tests with a scripted model, a clear trace, and a hard budget of 8 calls. The ADRs record that I originally planned a graph; I simplified for a student-scale, explainable build (<code>docs/architecture/decisions.md</code>).</p></details>
+  <details><summary>How do you stop the model hallucinating citations?</summary>
+    <p>The model only proposes a clause ID and a quote. Code checks the ID is in the retrieved evidence and the quote occurs in the stored clause text; the citation (text, version, page, link) is built from the database. Invalid references are removed and counted in the limitations. In the final dev runs, 100% of proposed citations were valid.</p></details>
+  <details><summary>What if the model says "compliant" when it isn't?</summary>
+    <p>It can't say that directly: the overall status comes from Python rules. A "met" finding must be confirmed by validation, and any unconfirmed claim, disputed finding or unknown forces "insufficient information". Measured: 0 false-compliant results out of 6 non-compliant dev scenarios in every run. I also call out the two cases that still lean toward compliance.</p></details>
+  <details><summary>What's the difference between "unknown" and "violated"?</summary>
+    <p>"We have not obtained approval" is a stated fact → violated. "Approval wasn't mentioned" → unknown, and the system asks about it or reports insufficient information. Facts carry an origin (provided / inferred / unknown), the database enforces that unknown has no value, and inferred facts can't decide violated or met.</p></details>
+  <details><summary>Why hybrid search and RRF?</summary>
+    <p>Keyword search matches policy vocabulary exactly; embeddings catch paraphrases. Measured: Recall@10 0.839 hybrid vs 0.704 keyword. RRF combines rankings without calibrating two different score scales and has one standard constant (k = 60).</p></details>
+  <details><summary>Why not a vector database like Pinecone or Chroma?</summary>
+    <p>Postgres with pgvector does both channels in one query plan with the same snapshot/date/organization filters, in the same transactional store as the cases. At this corpus size an exact scan is fast. One less service to run and secure.</p></details>
+  <details><summary>Why local embeddings?</summary>
+    <p>No API key needed for search, no policy text leaves the machine, and it's reproducible (the model revision is stored with each chunk). bge-small is small enough for CPU.</p></details>
+  <details><summary>Why only three model calls?</summary>
+    <p>Retrieval and risk don't need judgment, so they're code: cheaper, faster, testable, explainable. Model calls go where reading comprehension is needed: analysis, checking it, and phrasing actions. A run takes a median of about 9 seconds.</p></details>
+  <details><summary>What happens if the model returns invalid JSON or the gateway cuts it off?</summary>
+    <p>Every reply is validated against a Pydantic model. On failure there's one repair request that lists the exact field errors; a second failure fails the run cleanly (<code>invalid_model_output</code>). A reply cut at the gateway's 500-token cap is continued (trimmed to the last full line, up to three continuations, joined without repeats).</p></details>
+  <details><summary>Temperature is 0, so why do results vary?</summary>
+    <p>Temperature 0 on a hosted model isn't fully deterministic (batching, floating point), and continuations add variation. Runs differ by one or two scenarios, so I report ranges over several runs, not one number.</p></details>
+  <details><summary>What does the confidence score mean?</summary>
+    <p>An evidence score from recorded checks: validation 40, exact quote 20, stated facts 25, search rank 15. It ranks how well a verdict is backed, not the probability it's right, and the UI shows the factors. The evaluation reports accuracy per band as the measured link.</p></details>
+  <details><summary>How do policy versions work?</summary>
+    <p>Each version has effective dates and a status. A run pins a snapshot (a fixed set of versions) and the case's "as of" date picks the version in force; drafts are never used. A clarification rerun reuses the same snapshot, so answers can't change which policies apply.</p></details>
+  <details><summary>What about prompt injection?</summary>
+    <p>Scenario and clause text are wrapped in tags and the prompts say they're data. More importantly, the model has no tools and no authority: its output is schema-checked, citations are verified, and rules decide. The adversarial dev scenario that says "ignore your policies" still comes out non-compliant.</p></details>
+  <details><summary>What happens on a server restart during a run?</summary>
+    <p>The run's background task dies with the process. On startup, runs still queued or running are marked failed with "interrupted" and a message to start a new run. Completed results and runs waiting for answers are kept. Checkpoint recovery was deliberately out of scope.</p></details>
+  <details><summary>How do cancel and completion not race?</summary>
+    <p>Both take a row lock on the run. The attempt checks the run is still "running" between stages and just before publishing; if it was canceled, it publishes nothing.</p></details>
+  <details><summary>Why SSE and not WebSockets or polling?</summary>
+    <p>Progress is one-way. SSE is plain HTTP, reconnects automatically and sends <code>Last-Event-ID</code>. Events are stored, so a reconnect replays exactly what was missed; the client dedupes by ID and sequence.</p></details>
+  <details><summary>Isn't 13 scenarios too few? Did you overfit?</summary>
+    <p>Yes, it's small, and I tuned on it, so the dev score is optimistic. That's why there are 20 separate held-out scenarios that were never read during tuning and will run exactly once after label review. The evaluation refuses to run them before that.</p></details>
+  <details><summary>How do you test without paying for model calls?</summary>
+    <p><code>ScriptedModel</code> returns queued replies per stage and is injected via FastAPI dependency overrides. The whole workflow, including failures, repairs, clarification and cancel, is covered by 212 backend tests. Model clients are tested against a local stub server.</p></details>
+  <details><summary>Why are some tables and screens unused?</summary>
+    <p>The first plan was larger (reviews, job queue, normalized findings). I cut scope for the deadline and wrote down each cut. Unused screens are labelled "prototype" in live mode, because the product rule is never to present fixture data as a live result.</p></details>
+  <details><summary>Is it secure?</summary>
+    <p>It's a local demo: demo auth maps every request to one user, and production mode refuses to start with demo auth or default secrets. The model key is server-side only. Errors never leak internals. Storage keys come from hashes, with path-escape checks. Every query is scoped to the organization. Real auth is the first step before hosting.</p></details>
+  <details><summary>Why a fictional corpus?</summary>
+    <p>Real internal policies are confidential; a designed corpus lets me plant versions, exceptions, definitions, a draft and a conflict so the evaluation tests them. It's labelled fictional everywhere.</p></details>
+  <details><summary>Which parts did you write and which used AI assistance?</summary>
+    <p>Answer this honestly in your own words. The README's acknowledgements state that parts of the code and documentation were written with the help of an AI coding assistant (Claude Code). Be ready to explain the design choices and the evaluation-driven fixes, which are recorded in <code>docs/evaluation/analysis.md</code> and <code>docs/tasks/</code>.</p></details>
+</section>
+
+<!-- 23 ------------------------------------------------------------------------------ -->
+<section id="glossary">
+  <p class="eyebrow">Reference</p>
+  <h2>Glossary</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Term</th><th>Meaning here</th></tr>
+    <tr><td>Clause</td><td>A numbered section of a policy version (e.g. <code>ds_v1_4_4.2</code>), stored with exact source offsets.</td></tr>
+    <tr><td>Chunk</td><td>The searchable unit: a clause or a window of a long clause, with a heading prefix and an embedding.</td></tr>
+    <tr><td>Snapshot</td><td>An immutable set of policy versions a run is assessed against.</td></tr>
+    <tr><td>Evidence bundle</td><td>The ≤14 clauses the analysis stage reads: search hits plus cited, exception and definition clauses.</td></tr>
+    <tr><td>Finding</td><td>A requirement-level verdict: status + rationale + facts + citations + support.</td></tr>
+    <tr><td>Requirement status</td><td>met, violated, unknown, not_applicable, conflict.</td></tr>
+    <tr><td>Support</td><td>Validation's judgment of a finding: validated, unsupported, contradicted, pending.</td></tr>
+    <tr><td>Assessment status</td><td>The headline: non_compliant, conflicting_policy, insufficient_information, compliant_within_scope, out_of_scope.</td></tr>
+    <tr><td>Fact origin</td><td>provided (stated), inferred (a reading), unknown (not stated; no value).</td></tr>
+    <tr><td>RRF</td><td>Reciprocal rank fusion: Σ 1/(60 + rank) across search channels.</td></tr>
+    <tr><td>Recall@10</td><td>Share of labelled clauses that appear in the top ten results.</td></tr>
+    <tr><td>False compliant</td><td>A labelled non-compliant scenario answered compliant; the error the design is built to prevent.</td></tr>
+    <tr><td>Handoff / agent message</td><td>The typed record one stage passes to the next, shown in the run trace.</td></tr>
+    <tr><td>Call budget</td><td>Per-attempt limit: 8 model calls, 120 seconds, one repair per stage.</td></tr>
+    <tr><td>Fixture mode</td><td>The web app on authored data with no backend; always labelled.</td></tr>
+  </table></div>
+  <p class="muted small">Generated from the code as of 29 September 2026 (uncommitted working tree). Sources: <code>README.md</code>, <code>IMPLEMENTATION_PLAN.md</code>, <code>docs/architecture/decisions.md</code>, <code>docs/evaluation/*</code>, and the modules named above.</p>
+</section>
+
+</main>
+</div>
+<script>
+(function () {
+  // Theme toggle: system -> light -> dark.
+  var btn = document.getElementById("themeBtn");
+  var order = ["system", "light", "dark"];
+  function apply(p) {
+    if (p === "system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", p);
+    btn.textContent = "Theme: " + p;
+  }
+  var pref = "system";
+  try { pref = localStorage.getItem("clause-guide-theme") || "system"; } catch (e) {}
+  apply(pref);
+  btn.addEventListener("click", function () {
+    pref = order[(order.indexOf(pref) + 1) % order.length];
+    try { localStorage.setItem("clause-guide-theme", pref); } catch (e) {}
+    apply(pref);
+  });
+
+  // Mobile table of contents mirrors the sidebar.
+  var mobile = document.getElementById("mobileToc");
+  document.querySelectorAll("#tocList a").forEach(function (a) {
+    var li = document.createElement("li");
+    var c = a.cloneNode(true);
+    li.appendChild(c);
+    mobile.appendChild(li);
+  });
+
+  // Highlight the section in view.
+  var links = {};
+  document.querySelectorAll("#tocList a").forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          Object.keys(links).forEach(function (k) { links[k].classList.remove("active"); });
+          if (links[e.target.id]) links[e.target.id].classList.add("active");
+        }
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    document.querySelectorAll("main section[id]").forEach(function (s) { io.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>

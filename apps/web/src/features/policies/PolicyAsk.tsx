@@ -7,6 +7,8 @@ import type { LookupAnswer } from "@/lib/api/types";
 import { Button } from "@/components/Button";
 import { ErrorNotice, Skeleton } from "@/components/Feedback";
 import { MarkedText } from "@/components/HighlightMark";
+import { ConfidenceSummary } from "@/components/Confidence";
+import { ExecutionNotice } from "@/components/ExecutionNotice";
 
 /* F06 grounded lookup: a short answer, then the exact clauses that support it. */
 export function LookupAnswerView({ answer, play = true }: { answer: LookupAnswer; play?: boolean }) {
@@ -21,6 +23,7 @@ export function LookupAnswerView({ answer, play = true }: { answer: LookupAnswer
   const byId = new Map(versions.filter((q) => q.data).map((q) => [q.data!.id, q.data!]));
   return (
     <div>
+      <ExecutionNotice execution={answer.execution} lookup />
       <p className="max-w-[60ch] text-xl leading-snug">{answer.answer}</p>
       <p className="mt-2 text-sm text-ink-2">
         {answer.support === "validated"
@@ -30,6 +33,7 @@ export function LookupAnswerView({ answer, play = true }: { answer: LookupAnswer
             : "No policy text supports an answer to this question."}{" "}
         <span className="tnum">Snapshot {answer.snapshot_id}.</span>
       </p>
+      {answer.confidence && <ConfidenceSummary confidence={answer.confidence} subject="answer" />}
       <ol className="mt-6 grid gap-6 md:grid-cols-2">
         {answer.citations.map((c, i) => {
           const v = byId.get(c.policy_version_id);

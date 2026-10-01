@@ -6,6 +6,7 @@ score(d) = sum(1 / (k + rank_i(d))), k = 60. RRF is a tunable rank-combination h
 its score is not a probability. Results are deduplicated to the best chunk per clause.
 """
 
+import logging
 import time
 from dataclasses import dataclass
 from datetime import date
@@ -21,6 +22,7 @@ from app.retrieval.embeddings import Embedder
 
 RRF_K = 60
 CHANNEL_DEPTH = 20
+log = logging.getLogger("clause.search")
 
 
 @dataclass
@@ -60,14 +62,45 @@ def _eligible_chunks(
         )
         .where(
             m.Policy.organization_id == organization_id,
-            m.PolicyVersion.status != PolicyVersionStatus.DRAFT,
-            m.PolicyVersion.effective_from <= as_of,
-            or_(m.PolicyVersion.effective_to.is_(None), m.PolicyVersion.effective_to >= as_of),
+            m.PolicyVersion.id.in_(eligible_version_ids(organization_id, snapshot_id, as_of)),
         )
     )
     if policy_ids:
         q = q.where(m.Policy.id.in_(policy_ids))
     return q
+
+
+def eligible_version_ids(
+    organization_id: str, snapshot_id: str, as_of: date, policy_ids: list[str] | None = None
+) -> Select[str]:
+    """Newest started version per policy within a pinned snapshot; published rows stay immutable."""
+    q = (
+        select(
+            m.PolicyVersion.id,
+            m.PolicyVersion.effective_to,
+            func.row_number()
+            .over(
+                partition_by=m.PolicyVersion.policy_id,
+                order_by=(m.PolicyVersion.effective_from.desc(), m.PolicyVersion.id.desc()),
+            )
+            .label("position"),
+        )
+        .join(m.Policy)
+        .join(m.SnapshotVersion, m.SnapshotVersion.policy_version_id == m.PolicyVersion.id)
+        .where(
+            m.Policy.organization_id == organization_id,
+            m.SnapshotVersion.snapshot_id == snapshot_id,
+            m.PolicyVersion.status != PolicyVersionStatus.DRAFT,
+            m.PolicyVersion.effective_from <= as_of,
+        )
+    )
+    if policy_ids:
+        q = q.where(m.Policy.id.in_(policy_ids))
+    ranked = q.subquery()
+    return select(ranked.c.id).where(
+        ranked.c.position == 1,
+        or_(ranked.c.effective_to.is_(None), ranked.c.effective_to >= as_of),
+    )
 
 
 def search(
@@ -111,8 +144,15 @@ def search(
         candidates[chunk_id] = _Candidate(chunk_id, clause_id, lexical_rank=i)
 
     channels: list[Literal["lexical", "dense"]] = ["lexical"]
+    vector = None
     if embedder is not None:
-        vector = embedder.embed_query(req.question)
+        try:
+            vector = embedder.embed_query(req.question)
+        except Exception as exc:
+            # Only the optional embedding operation is recoverable here. Database
+            # failures must still surface rather than continuing an aborted transaction.
+            log.warning("Query embedding failed (%s); using lexical search", type(exc).__name__)
+    if vector is not None:
         dense = session.execute(
             base.where(m.Chunk.embedding.is_not(None))
             .order_by(m.Chunk.embedding.cosine_distance(vector), m.Chunk.id)

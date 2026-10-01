@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font-size",
+        "value": "1.375rem",
+        "createdAt": "2026-09-30T19:47:17.524Z",
+        "reason": "Claude: 1.375rem is the documented upper bound of the Lead step in DESIGN.md typography (1.125 to 1.375rem); the design.json sidecar is stale"
+      }
+    ]
+  }
+}

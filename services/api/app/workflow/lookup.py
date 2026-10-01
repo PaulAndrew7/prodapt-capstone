@@ -12,10 +12,12 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.citations import quote_in_clause
-from app.domain.contracts import LookupAnswer, SearchRequest, SupportState
+from app.config import get_settings
+from app.domain.contracts import ExecutionInfo, LookupAnswer, SearchRequest, SupportState
 from app.retrieval.embeddings import Embedder
+from app.workflow import confidence, input_guard, local_review
 from app.workflow.analysis import EvidenceRef
-from app.workflow.llm import CallBudget, ModelClient
+from app.workflow.llm import CallBudget, ModelClient, ModelError, require_model
 from app.workflow.retrieval import retrieve
 from app.workflow.validation import CitationSet
 
@@ -48,10 +50,23 @@ def lookup(
     req: SearchRequest,
     *,
     snapshot_id: str,
-    model: ModelClient,
+    model: ModelClient | None,
     embedder: Embedder | None,
     deadline_seconds: int,
+    allow_fallback: bool = True,
+    call_timeout_seconds: float = 20,
 ) -> LookupAnswer:
+    def declined(refusal: input_guard.Refusal) -> LookupAnswer:
+        return LookupAnswer(
+            question=req.question,
+            answer=refusal.message,
+            citations=[],
+            support=SupportState.UNSUPPORTED,
+            snapshot_id=snapshot_id,
+        )
+
+    if refusal := input_guard.screen(req.question):
+        return declined(refusal)
     evidence = retrieve(
         session,
         organization_id,
@@ -61,6 +76,16 @@ def lookup(
         embedder=embedder,
         policy_ids=req.policy_ids,
     )
+    if refusal := input_guard.check_evidence(req.question, evidence):
+        return declined(refusal)
+    if model is None and allow_fallback:
+        return local_review.lookup(
+            req.question,
+            evidence,
+            local_review.execution(forced=get_settings().llm_mode == "offline"),
+            limit=min(req.limit, 4),
+        )
+    info = ExecutionInfo(mode="llm", reason="configured_model")
     if not evidence.clauses:
         return LookupAnswer(
             question=req.question,
@@ -68,12 +93,31 @@ def lookup(
             citations=[],
             support=SupportState.UNSUPPORTED,
             snapshot_id=snapshot_id,
+            confidence=confidence.score_lookup(
+                answerable=False, citations=[], problems=0, evidence=evidence, verified=set()
+            ),
+            execution=info,
         )
-    budget = CallBudget(model, LOOKUP_MAX_CALLS, deadline_seconds)
+    budget = CallBudget(
+        require_model(model),
+        LOOKUP_MAX_CALLS,
+        deadline_seconds,
+        call_timeout_seconds=call_timeout_seconds,
+    )
     prompt = f"Question: {req.question}\n\nRetrieved clauses:\n" + "\n\n".join(
         c.as_prompt() for c in evidence.clauses
     )
-    out = budget.structured("lookup", SYSTEM, prompt, LookupOutput)
+    try:
+        out = budget.structured("lookup", SYSTEM, prompt, LookupOutput)
+    except ModelError as exc:
+        if not allow_fallback:
+            raise
+        return local_review.lookup(
+            req.question,
+            evidence,
+            local_review.execution(error_code=exc.code, stage="lookup"),
+            limit=min(req.limit, 4),
+        )
 
     allowed = evidence.by_id()
     cites = CitationSet()
@@ -84,10 +128,11 @@ def lookup(
             problems += 1
             continue
         quote = ref.quote.strip()
-        if not quote or not quote_in_clause(quote, clause.text):
+        verified = bool(quote) and quote_in_clause(quote, clause.text)
+        if not verified:
             problems += 1
             quote = clause.text
-        cites.add(clause, quote)
+        cites.add(clause, quote, verified=verified)
 
     answer = out.answer.strip()
     if out.answerable and not cites.items:
@@ -99,4 +144,12 @@ def lookup(
         citations=cites.items,
         support=SupportState.VALIDATED if supported else SupportState.UNSUPPORTED,
         snapshot_id=snapshot_id,
+        confidence=confidence.score_lookup(
+            answerable=out.answerable,
+            citations=cites.items,
+            problems=problems,
+            evidence=evidence,
+            verified=cites.verified,
+        ),
+        execution=info,
     )

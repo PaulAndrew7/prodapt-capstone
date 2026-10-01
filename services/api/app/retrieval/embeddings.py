@@ -4,6 +4,7 @@ The model downloads once into MODEL_CACHE_DIR on first use (about 70 MB). Passag
 embedded as-is; queries get the BGE retrieval instruction, as the model card recommends.
 """
 
+import logging
 import threading
 from functools import lru_cache
 from importlib.metadata import version
@@ -12,6 +13,7 @@ from app.config import get_settings
 
 BGE_QUERY_INSTRUCTION = "Represent this sentence for searching relevant passages: "
 MAX_INPUT_TOKENS = 512
+log = logging.getLogger("clause.embeddings")
 
 
 class Embedder:
@@ -44,5 +46,11 @@ def get_embedder() -> Embedder | None:
     s = get_settings()
     if not s.embeddings_enabled:
         return None
-    s.model_cache_dir.mkdir(parents=True, exist_ok=True)
-    return Embedder(s.embedding_model, str(s.model_cache_dir), s.embedding_dimension)
+    try:
+        s.model_cache_dir.mkdir(parents=True, exist_ok=True)
+        return Embedder(s.embedding_model, str(s.model_cache_dir), s.embedding_dimension)
+    except Exception as exc:
+        # Dense search is optional. Cache the unavailable state until restart rather
+        # than repeatedly trying a failed download on every request. Do not log bodies.
+        log.warning("Embeddings unavailable (%s); using lexical search", type(exc).__name__)
+        return None

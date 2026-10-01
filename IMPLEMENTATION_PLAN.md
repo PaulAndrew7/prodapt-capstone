@@ -4,6 +4,8 @@
 > This revision replaces the earlier enterprise-sized roadmap. It changes the planned scope; it does not claim that the code has already been simplified or completed.
 > Where older task checklists, architecture decisions or design briefs require more work, this plan governs the submission scope. Existing feature IDs are retained for reference.
 > Dataset decision, confirmed by the user on 26 September 2026: use the fictional **Kestrel Mutual** policy corpus for development, evaluation and the submission demonstration. It remains the project dataset unless the user explicitly requests a change.
+> Model update, 30 September 2026: the runtime model is now **Claude Sonnet 5.5 through the Anthropic API** on the owner's own key (`LLM_PROVIDER=anthropic`, `LLM_EFFORT=low`); the latest development results used it. Claude Haiku 4.5 is the cheaper option for test runs, and the GPT-4o mini gateway client below stays supported. Mentions of GPT-4o mini as the runtime model further down describe the plan as it stood on 26–29 September.
+> Model update, 29 September 2026 (later): the organizers' gateway details and lab key arrived, and the project runs on **GPT-4o mini through their gateway** as originally planned (§4.4). The Claude Haiku 4.5 client added earlier that day, while the key was missing, stays available as `LLM_PROVIDER=anthropic`.
 > Model/access update, 26 September 2026: target **GPT-4o mini** using an API key supplied later by the project organizers, with access expected through their gateway URL. Gateway details are pending. The Anthropic client has been replaced by one OpenAI-compatible gateway client (§4.4), tested against a local stub server only.
 
 ## 1. Project goal and current state
@@ -18,15 +20,15 @@ The technical contribution is document retrieval, a clear five-role workflow, ev
 
 ### Current repository state
 
-Updated 26 September 2026 after the gateway-client, evaluation-data and documentation sessions. "Verified" means automated tests or a browser run; live model output has not been observed yet because the organizers' key and gateway details have not arrived.
+Updated 29 September 2026, after the organizers' gateway was connected. "Verified" means automated tests, a browser run or a real-model run; the development set has run on GPT-4o mini, and the held-out set has not run.
 
 | Area | What exists | What remains |
 |---|---|---|
 | Frontend | Live mode connects Cases, Policies and Ask a question to the API: real progress, clarification, results, evidence drawer, trace, JSON export. Prototype screens are labelled in live mode. Verified in a browser with a scripted model. Completed cases also have a full printable report, checked in Chromium with fixture data. | Observe real model output |
 | Corpus | 11 fictional policies, 14 versions and 111 clauses | Review labels and choose a small subset for the walkthrough |
-| Backend | Five-role workflow (`services/api/app/workflow/`), case/run/resume/cancel/SSE endpoints, cited lookup answers, startup handling of interrupted runs. Model client targets GPT-4o mini through an OpenAI-compatible gateway at `LLM_BASE_URL`, checked against a local stub server; `python -m app.cli check-model` sends one test request. 164 backend tests pass, including Postgres integration tests. | Confirm gateway details with `check-model` when access arrives, then run real scenarios |
+| Backend | Five-role workflow (`services/api/app/workflow/`), case/run/resume/cancel/SSE endpoints, cited lookup answers, startup handling of interrupted runs. Model client runs GPT-4o mini through the organizers' gateway (`check-model` OK 29 September; replies over the gateway's 500-token cap are continued). A Claude client is kept as an alternative. 209 backend tests pass, including Postgres integration tests. | One real worked scenario through the UI, saved for the demo |
 | Persistence | Cases, messages, scenario revisions, facts, runs with the final assessment JSON, progress events and handoff records | Nothing required; normalized finding tables stay unused |
-| Evaluation | `python -m app.cli evaluate` in a separate database. Dev labels reviewed against clause text (4 corrected); retrieval on 13 dev scenarios: hybrid Recall@10 0.839, keyword-only 0.704, evidence-bundle recall 0.856. 20 held-out scenarios authored and checked against the corpus by a test, not yet run. | Owner review and freeze of the held-out labels; run assessments with a model |
+| Evaluation | `python -m app.cli evaluate` in a separate database. Dev labels reviewed against clause text (4 corrected); retrieval on 13 dev scenarios: hybrid Recall@10 0.839, keyword-only 0.704, evidence-bundle recall 0.856. 20 held-out scenarios authored and checked against the corpus by a test, not yet run. The report also gives accuracy per confidence band (added 29 September). Dev assessments on GPT-4o mini (29 September): 5–7/13 correct with the v1 prompts; after tuning on dev (analysis-v2, validation-v2) 10, 10 and 9 of 13 over three runs, 0 false compliant, all citations valid; tuning log and failures in `docs/evaluation/analysis.md`. | Owner review and freeze of the held-out labels, then the single held-out run |
 | Operations | Local PostgreSQL 16 + pgvector installed with the Python dependencies and started by `python -m app.cli db-start` (Docker removed 2026-09-29; CI uses the same command). CI checks. README with model setup, architecture, limitations and troubleshooting. Fresh setup verified from a clean database without a model (about 1.5 minutes of commands). Architecture diagram exported to PDF and JPEG; decisions page and presentation runbook written. | Repeat the fresh setup with a key; saved real result, recording and timed rehearsal |
 
 Keep the working foundations. Do not spend the remaining schedule replacing the database, redesigning the UI or deleting unused schema merely to make the repository smaller.
@@ -36,6 +38,8 @@ Readiness update, 26 September 2026: [ten bounded tasks](docs/tasks/SESSION_2026
 Second readiness update, 26 September 2026: [twenty fixes](docs/tasks/SESSION_2026-09-26_B.md) completed for model-call budgets, gateway configuration, evaluation reporting and evidence/input error handling. Evaluation now rejects unreviewed held-out selections, excludes disputed labels, counts the evaluated subset correctly and preserves uniquely named raw results with input hashes. It does not perform or certify owner review/freeze. Verification: 164 backend tests and 18 frontend tests passed; backend lint/format/types and frontend build passed. No real-model results or new held-out measurements were produced.
 
 Readiness update, 27 September 2026: [ten input/progress fixes](docs/tasks/SESSION_2026-09-27.md) completed. API inputs now validate trimmed text; case creation validates length/date and prevents duplicate submissions; streamed progress rejects malformed or wrong-run events, deduplicates sequence numbers, records only actual stage completions and resets on clarification restart. Verification: 178 backend tests, 26 frontend tests, lint/format/types, OpenAPI freshness and frontend build passed. Live-model evaluation and owner label review remain pending.
+
+Update, 29 September 2026 (user request): every verdict now carries a confidence score instead of relying only on the whole-app evaluation. Each finding, overall result and lookup answer gets a 0-100 evidence score computed in code from recorded checks (validation, exact quote, stated facts, search rank), with a band and a visible breakdown; it is not a probability. The Evaluation page stays and now describes the real measurements; `evaluate` adds accuracy per confidence band. Verification: 187 backend and 27 frontend tests, lint/types/OpenAPI/build, and a Chrome walkthrough with the scripted model. Real-model band accuracy is in `docs/evaluation/results-dev.md` (29 September).
 
 Second update, 27 September 2026: the optional avatar (F23) is done. In live mode, with the tests' scripted model, it was checked under reduced motion, hidden and without WebGL; the narrow-layout check for F12 passed at 390 px with no horizontal scroll. The backend has 178 passing tests and the frontend 26. A private review sheet lists each held-out label beside its clause text, so the owner can mark each one correct or disputed; the decisions are then applied to `data/evaluation/test/scenarios.json`. Nothing model-dependent changed: the key, the owner review and the real runs are still pending.
 
@@ -146,10 +150,13 @@ Keep these values configurable on the backend:
 | `LLM_BASE_URL` | Supplied gateway base URL, with no guessed hostname or path; requests go to `<base>/chat/completions` |
 | `LLM_PROVIDER` | `openai_compatible` selects the gateway client; `none` (default) disables model-backed features |
 | `LLM_API_KEY_HEADER` | Optional; unset sends `Authorization: Bearer <key>`, a name such as `api-key` sends the key in that header instead |
-| `LLM_JSON_MODE` | `json_schema` (default, strict schema) or `json_object` for a gateway without schema support |
-| `LLM_TEMPERATURE` | Optional; unset leaves the model default |
+| `LLM_JSON_MODE` | `json_schema` (default, strict schema), `json_object` for a gateway without schema support, or `json` (the organizers' plain-string form) |
+| `LLM_TEMPERATURE` | Optional; unset leaves the model default (0 for the organizers' gateway) |
+| `LLM_MAX_OUTPUT_TOKENS` | Reply cap per request, default 4096 |
 
 Implemented 26 September 2026, verified only against a local stub server. `services/api/app/workflow/llm.py` holds one `GatewayModel` (official OpenAI SDK with the supplied base URL) behind the existing `ModelClient` interface; `app/config.py`, `.env.example` and README were updated together and workflow inputs/outputs are unchanged. The Anthropic client and dependency were removed. There is no provider-routing framework or automatic fallback to another service. The last two optional settings exist because the gateway's authentication and JSON support are not yet known; they avoid a code change when the details arrive.
+
+Connected 29 September 2026. The organizers' instructions give the gateway `https://keygateway1.arshnivlabs.com` (OpenAI-style `/v1/chat/completions`, `Authorization: Bearer <lab key>`) and say not to send a model name. Its published request schema accepts only `messages`, `temperature`, `top_p`, `max_tokens` (at most 500) and `response_format` as the string `"json"` or `"text"`. The working configuration is therefore `LLM_BASE_URL=https://keygateway1.arshnivlabs.com/v1`, `LLM_MODEL` unset, `LLM_JSON_MODE=json`, `LLM_MAX_OUTPUT_TOKENS=500` and `LLM_TEMPERATURE=0` (the gateway defaults to 1.0). A reply cut off at the cap is continued (up to three follow-up requests, joined before validation); see `docs/architecture/decisions.md`. The gateway reports `gpt-4o-mini-2024-07-18` as the served model.
 
 Use the gateway's documented request format. If it is OpenAI-compatible, use that interface with its supplied base URL; do not assume a gateway accepts the public OpenAI endpoint paths, Bearer authentication or every model option. Confirm the exact URL/path, authentication headers, model alias, JSON-output support and request limits from the organizers' instructions or sample request.
 
@@ -416,7 +423,7 @@ The earlier plan recorded a five-day window beginning 25 September. This revisio
 
 | Session | Focus | Finish condition | Status |
 |---|---|---|---|
-| 1 | Five-role backend, gateway integration and one real scenario | Structured assessment with supported findings | Workflow tested with a scripted model; gateway client built and tested against a stub; supplied access and one real scenario remain |
+| 1 | Five-role backend, gateway integration and one real scenario | Structured assessment with supported findings | Workflow tested with a scripted model; gateway connected 29 September and the 13 dev scenarios run on GPT-4o mini; the worked scenario through the UI remains |
 | 2 | Persistence, live workspace, progress, clarification and lookup | Complete UI flow and saved-result reopening | Done; verified in a browser |
 | 3 | Evaluation and corrections | Raw results, measured report and limitations | Script done; dev labels reviewed and retrieval re-measured; 20 held-out scenarios authored; owner review, freeze and model runs remain |
 | 4 | Clean setup, diagram, documentation and rehearsal | Executable submission and timed presentation | Fresh setup verified without a model; diagram exported; decisions, limitations and presentation runbook written; real-model setup check, recording and rehearsal remain |
@@ -445,7 +452,7 @@ Keep a saved result and a labelled recording available if the provider is slow. 
 | Reviewer question | Explanation to understand and support with code |
 |---|---|
 | Why five agents? | The brief asks for five roles. Each function has one responsibility and passes structured output onward. They share a backend and model configuration. |
-| How do you access the model? | The planned integration sends requests from FastAPI through the organizers' gateway to GPT-4o mini, using their supplied key. It is one shared client for the model-backed roles; describe it as working only after live verification. |
+| How do you access the model? | FastAPI sends requests through the organizers' gateway to GPT-4o mini with the supplied lab key, which stays on the server. One shared client serves the model-backed roles. The gateway allows no JSON schema and 500-token replies, so the schema goes in the prompt, every reply is validated, and cut-off replies are continued. |
 | What is retrieval-augmented generation? | Search policy text and give relevant passages to the model before it answers. |
 | Why keyword and vector search? | Keywords find terms; vectors find related wording. The code combines rankings; evaluation supports quality claims. |
 | How do citations work? | The model selects clause IDs; the server resolves text, version and page. Validation checks the claimed interpretation too. |
@@ -468,12 +475,12 @@ These are study prompts, not claims to repeat without understanding. Trace one c
 - [x] Corpus description and synthetic-data label.
 - [ ] Reviewed evaluation inputs, raw results and report.
 - [ ] Saved real assessment with working citations.
-- [ ] Presentation material and ten-minute rehearsal (material in `docs/presentation/README.md`; rehearsal pending).
+- [ ] Presentation material and ten-minute rehearsal (script in `docs/presentation/README.md`; no slide deck, by the owner's choice; rehearsal pending).
 - [x] Limitations and third-party/model/asset acknowledgements.
 
 ## 18. Remaining decisions
 
-The corpus remains Kestrel Mutual unless the user explicitly requests a change. The target model is GPT-4o mini; organizers will supply a key later, with gateway access expected. Pending details are the gateway URL/API format, authentication, exact model alias and supported request options/limits. The gateway client in §4.4 replaces the earlier Anthropic implementation; the pending details are set in `.env` and confirmed with `check-model`, adjusting `LLM_API_KEY_HEADER` or `LLM_JSON_MODE` if needed. A provider/model selection exercise is no longer pending. Formal A2A and separate deployments stay unconfirmed with the assessor; the defaults in §2 apply until then.
+The corpus remains Kestrel Mutual unless the user explicitly requests a change. The model is GPT-4o mini through the organizers' gateway, connected on 29 September 2026 with the settings in §4.4 (no model name, `LLM_JSON_MODE=json`, 500 output tokens with continuation). A provider/model selection exercise is no longer pending. Formal A2A and separate deployments stay unconfirmed with the assessor; the defaults in §2 apply until then.
 
 Do not reopen the frontend, visual style or database without a blocker. Kestrel's digital PDFs remain the ingestion scope; reconsider OCR only if the user later changes the document requirements.
 

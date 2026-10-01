@@ -18,6 +18,9 @@ __pycache__/
 .ruff_cache/
 var/
 
+# Scratch output (screenshots, smoke runs)
+/tmp/
+
 # Design-review screenshots (regenerable with apps/web/scripts/*.mjs)
 .impeccable/review/
 

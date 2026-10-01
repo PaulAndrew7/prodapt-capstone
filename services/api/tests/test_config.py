@@ -4,10 +4,11 @@ from pydantic import ValidationError
 from app.config import Settings
 
 
-@pytest.mark.parametrize("field", ["llm_base_url", "llm_model", "llm_api_key"])
+@pytest.mark.parametrize("field", ["llm_base_url", "llm_api_key"])
 @pytest.mark.parametrize("blank", ["", "   "])
 def test_blank_gateway_values_are_rejected(field: str, blank: str) -> None:
     values = dict(
+        llm_mode="required",
         llm_provider="openai_compatible",
         llm_base_url="https://gateway.test/v1",
         llm_model="gpt-4o-mini",
@@ -78,15 +79,48 @@ def test_production_accepts_explicit_config() -> None:
 
 
 def test_provider_requires_base_url_model_and_key() -> None:
-    with pytest.raises(ValidationError, match="LLM_BASE_URL, LLM_MODEL and LLM_API_KEY"):
-        Settings(llm_provider="openai_compatible", _env_file=None)  # type: ignore[call-arg]
+    with pytest.raises(ValidationError, match="LLM_API_KEY is required"):
+        Settings(llm_mode="required", llm_provider="openai_compatible", _env_file=None)  # type: ignore[call-arg]
+    with pytest.raises(ValidationError, match="LLM_API_KEY is required"):
+        Settings(llm_mode="required", llm_provider="anthropic", _env_file=None)  # type: ignore[call-arg]
+    with pytest.raises(ValidationError, match="requires LLM_MODEL"):
+        Settings(  # type: ignore[call-arg]
+            _env_file=None,
+            llm_mode="required",
+            llm_provider="anthropic",
+            llm_model=" ",
+            llm_api_key="k",
+        )
     with pytest.raises(ValidationError, match="LLM_BASE_URL"):
         Settings(  # type: ignore[call-arg]
             _env_file=None,
+            llm_mode="required",
             llm_provider="openai_compatible",
             llm_model="gpt-4o-mini",
             llm_api_key="k",
         )
+
+
+def test_gateway_model_is_optional(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The organizers' gateway picks the model itself, so none is configured or sent."""
+    from app.workflow import llm
+
+    s = Settings(  # type: ignore[call-arg]
+        _env_file=None,
+        llm_provider="openai_compatible",
+        llm_base_url="https://gateway.example.test/v1",
+        llm_model="",
+        llm_api_key="k",
+    )
+    assert s.llm_model is None
+    monkeypatch.setattr(llm, "get_settings", lambda: s)
+    llm.get_model_client.cache_clear()
+    try:
+        client = llm.get_model_client()
+        assert isinstance(client, llm.GatewayModel)
+        assert client.model is None and client.name == "gateway:server-default"
+    finally:
+        llm.get_model_client.cache_clear()
 
 
 def test_gateway_settings_build_the_client(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -106,5 +140,70 @@ def test_gateway_settings_build_the_client(monkeypatch: pytest.MonkeyPatch) -> N
         client = llm.get_model_client()
         assert isinstance(client, llm.GatewayModel)
         assert client.name == "gateway:gpt-4o-mini" and client.json_mode == "json_object"
+    finally:
+        llm.get_model_client.cache_clear()
+
+
+def test_anthropic_settings_build_the_claude_client(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.workflow import llm
+    from app.workflow.claude_model import ClaudeModel
+
+    # No base URL is needed: the SDK's own endpoint is used.
+    s = Settings(  # type: ignore[call-arg]
+        _env_file=None,
+        llm_provider="anthropic",
+        llm_model="claude-sonnet-5-5",
+        llm_api_key="k",
+        llm_effort="low",
+    )
+    monkeypatch.setattr(llm, "get_settings", lambda: s)
+    llm.get_model_client.cache_clear()
+    try:
+        client = llm.get_model_client()
+        assert isinstance(client, ClaudeModel) and client.name == "anthropic:claude-sonnet-5-5"
+        assert client.effort == "low"
+    finally:
+        llm.get_model_client.cache_clear()
+
+
+@pytest.mark.parametrize("provider", ["anthropic", "openai_compatible"])
+@pytest.mark.parametrize("key", [None, "", "   "])
+def test_auto_mode_accepts_incomplete_provider_without_constructing_client(
+    monkeypatch: pytest.MonkeyPatch,
+    provider: str,
+    key: str | None,
+) -> None:
+    from app.workflow import llm
+
+    settings = Settings(_env_file=None, llm_provider=provider, llm_api_key=key)  # type: ignore[arg-type,call-arg]
+    monkeypatch.setattr(llm, "get_settings", lambda: settings)
+    llm.get_model_client.cache_clear()
+    try:
+        assert llm.get_model_client() is None
+    finally:
+        llm.get_model_client.cache_clear()
+
+
+def test_forced_offline_skips_client_construction_even_with_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.workflow import llm
+
+    settings = Settings(
+        _env_file=None,
+        llm_mode="offline",
+        llm_provider="anthropic",
+        llm_model="test-model",
+        llm_api_key="test-key",
+    )  # type: ignore[call-arg]
+    monkeypatch.setattr(llm, "get_settings", lambda: settings)
+
+    def unexpected() -> None:
+        raise AssertionError("An offline request constructed a provider client")
+
+    monkeypatch.setattr("app.workflow.claude_model.ClaudeModel", unexpected)
+    llm.get_model_client.cache_clear()
+    try:
+        assert llm.get_model_client() is None
     finally:
         llm.get_model_client.cache_clear()

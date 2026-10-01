@@ -211,7 +211,7 @@ function Hero({ revealed, onReady }: { revealed: boolean; onReady: () => void })
             {...rise(0.35)}
           >
             Your next move,{" "}
-            <HighlightMark play={revealed} delay={entrance ? 1.05 : 0.45} duration={0.75}>
+            <HighlightMark play={revealed} delay={entrance ? 1.05 : 0.45} duration={1.1}>
               backed by policy.
             </HighlightMark>
           </motion.h1>
@@ -624,11 +624,17 @@ function ReviewBento() {
 }
 
 function Close() {
+  const heading = useRef<HTMLHeadingElement>(null);
+  // Plays when the heading is on screen, not on mount far below the fold.
+  const seen = useInView(heading, { once: true, amount: 0.8 });
   return (
     <section aria-labelledby="close-h" className="border-t-2 border-ink py-32 md:py-48">
       <div className="mx-auto max-w-[1400px] px-4 md:px-8">
-        <h2 id="close-h" className="max-w-[14ch] pb-2 font-display text-[clamp(3rem,6.4vw,6rem)] font-bold leading-[1.02]">
-          See what <HighlightMark>Clause uncovers.</HighlightMark>
+        <h2 ref={heading} id="close-h" className="max-w-[14ch] pb-2 font-display text-[clamp(3rem,6.4vw,6rem)] font-bold leading-[1.02]">
+          See what{" "}
+          <HighlightMark play={seen} delay={0.25} duration={1.1}>
+            Clause uncovers.
+          </HighlightMark>
         </h2>
         <Lead>Start with a sample case. Follow the findings, read the policy, and see what needs to happen next.</Lead>
         <ButtonLink to="/app" variant="mark" size="lg" className="mt-10">

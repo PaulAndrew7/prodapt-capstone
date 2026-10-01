@@ -124,6 +124,8 @@ export function PolicyDetail() {
           <h1 className="mt-6 max-w-[22ch] font-display text-[clamp(2.25rem,4.4vw,4rem)] font-bold leading-[1.02]">
             {v.policy_title}
           </h1>
+          {params.get("published") && <p role="status" className="mt-4 border-2 border-met p-4">Published. New assessments can use this version from its effective date; earlier assessments keep their saved snapshot.</p>}
+          <div className="mt-5 flex flex-wrap gap-5 font-semibold"><Link className="underline underline-offset-4" to={`/app/policies/graph?policy_id=${encodeURIComponent(v.policy_id)}`}>Explore policy graph</Link>{v.status === "draft" && api.mode === "http" && <Link className="underline underline-offset-4" to={`/app/policies/manage/${encodeURIComponent(v.id)}`}>Review and publish draft</Link>}</div>
 
           <div className="mt-10 grid gap-x-14 gap-y-10 lg:grid-cols-[13rem_minmax(0,1fr)_18rem]">
             <nav aria-label="Sections" className="hidden lg:block">

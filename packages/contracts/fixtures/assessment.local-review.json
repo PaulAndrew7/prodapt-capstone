@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.0",
+  "run_id": "run_local_review_fixture",
+  "case_revision_id": "scenario_002",
+  "policy_snapshot_id": "snapshot_demo_v1",
+  "as_of": "2026-10-01",
+  "status": "insufficient_information",
+  "scope": "Kestrel Mutual demo data-sharing and vendor policies",
+  "summary": "Local review cannot establish a complete result: 2 retrieved checks remain unknown. These are unconfirmed dispositions, not established breaches or necessarily missing narrative facts.",
+  "findings": [
+    {
+      "id": "local_finding_0",
+      "requirement_id": "ds_v2_4_4.2",
+      "title": "Data-owner approval",
+      "status": "unknown",
+      "support": "validated",
+      "confidence": null,
+      "rationale": "Local review has not established applicability or satisfaction. Narrative text is not semantically interpreted in this mode; an unknown check is not a breach.",
+      "fact_ids": [
+        "local_fact_0"
+      ],
+      "citation_ids": [
+        "local_cite_0"
+      ],
+      "missing_facts": [
+        "Confirm whether this clause applies and is satisfied."
+      ]
+    },
+    {
+      "id": "local_finding_1",
+      "requirement_id": "ds_v2_4_4.5",
+      "title": "Retention period",
+      "status": "unknown",
+      "support": "validated",
+      "confidence": null,
+      "rationale": "Local review has not established applicability or satisfaction. Narrative text is not semantically interpreted in this mode; an unknown check is not a breach.",
+      "fact_ids": [
+        "local_fact_1"
+      ],
+      "citation_ids": [
+        "local_cite_1"
+      ],
+      "missing_facts": [
+        "Confirm whether this clause applies and is satisfied."
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "id": "local_cite_0",
+      "clause_id": "ds_v2_4_4.2",
+      "policy_version_id": "ds_v2",
+      "page_index": 1,
+      "section_path": [
+        "4",
+        "4.2"
+      ],
+      "quote": "External sharing of customer data requires written approval from the data owner, recorded in the data-sharing register before any transfer takes place.",
+      "source_url": "/api/v1/policy-versions/ds_v2/source?page=2"
+    },
+    {
+      "id": "local_cite_1",
+      "clause_id": "ds_v2_4_4.5",
+      "policy_version_id": "ds_v2",
+      "page_index": 1,
+      "section_path": [
+        "4",
+        "4.5"
+      ],
+      "quote": "Each external share must record a retention period, after which the recipient deletes or returns the data and confirms this in writing.",
+      "source_url": "/api/v1/policy-versions/ds_v2/source?page=2"
+    }
+  ],
+  "risks": [],
+  "recommendations": [],
+  "limitations": [
+    "Fictional Kestrel Mutual policies in snapshot_demo_v1, effective on 1 October 2026. Coverage accounts for retrieved candidates only.",
+    "Local review uses source checks and explicit user confirmations. No model semantically validated this result. Unreviewed interpretations stay unknown."
+  ],
+  "review_state": "unreviewed",
+  "confidence": null,
+  "coverage": {
+    "gate_version": "retrieved-candidates-v1",
+    "candidate_count": 2,
+    "accounted_count": 2,
+    "unresolved_clause_ids": [],
+    "rows": [
+      {
+        "clause_id": "ds_v2_4_4.2",
+        "policy_title": "Customer Data Sharing Policy",
+        "policy_version_id": "ds_v2",
+        "version_label": "v2",
+        "section": "4.2",
+        "heading": "Data-owner approval",
+        "page_index": 1,
+        "text": "External sharing of customer data requires written approval from the data owner, recorded in the data-sharing register before any transfer takes place.",
+        "source_url": "/api/v1/policy-versions/ds_v2/source?page=2",
+        "retrieval_reason": "search",
+        "candidate_basis": "clause_kind",
+        "finding_ids": [
+          "local_finding_0"
+        ],
+        "state": "assessed",
+        "note": "Local disposition remains unknown."
+      },
+      {
+        "clause_id": "ds_v2_4_4.5",
+        "policy_title": "Customer Data Sharing Policy",
+        "policy_version_id": "ds_v2",
+        "version_label": "v2",
+        "section": "4.5",
+        "heading": "Retention period",
+        "page_index": 1,
+        "text": "Each external share must record a retention period, after which the recipient deletes or returns the data and confirms this in writing.",
+        "source_url": "/api/v1/policy-versions/ds_v2/source?page=2",
+        "retrieval_reason": "search",
+        "candidate_basis": "clause_kind",
+        "finding_ids": [
+          "local_finding_1"
+        ],
+        "state": "assessed",
+        "note": "Local disposition remains unknown."
+      }
+    ]
+  },
+  "execution": {
+    "mode": "local_review",
+    "reason": "model_failure",
+    "engine_version": "local-review-v1",
+    "failed_stage": "analysis",
+    "error_code": "model_timeout"
+  }
+}

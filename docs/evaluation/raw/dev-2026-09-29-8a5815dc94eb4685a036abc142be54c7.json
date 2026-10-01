@@ -1,0 +1,1091 @@
+{
+  "summary": {
+    "date": "2026-09-29T10:12:56+00:00",
+    "split": "dev",
+    "scenarios": 13,
+    "reviewed_labels": 13,
+    "excluded_disputed": 0,
+    "scenario_sha256": "dea5adc4caa52648687914ac95b3dd4cb63c7068612002b5e965c1236e3c85e8",
+    "corpus_manifest_sha256": "49470013bdb8adf5b0e2f639d485718b0b546333254335955ba8a00467aed524",
+    "retrieval_mode": "hybrid",
+    "snapshot_id": "snapshot_demo_v1",
+    "configuration": {
+      "model": "gateway:server-default",
+      "prompts": [
+        "analysis-v2",
+        "validation-v2",
+        "recommendation-v1"
+      ],
+      "risk_rubric": "demo-risk-v1",
+      "retrieval": {
+        "search_limit": 10,
+        "max_clauses": 14,
+        "channels": [
+          "lexical",
+          "dense"
+        ],
+        "embedding_model": "BAAI/bge-small-en-v1.5@fastembed-0.8.1"
+      }
+    },
+    "recall_at_10_hybrid": 0.839,
+    "recall_at_10_lexical": 0.704,
+    "recall_bundle": 0.856,
+    "answerable": 12,
+    "assessed": true,
+    "completed": 13,
+    "failed": 0,
+    "status_correct": 10,
+    "false_compliant": 0,
+    "labelled_non_compliant": 6,
+    "citations_proposed": 35,
+    "citations_valid": 34,
+    "requirements_matched": 23,
+    "requirements_labelled": 44,
+    "median_run_seconds": 8.8,
+    "served_models": [
+      "gpt-4o-mini-2024-07-18"
+    ],
+    "input_tokens": 87685,
+    "output_tokens": 10569,
+    "by_band": {
+      "high": {
+        "results": 10,
+        "results_correct": 8,
+        "findings": 22,
+        "findings_matched": 21
+      },
+      "medium": {
+        "results": 2,
+        "results_correct": 1,
+        "findings": 5,
+        "findings_matched": 2
+      },
+      "low": {
+        "results": 1,
+        "results_correct": 1,
+        "findings": 1,
+        "findings_matched": 0
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "dev-001",
+      "category": "missing_material_facts",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ds_v1_4_4.2",
+        "ds_v1_4_4.3",
+        "ds_v1_4_4.4",
+        "vd_v1_3_3.1",
+        "vd_v1_4_4.1"
+      ],
+      "top10_hybrid": [
+        "vd_v1_3_3.1",
+        "vd_v1_3_3.4",
+        "ds_v1_4_4.2",
+        "vd_v1_3_3.3",
+        "vd_v1_3_3.2",
+        "vd_v1_4_4.1",
+        "ds_v1_3_3.1",
+        "ds_v1_5_5.2",
+        "vd_v1_2_2.1",
+        "ds_v1_2_2.1"
+      ],
+      "recall_hybrid": 0.6,
+      "recall_lexical": 0.6,
+      "recall_bundle": 0.8,
+      "run_state": "completed",
+      "status": "non_compliant",
+      "status_ok": true,
+      "false_compliant": false,
+      "requirements_matched": 2,
+      "requirements_labelled": 5,
+      "citations_proposed": 2,
+      "citation_problems": 0,
+      "run_ms": 8140,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 5048,
+      "output_tokens": 609,
+      "error": null,
+      "decisive_claims": [
+        {
+          "requirement": "ds_v1_4_4.2",
+          "status": "violated",
+          "support": "validated",
+          "rationale": "The data owner has not approved the sharing of customer data.",
+          "citations": [
+            "ds_v1_4_4.2: External sharing of customer data requires written approval from the data owner, recorded in the data-sharing register before any transfer takes place."
+          ],
+          "supported_by_reviewer": null
+        }
+      ],
+      "confidence_score": 100,
+      "confidence_band": "high",
+      "finding_bands": [
+        {
+          "requirement_id": "ds_v1_4_4.2",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        },
+        {
+          "requirement_id": "vd_v1_3_3.1",
+          "band": "medium",
+          "score": 60,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "dev-002",
+      "category": "multiple_policy_scenarios",
+      "acceptable_status": [
+        "compliant_within_scope"
+      ],
+      "expected_clauses": [
+        "ds_v1_4_4.2",
+        "ds_v1_4_4.3",
+        "vd_v1_3_3.1",
+        "vd_v1_3_3.2",
+        "vd_v1_4_4.1"
+      ],
+      "top10_hybrid": [
+        "ds_v1_4_4.2",
+        "vd_v1_3_3.4",
+        "vd_v1_3_3.1",
+        "ds_v1_5_5.1",
+        "vd_v1_4_4.1",
+        "ds_v1_3_3.1",
+        "vd_v1_3_3.2",
+        "ds_v1_5_5.2",
+        "ds_v1_2_2.1",
+        "ds_v1_4_4.3"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 0.8,
+      "recall_bundle": 1.0,
+      "run_state": "completed",
+      "status": "insufficient_information",
+      "status_ok": false,
+      "false_compliant": false,
+      "requirements_matched": 3,
+      "requirements_labelled": 5,
+      "citations_proposed": 4,
+      "citation_problems": 0,
+      "run_ms": 10328,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 7787,
+      "output_tokens": 980,
+      "error": null,
+      "decisive_claims": [
+        {
+          "requirement": "ds_v1_4_4.2",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The data owner approved the sharing in writing and it is recorded in the data-sharing register.",
+          "citations": [
+            "ds_v1_4_4.2: External sharing of customer data requires written approval from the data owner, recorded in the data-sharing register before any transfer takes place."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "vd_v1_3_3.1",
+          "status": "met",
+          "support": "validated",
+          "rationale": "Brightline Analytics holds Approved status in the vendor register.",
+          "citations": [
+            "vd_v1_3_3.1: A vendor must complete Kestrel Mutual\u2019s vendor review, and hold Approved status in the vendor register, before receiving customer data."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "vd_v1_4_4.1",
+          "status": "met",
+          "support": "validated",
+          "rationale": "Brightline Analytics has signed the data processing terms.",
+          "citations": [
+            "vd_v1_4_4.1: A vendor that processes customer data must sign Kestrel Mutual\u2019s data processing terms before the first transfer of customer data."
+          ],
+          "supported_by_reviewer": null
+        }
+      ],
+      "confidence_score": 55,
+      "confidence_band": "medium",
+      "finding_bands": [
+        {
+          "requirement_id": "ds_v1_4_4.2",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        },
+        {
+          "requirement_id": "vd_v1_3_3.1",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        },
+        {
+          "requirement_id": "vd_v1_4_4.1",
+          "band": "high",
+          "score": 95,
+          "matched": true
+        },
+        {
+          "requirement_id": "ds_v1_4_4.3",
+          "band": "medium",
+          "score": 55,
+          "matched": false
+        }
+      ]
+    },
+    {
+      "id": "dev-003",
+      "category": "conflicts_and_version_changes",
+      "acceptable_status": [
+        "insufficient_information"
+      ],
+      "expected_clauses": [
+        "ds_v2_4_4.2",
+        "ds_v2_4_4.3",
+        "ds_v2_4_4.5",
+        "vd_v1_3_3.1",
+        "vd_v1_4_4.1"
+      ],
+      "top10_hybrid": [
+        "vd_v1_4_4.1",
+        "ds_v2_4_4.2",
+        "vd_v1_3_3.4",
+        "ds_v2_5_5.2",
+        "ds_v2_5_5.1",
+        "vd_v1_3_3.1",
+        "ds_v2_4_4.4",
+        "rd_v1_4_4.1",
+        "ds_v2_4_4.5",
+        "ds_v2_2_2.2"
+      ],
+      "recall_hybrid": 0.8,
+      "recall_lexical": 0.8,
+      "recall_bundle": 0.8,
+      "run_state": "completed",
+      "status": "compliant_within_scope",
+      "status_ok": false,
+      "false_compliant": false,
+      "requirements_matched": 3,
+      "requirements_labelled": 5,
+      "citations_proposed": 3,
+      "citation_problems": 0,
+      "run_ms": 8515,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 7363,
+      "output_tokens": 782,
+      "error": null,
+      "decisive_claims": [
+        {
+          "requirement": "vd_v1_4_4.1",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The vendor has signed the data processing terms before the first transfer date.",
+          "citations": [
+            "vd_v1_4_4.1: A vendor that processes customer data must sign Kestrel Mutual\u2019s data processing terms before the first transfer of customer data."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "ds_v2_4_4.2",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The approval from the data owner is recorded in the data-sharing register before the transfer.",
+          "citations": [
+            "ds_v2_4_4.2: External sharing of customer data requires written approval from the data owner, recorded in the data-sharing register before any transfer takes place."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "vd_v1_3_3.1",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The vendor holds Approved status in the vendor register before receiving customer data.",
+          "citations": [
+            "vd_v1_3_3.1: A vendor must complete Kestrel Mutual\u2019s vendor review, and hold Approved status in the vendor register, before receiving customer data."
+          ],
+          "supported_by_reviewer": null
+        }
+      ],
+      "confidence_score": 95,
+      "confidence_band": "high",
+      "finding_bands": [
+        {
+          "requirement_id": "vd_v1_4_4.1",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        },
+        {
+          "requirement_id": "ds_v2_4_4.2",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        },
+        {
+          "requirement_id": "vd_v1_3_3.1",
+          "band": "high",
+          "score": 95,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "dev-004",
+      "category": "explicit_violations_and_thresholds",
+      "acceptable_status": [
+        "compliant_within_scope"
+      ],
+      "expected_clauses": [
+        "ea_v1_2_2.1",
+        "ea_v1_2_2.2",
+        "ea_v1_3_3.1",
+        "ea_v1_3_3.2"
+      ],
+      "top10_hybrid": [
+        "ea_v1_2_2.1",
+        "ea_v1_3_3.1",
+        "ea_v1_2_2.2",
+        "ea_v1_2_2.3",
+        "ea_v1_3_3.2",
+        "vd_v1_3_3.4",
+        "rd_v1_5_5.1",
+        "ea_v1_4_4.1",
+        "cm_v1_2_2.1",
+        "co_v1_3_3.2"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 1.0,
+      "recall_bundle": 1.0,
+      "run_state": "completed",
+      "status": "compliant_within_scope",
+      "status_ok": true,
+      "false_compliant": false,
+      "requirements_matched": 3,
+      "requirements_labelled": 4,
+      "citations_proposed": 3,
+      "citation_problems": 0,
+      "run_ms": 8844,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 7048,
+      "output_tokens": 827,
+      "error": null,
+      "decisive_claims": [
+        {
+          "requirement": "ea_v1_2_2.1",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The claim amount is \u00a3800, which requires line manager approval, and it was approved.",
+          "citations": [
+            "ea_v1_2_2.1: Expenses up to \u00a31,000 per claim require approval from the claimant\u2019s line manager."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "ea_v1_3_3.1",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The claim amount is \u00a3800, which is above \u00a325, and an itemised receipt was attached.",
+          "citations": [
+            "ea_v1_3_3.1: Every claim above \u00a325 must include an itemised receipt."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "ea_v1_3_3.2",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The claim was submitted on 27 March 2026, which is within 60 days of the expense incurred on 20 March 2026.",
+          "citations": [
+            "ea_v1_3_3.2: Claims must be submitted within 60 days of the expense being incurred."
+          ],
+          "supported_by_reviewer": null
+        }
+      ],
+      "confidence_score": 95,
+      "confidence_band": "high",
+      "finding_bands": [
+        {
+          "requirement_id": "ea_v1_2_2.1",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        },
+        {
+          "requirement_id": "ea_v1_3_3.1",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        },
+        {
+          "requirement_id": "ea_v1_3_3.2",
+          "band": "high",
+          "score": 95,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "dev-005",
+      "category": "explicit_violations_and_thresholds",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ea_v2_2_2.1",
+        "ea_v2_2_2.2",
+        "ea_v2_3_3.1",
+        "ea_v2_3_3.2"
+      ],
+      "top10_hybrid": [
+        "ea_v2_2_2.1",
+        "ea_v2_2_2.2",
+        "ea_v2_2_2.3",
+        "ea_v2_3_3.1",
+        "vd_v1_3_3.4",
+        "ea_v2_3_3.2",
+        "ea_v2_4_4.1",
+        "ea_v2_2_2.4",
+        "rd_v1_5_5.1",
+        "co_v1_3_3.2"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 0.75,
+      "recall_bundle": 1.0,
+      "run_state": "completed",
+      "status": "non_compliant",
+      "status_ok": true,
+      "false_compliant": false,
+      "requirements_matched": 3,
+      "requirements_labelled": 4,
+      "citations_proposed": 5,
+      "citation_problems": 1,
+      "run_ms": 19765,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 7800,
+      "output_tokens": 1224,
+      "error": null,
+      "decisive_claims": [
+        {
+          "requirement": "ea_v2_2_2.2",
+          "status": "violated",
+          "support": "validated",
+          "rationale": "The claim amount exceeds \u00a3500, requiring budget holder approval in addition to line manager approval.",
+          "citations": [
+            "ea_v2_2_2.2: Expenses above \u00a3500 and up to \u00a310,000 per claim require approval from the budget holder in addition to the line manager."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "ea_v2_3_3.1",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The claim amount is above \u00a325 and an itemised receipt was attached.",
+          "citations": [
+            "ea_v2_3_3.1: Every claim above \u00a325 must include an itemised receipt."
+          ],
+          "supported_by_reviewer": null
+        }
+      ],
+      "confidence_score": 100,
+      "confidence_band": "high",
+      "finding_bands": [
+        {
+          "requirement_id": "ea_v2_2_2.2",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        },
+        {
+          "requirement_id": "ea_v2_3_3.1",
+          "band": "high",
+          "score": 95,
+          "matched": true
+        },
+        {
+          "requirement_id": "ea_v2_2_2.1",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "dev-006",
+      "category": "explicit_violations_and_thresholds",
+      "acceptable_status": [
+        "compliant_within_scope"
+      ],
+      "expected_clauses": [
+        "ea_v1_2_2.1",
+        "ea_v1_2_2.2",
+        "ea_v1_3_3.1",
+        "ea_v1_3_3.2"
+      ],
+      "top10_hybrid": [
+        "ea_v1_2_2.1",
+        "ea_v1_2_2.2",
+        "ea_v1_2_2.3",
+        "ea_v1_3_3.1",
+        "ea_v1_3_3.2",
+        "rd_v1_5_5.1",
+        "ea_v1_1",
+        "vd_v1_3_3.4",
+        "ea_v1_4_4.1",
+        "ds_v1_5_5.2"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 1.0,
+      "recall_bundle": 1.0,
+      "run_state": "completed",
+      "status": "compliant_within_scope",
+      "status_ok": true,
+      "false_compliant": false,
+      "requirements_matched": 3,
+      "requirements_labelled": 4,
+      "citations_proposed": 3,
+      "citation_problems": 0,
+      "run_ms": 15343,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 13111,
+      "output_tokens": 1427,
+      "error": null,
+      "decisive_claims": [
+        {
+          "requirement": "ea_v1_2_2.1",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The claim amount is \u00a31,000 and it was approved by the line manager.",
+          "citations": [
+            "ea_v1_2_2.1: Expenses up to \u00a31,000 per claim require approval from the claimant\u2019s line manager."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "ea_v1_3_3.1",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The claim includes an itemised receipt, satisfying the requirement.",
+          "citations": [
+            "ea_v1_3_3.1: Every claim above \u00a325 must include an itemised receipt."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "ea_v1_3_3.2",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The claim was submitted within a week, which is within the 60-day requirement.",
+          "citations": [
+            "ea_v1_3_3.2: Claims must be submitted within 60 days of the expense being incurred."
+          ],
+          "supported_by_reviewer": null
+        }
+      ],
+      "confidence_score": 95,
+      "confidence_band": "high",
+      "finding_bands": [
+        {
+          "requirement_id": "ea_v1_2_2.1",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        },
+        {
+          "requirement_id": "ea_v1_3_3.1",
+          "band": "high",
+          "score": 95,
+          "matched": true
+        },
+        {
+          "requirement_id": "ea_v1_3_3.2",
+          "band": "high",
+          "score": 95,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "dev-007",
+      "category": "explicit_violations_and_thresholds",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ea_v2_2_2.2",
+        "ea_v2_2_2.4",
+        "ea_v2_3_3.1"
+      ],
+      "top10_hybrid": [
+        "ea_v2_2_2.1",
+        "ea_v2_2_2.2",
+        "ea_v2_2_2.3",
+        "ea_v2_2_2.4",
+        "ea_v2_3_3.2",
+        "ea_v2_1",
+        "ea_v2_3_3.1",
+        "vd_v1_3_3.4",
+        "ea_v2_4_4.1",
+        "rd_v1_5_5.1"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 0.6666666666666666,
+      "recall_bundle": 1.0,
+      "run_state": "completed",
+      "status": "non_compliant",
+      "status_ok": true,
+      "false_compliant": false,
+      "requirements_matched": 1,
+      "requirements_labelled": 3,
+      "citations_proposed": 3,
+      "citation_problems": 0,
+      "run_ms": 10938,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 7621,
+      "output_tokens": 898,
+      "error": null,
+      "decisive_claims": [
+        {
+          "requirement": "ea_v2_2_2.1",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The claims of \u00a3700 each required line manager approval, which was obtained.",
+          "citations": [
+            "ea_v2_2_2.1: Expenses up to \u00a3500 per claim require approval from the claimant\u2019s line manager."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "ea_v2_2_2.4",
+          "status": "violated",
+          "support": "validated",
+          "rationale": "The \u00a31,400 laptop was split into two claims of \u00a3700, which violates the policy against splitting purchases.",
+          "citations": [
+            "ea_v2_2_2.4: A single purchase must not be split into several claims to stay below an approval threshold."
+          ],
+          "supported_by_reviewer": null
+        }
+      ],
+      "confidence_score": 95,
+      "confidence_band": "high",
+      "finding_bands": [
+        {
+          "requirement_id": "ea_v2_2_2.2",
+          "band": "low",
+          "score": 45,
+          "matched": false
+        },
+        {
+          "requirement_id": "ea_v2_2_2.4",
+          "band": "high",
+          "score": 95,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "dev-008",
+      "category": "exceptions_and_conditional_requirements",
+      "acceptable_status": [
+        "compliant_within_scope",
+        "insufficient_information"
+      ],
+      "expected_clauses": [
+        "ds_v1_4_4.2",
+        "ds_v1_4_4.3",
+        "ds_v1_4_4.4"
+      ],
+      "top10_hybrid": [
+        "ds_v1_4_4.4",
+        "ds_v1_4_4.2",
+        "rd_v1_4_4.1",
+        "rd_v1_5_5.1",
+        "ds_v1_5_5.2",
+        "ds_v1_5_5.1",
+        "ea_v2_2_2.3",
+        "ea_v2_2_2.2",
+        "ea_v2_2_2.1",
+        "rd_v1_5_5.3"
+      ],
+      "recall_hybrid": 0.6666666666666666,
+      "recall_lexical": 0.6666666666666666,
+      "recall_bundle": 0.6666666666666666,
+      "run_state": "completed",
+      "status": "insufficient_information",
+      "status_ok": true,
+      "false_compliant": false,
+      "requirements_matched": 0,
+      "requirements_labelled": 3,
+      "citations_proposed": 3,
+      "citation_problems": 0,
+      "run_ms": 8390,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 7127,
+      "output_tokens": 784,
+      "error": null,
+      "decisive_claims": [],
+      "confidence_score": 60,
+      "confidence_band": "medium",
+      "finding_bands": [
+        {
+          "requirement_id": "ds_v1_4_4.4",
+          "band": "medium",
+          "score": 75,
+          "matched": false
+        },
+        {
+          "requirement_id": "ds_v1_4_4.2",
+          "band": "medium",
+          "score": 60,
+          "matched": false
+        }
+      ]
+    },
+    {
+      "id": "dev-009",
+      "category": "conflicts_and_version_changes",
+      "acceptable_status": [
+        "conflicting_policy"
+      ],
+      "expected_clauses": [
+        "gv_v1_4_4.1",
+        "md_v1_2_2.2",
+        "rd_v1_5_5.2"
+      ],
+      "top10_hybrid": [
+        "rd_v1_5_5.1",
+        "md_v1_2_2.2",
+        "rd_v1_5_5.2",
+        "rd_v1_6_6.1",
+        "rd_v1_4_4.1",
+        "md_v1_3_3.2",
+        "rd_v1_5_5.3",
+        "rd_v1_4_4.2",
+        "md_v1_2_2.3",
+        "md_v1_3_3.1"
+      ],
+      "recall_hybrid": 0.6666666666666666,
+      "recall_lexical": 0.6666666666666666,
+      "recall_bundle": 0.6666666666666666,
+      "run_state": "completed",
+      "status": "non_compliant",
+      "status_ok": false,
+      "false_compliant": false,
+      "requirements_matched": 0,
+      "requirements_labelled": 3,
+      "citations_proposed": 2,
+      "citation_problems": 0,
+      "run_ms": 11296,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 4566,
+      "output_tokens": 669,
+      "error": null,
+      "decisive_claims": [
+        {
+          "requirement": "rd_v1_5_5.1",
+          "status": "violated",
+          "support": "validated",
+          "rationale": "The claim records used for training the model closed in 2018, so they must be retained until 2025.",
+          "citations": [
+            "rd_v1_5_5.1: Customer claim records are retained for seven years after the claim closes, then deleted."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "md_v1_2_2.2",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The dataset can be kept until 2028 plus three years, allowing retention until 2031.",
+          "citations": [
+            "md_v1_2_2.2: Datasets used to train a pricing model are kept for the life of that model plus three years, so that its outputs can be reproduced."
+          ],
+          "supported_by_reviewer": null
+        }
+      ],
+      "confidence_score": 100,
+      "confidence_band": "high",
+      "finding_bands": [
+        {
+          "requirement_id": "md_v1_2_2.2",
+          "band": "high",
+          "score": 100,
+          "matched": false
+        }
+      ]
+    },
+    {
+      "id": "dev-010",
+      "category": "irrelevant_or_out_of_corpus",
+      "acceptable_status": [
+        "out_of_scope"
+      ],
+      "expected_clauses": [],
+      "top10_hybrid": [
+        "rw_v1_1",
+        "co_v1_3_3.2",
+        "ir_v1_4_4.2",
+        "rw_v1_2_2.1",
+        "cm_v1_2_2.3",
+        "ac_v1_2_2.5",
+        "vd_v1_3_3.4",
+        "ac_v1_2_2.4",
+        "ea_v2_3_3.3",
+        "rw_v1_4_4.1"
+      ],
+      "recall_hybrid": null,
+      "recall_lexical": null,
+      "recall_bundle": null,
+      "run_state": "completed",
+      "status": "out_of_scope",
+      "status_ok": true,
+      "false_compliant": false,
+      "requirements_matched": 0,
+      "requirements_labelled": 0,
+      "citations_proposed": 0,
+      "citation_problems": 0,
+      "run_ms": 968,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 2369,
+      "output_tokens": 25,
+      "error": null,
+      "decisive_claims": [],
+      "confidence_score": 45,
+      "confidence_band": "low",
+      "finding_bands": []
+    },
+    {
+      "id": "dev-011",
+      "category": "explicit_violations_and_thresholds",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ac_v1_2_2.1",
+        "ac_v1_2_2.4",
+        "ac_v1_2_2.5"
+      ],
+      "top10_hybrid": [
+        "ac_v1_2_2.4",
+        "ac_v1_2_2.5",
+        "ea_v2_2_2.1",
+        "ac_v1_2_2.3",
+        "ac_v1_3_3.1",
+        "vd_v1_3_3.4",
+        "ac_v1_2_2.1",
+        "ea_v2_2_2.2",
+        "rd_v1_5_5.1",
+        "rw_v1_2_2.1"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 1.0,
+      "recall_bundle": 1.0,
+      "run_state": "completed",
+      "status": "non_compliant",
+      "status_ok": true,
+      "false_compliant": false,
+      "requirements_matched": 2,
+      "requirements_labelled": 3,
+      "citations_proposed": 2,
+      "citation_problems": 0,
+      "run_ms": 7391,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 4738,
+      "output_tokens": 710,
+      "error": null,
+      "decisive_claims": [
+        {
+          "requirement": "ac_v1_2_2.4",
+          "status": "violated",
+          "support": "validated",
+          "rationale": "The line manager approved the access, but the duration exceeds the allowed 14 days.",
+          "citations": [
+            "ac_v1_2_2.4: Temporary production access requires approval from the requester\u2019s line manager and expires automatically after 14 days."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "ac_v1_2_2.5",
+          "status": "violated",
+          "support": "validated",
+          "rationale": "The confidentiality agreement is still being signed, which means the requirement is not satisfied.",
+          "citations": [
+            "ac_v1_2_2.5: Contractors may hold temporary production access only while a signed confidentiality agreement is on file."
+          ],
+          "supported_by_reviewer": null
+        }
+      ],
+      "confidence_score": 100,
+      "confidence_band": "high",
+      "finding_bands": [
+        {
+          "requirement_id": "ac_v1_2_2.4",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        },
+        {
+          "requirement_id": "ac_v1_2_2.5",
+          "band": "high",
+          "score": 100,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "dev-012",
+      "category": "adversarial_or_misleading",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ds_v1_4_4.2",
+        "ds_v1_4_4.3",
+        "vd_v1_3_3.1"
+      ],
+      "top10_hybrid": [
+        "ds_v1_5_5.2",
+        "co_v1_4_4.1",
+        "co_v1_2_2.1",
+        "co_v1_3_3.2",
+        "ds_v1_2_2.1",
+        "rd_v1_4_4.2",
+        "co_v1_1",
+        "co_v1_3_3.1",
+        "ds_v1_4_4.2",
+        "ir_v1_4_4.3"
+      ],
+      "recall_hybrid": 0.3333333333333333,
+      "recall_lexical": 0.0,
+      "recall_bundle": 0.3333333333333333,
+      "run_state": "completed",
+      "status": "non_compliant",
+      "status_ok": true,
+      "false_compliant": false,
+      "requirements_matched": 1,
+      "requirements_labelled": 3,
+      "citations_proposed": 2,
+      "citation_problems": 0,
+      "run_ms": 8031,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 4987,
+      "output_tokens": 731,
+      "error": null,
+      "decisive_claims": [
+        {
+          "requirement": "ds_v1_4_4.2",
+          "status": "violated",
+          "support": "validated",
+          "rationale": "The scenario states that the customer list is being emailed without obtaining the required approval.",
+          "citations": [
+            "ds_v1_4_4.2: External sharing of customer data requires written approval from the data owner, recorded in the data-sharing register before any transfer takes place."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "ds_v1_5_5.2",
+          "status": "violated",
+          "support": "validated",
+          "rationale": "The scenario indicates that external sharing occurred without approval, triggering the need to report it as a security incident.",
+          "citations": [
+            "ds_v1_5_5.2: Any external sharing that took place without the approval required by clause 4.2 must be reported as a security incident under the Incident Response Policy within one working day of discovery."
+          ],
+          "supported_by_reviewer": null
+        }
+      ],
+      "confidence_score": 100,
+      "confidence_band": "high",
+      "finding_bands": [
+        {
+          "requirement_id": "ds_v1_4_4.2",
+          "band": "high",
+          "score": 95,
+          "matched": true
+        }
+      ]
+    },
+    {
+      "id": "dev-013",
+      "category": "single_policy_questions",
+      "acceptable_status": [
+        "non_compliant"
+      ],
+      "expected_clauses": [
+        "ir_v1_3_3.1",
+        "ir_v1_4_4.2"
+      ],
+      "top10_hybrid": [
+        "ir_v1_3_3.1",
+        "ds_v1_5_5.2",
+        "ir_v1_4_4.2",
+        "ds_v1_3_3.1",
+        "ir_v1_2_2.2",
+        "rd_v1_4_4.1",
+        "ds_v1_4_4.2",
+        "ds_v1_5_5.1",
+        "ds_v1_2_2.1",
+        "ir_v1_4_4.1"
+      ],
+      "recall_hybrid": 1.0,
+      "recall_lexical": 0.5,
+      "recall_bundle": 1.0,
+      "run_state": "completed",
+      "status": "non_compliant",
+      "status_ok": true,
+      "false_compliant": false,
+      "requirements_matched": 2,
+      "requirements_labelled": 2,
+      "citations_proposed": 3,
+      "citation_problems": 0,
+      "run_ms": 10734,
+      "served_model": "gpt-4o-mini-2024-07-18",
+      "input_tokens": 8120,
+      "output_tokens": 903,
+      "error": null,
+      "decisive_claims": [
+        {
+          "requirement": "ir_v1_3_3.1",
+          "status": "violated",
+          "support": "validated",
+          "rationale": "The incident was reported 14 hours after it was noticed, which exceeds the one-hour requirement.",
+          "citations": [
+            "ir_v1_3_3.1: Any member of staff who suspects a security incident must report it to the Security Operations Centre within one hour of noticing it."
+          ],
+          "supported_by_reviewer": null
+        },
+        {
+          "requirement": "ir_v1_2_2.2",
+          "status": "met",
+          "support": "validated",
+          "rationale": "The theft of the laptop containing customer data qualifies as a personal data breach.",
+          "citations": [
+            "ir_v1_2_2.2: A \u201cpersonal data breach\u201d is a security incident that leads to the accidental or unlawful loss, alteration or disclosure of, or access to, customer personal data."
+          ],
+          "supported_by_reviewer": null
+        }
+      ],
+      "confidence_score": 87,
+      "confidence_band": "high",
+      "finding_bands": [
+        {
+          "requirement_id": "ir_v1_3_3.1",
+          "band": "high",
+          "score": 87,
+          "matched": true
+        },
+        {
+          "requirement_id": "ir_v1_4_4.2",
+          "band": "medium",
+          "score": 60,
+          "matched": true
+        }
+      ]
+    }
+  ]
+}

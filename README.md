@@ -4,16 +4,27 @@ Policy compliance intelligence: describe a business activity, get the applicable
 
 Capstone project. The demo corpus is a **fictional** organization's policies (Kestrel Mutual), not real policy, law or regulatory guidance. See [docs/data/corpus-decision.md](docs/data/corpus-decision.md).
 
-## Status (26 September 2026)
+## Status (30 September 2026)
 
 | Area | State |
 |---|---|
 | Web app (`apps/web`) | Live mode (`VITE_API_MODE=http`) connects Cases, Policies and Ask a question to the API. The front door and the review, report, evaluation and settings screens are fixture prototypes; live mode labels them as such. |
 | API (`services/api`) | Schema and migrations, PDF ingestion with source offsets, hybrid search, policy and source endpoints, cases, runs with progress events (SSE), clarification, cancel, and cited lookup answers. |
-| Assessment workflow | Five stages in `app/workflow/`: retrieval, analysis, risk, validation, recommendation, then final checks. Tested end to end with a scripted model. The model client targets GPT-4o mini through the project organizers' gateway (OpenAI-compatible format, tested against a local stub); live runs wait for the organizers' key and gateway details. |
-| Evaluation | `python -m app.cli evaluate`: retrieval measured on 13 reviewed development scenarios (hybrid Recall@10 0.839). 20 held-out scenarios are written and await review before their single final run. Assessment metrics need a model. |
+| Assessment workflow | Five stages in `app/workflow/`: retrieval, analysis, risk, validation, recommendation, then final checks. New runs account for retrieved requirement candidates and withhold clearance when coverage is unresolved. Scripted integration checks and live development runs use the same workflow. |
+| Model-independent operation | Automatic fallback on model errors, or forced local operation with `LLM_MODE=offline`. Assessments collect source-linked user confirmations; policy questions return exact excerpts. Execution mode and reason are saved and shown in reports. |
+| Evaluation | Latest development run: 12/13 statuses correct using Claude Sonnet 5.5, `analysis-v3` and the coverage gate; 0 unjustified compliant results across 9 eligible scenarios, 136/136 citations valid, and one cautious miss. Hybrid Recall@10 remains 0.839. That run predates the input check: today dev-012 (an "ignore your policies" request) is refused instead of assessed, so the same model outputs would score 11/13 ([analysis](docs/evaluation/analysis.md)). These are development results, not held-out accuracy; 20 held-out scenarios await label review. Earlier GPT-4o mini runs are preserved in the analysis. |
 
 Live per-feature state: [docs/tasks/](docs/tasks/README.md). Plan: [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Design system: [DESIGN.md](DESIGN.md).
+
+For a plain-English walkthrough of the implementation, every module and code file, evaluation metrics, technology choices, and reviewer preparation, read either study guide: [docs/APP_GUIDE_CLAUDE.html](docs/APP_GUIDE_CLAUDE.html), or [docs/REVIEWER_GUIDE.html](docs/REVIEWER_GUIDE.html) with its [Markdown source](docs/REVIEWER_GUIDE.md). Both are single files that open offline in a browser.
+
+### Evidence coverage (30 September 2026)
+
+New assessments include an **Evidence Coverage Inspector**. It accounts for retrieved requirement candidates independently of the findings the model emits, shows their original text and PDF page, and distinguishes unassessed candidates from unconfirmed findings and validated exclusions. The counts are saved with the run, shown in its validation handoff, and included in JSON and printable reports.
+
+Unresolved candidates block compliant and out-of-scope results; established breaches and conflicts still decide the result. A skipped clause is not invented as a violation or a missing business fact. Coverage uses requirement/exception classifications plus a small policy-derived catalog for obligations such as “are retained,” which the ingestion classifier otherwise labels general. It covers the retrieved bundle, not every policy obligation, and can increase cautious abstention when irrelevant candidates were retrieved. Older saved results say coverage was not recorded.
+
+Evaluation reports now count **unjustified compliant results** across all scenarios whose acceptable labels exclude compliance, including conflict and missing-information cases, and report cautious misses and unresolved coverage. In the latest run, 12 of 13 assessments accounted for every retrieved candidate; one exclusion was disputed by validation. [Results](docs/evaluation/results-dev.md) and [analysis](docs/evaluation/analysis.md) record both coverage runs and the provider difference from 29 September. The enhancement roadmap and presentation priorities are in [docs/CAPSTONE_REVIEW_AND_IMPLEMENTATION_PLAN.md](docs/CAPSTONE_REVIEW_AND_IMPLEMENTATION_PLAN.md).
 
 ## Set up on a new machine
 
@@ -117,17 +128,29 @@ To stop, press Ctrl+C in both terminals and run `uv run python -m app.cli db-sto
 
 Configuration lives in environment variables read from `.env` at the repository root. Production refuses development defaults (database URL, session secret, demo auth).
 
-Assessments and lookup answers need a language model: GPT-4o mini through the gateway the project organizers provide, with their key. The client speaks the OpenAI chat-completions format against whatever base URL you give it; it does not assume the public OpenAI endpoint. Set these in `.env`, then restart the API:
+A language model enables automatic narrative interpretation and synthesized policy answers. The project runs on **Claude through the Anthropic API**, with structured outputs. Claude Sonnet 5.5 produced the latest evaluation results; Claude Haiku 4.5 is cheaper and works for testing (its results are not comparable with the Sonnet numbers). Set these in `.env`, then restart the API:
+
+```bash
+LLM_PROVIDER=anthropic
+LLM_MODEL=claude-sonnet-5-5   # or claude-haiku-4-5
+LLM_EFFORT=low                # thinking effort; remove this line for claude-haiku-4-5, which rejects it
+LLM_API_KEY=sk-ant-...        # read by the API only, never sent to the browser
+```
+
+The organizers' gateway serves **GPT-4o mini** in the OpenAI chat-completions format. The project first ran on it (29 September; those runs are in the [analysis](docs/evaluation/analysis.md)), and it remains supported:
 
 ```bash
 LLM_PROVIDER=openai_compatible
-LLM_BASE_URL=...           # the gateway base URL from the organizers; requests go to <base>/chat/completions
-LLM_MODEL=gpt-4o-mini      # or the gateway's exact alias for it
-LLM_API_KEY=...            # read by the API only; never sent to the browser
-# LLM_API_KEY_HEADER=api-key   # only if the gateway wants the key in a named header instead of Bearer
-# LLM_JSON_MODE=json_object    # only if the gateway rejects JSON-schema response formats
-# LLM_TEMPERATURE=0            # optional; unset uses the model default
+LLM_BASE_URL=https://keygateway1.arshnivlabs.com/v1   # requests go to <base>/chat/completions
+LLM_API_KEY=...            # your lab key; read by the API only, never sent to the browser
+LLM_JSON_MODE=json         # the gateway accepts response_format "json" as a plain string only
+LLM_MAX_OUTPUT_TOKENS=500  # the gateway rejects anything higher
+LLM_TEMPERATURE=0          # the gateway defaults to 1.0; 0 keeps verdicts steadier
 ```
+
+Leave `LLM_MODEL` unset for the gateway: it picks the model itself (it always serves `gpt-4o-mini`), so no model name is sent. The gateway has no JSON-schema mode, so each stage's schema goes in the system message and every reply is validated in the API, with one repair request at most. An analysis reply can run past the 500-token cap; the client then trims it to its last complete line, asks the model to continue from there (up to three times) and joins the pieces before validating.
+
+Another OpenAI-format gateway also works: set `LLM_BASE_URL`, `LLM_MODEL` if it needs a model name, and optionally `LLM_API_KEY_HEADER=api-key` (key in a named header instead of Bearer), `LLM_JSON_MODE=json_schema|json_object` and `LLM_TEMPERATURE`.
 
 Then confirm the connection with one small request before running an assessment:
 
@@ -136,7 +159,32 @@ cd services/api
 uv run python -m app.cli check-model     # prints the served model, token counts and time, or the error
 ```
 
-Without a model, policy browsing and evidence search still work. Starting an assessment or asking a question returns a clear `model_not_configured` error instead of a result.
+With the default `LLM_MODE=auto`, missing or incomplete model settings select local review. Authentication, rate-limit, connection, timeout and unusable-response errors also switch the current run to local review. Each budgeted model call, including continuations, has a 20-second timeout by default (`LLM_CALL_TIMEOUT_SECONDS`), bounded by the run deadline. A schema repair is a separate budgeted call with the same cap. After switching, clarification resumes use the local engine; a new run can try the provider again. `LLM_MODE=required` retains strict configuration and failed-run behavior for provider diagnostics and model-only evaluation.
+
+### Run without an LLM
+
+Set these in `.env` and restart the API:
+
+```bash
+LLM_MODE=offline
+EMBEDDINGS_ENABLED=false    # optional: lexical search only, no embedding-model download
+```
+
+`offline` skips provider-client construction even if a key is configured. The seeded PostgreSQL database and policy PDFs are still required. Browse policies, search, source links, conversation, progress, saved cases and reports continue to work.
+
+An assessment retrieves the same dated policy evidence and asks for explicit dispositions in batches of three: **applies and satisfied**, **applies and breached**, or **does not apply**. Each check links to its original clause. “I don't know” preserves unknown; **Finish with remaining checks unknown** saves a report immediately. Confirmations persist across batches. Unknown checks prevent clearance, and local conclusions explicitly depend on the user's confirmations. Source/choice checks run in code; applicability, exceptions and precedence require human interpretation. Local results remain unreviewed and carry no model evidence score.
+
+**Ask a question** returns ranked, exact source excerpts and PDF links in local mode. It labels these as excerpts requiring interpretation. The UI, trace, JSON and print report record the execution mode and fallback reason. Historical cases without metadata retain their original format.
+
+Removing or blanking `LLM_API_KEY` and restarting the API is enough to select local review with the default `LLM_MODE=auto`; no replacement key is needed. `LLM_MODE=required` intentionally disables that fallback. Local search uses PostgreSQL full-text ranking (not BM25), and optional local dense embeddings. If the embedding model cannot load or a query embedding fails, search automatically continues with its keyword results. After a model-load failure, restart the API to retry dense search. The database and ingested policy documents must still be available.
+
+### Unrelated requests
+
+Policy questions and assessments now pass a local relevance check before any generation or local checklist. It rejects obvious instruction overrides, forced verdicts, trivia such as weather questions, and input without meaningful overlap with a retrieved policy. Unsupported questions receive a fixed explanation with no citations; assessments stop with a non-retryable `request_out_of_scope` or `request_redirected` error and no compliance result. The case screen asks for a relevant request rather than offering to retry the same input. Clarification replies are also checked for obvious redirects and trivia.
+
+Negative business facts such as missing approval or a data breach remain valid inputs. The check uses English word overlap and common request patterns, not sentiment. It is deliberately conservative: unfamiliar paraphrases may need rephrasing, and it is not a complete prompt-injection defence. Existing evaluation scores predate this admission check; adversarial and out-of-corpus requests can now be declined before an assessment is produced.
+
+The design, acceptance checks and implementation record are in [the fallback plan](docs/OFFLINE_FALLBACK_IMPLEMENTATION_PLAN.md).
 
 ## Sample usage
 
@@ -149,7 +197,7 @@ curl -s -X POST localhost:8000/api/v1/search -H 'content-type: application/json'
 curl -sL "localhost:8000/api/v1/policy-versions/ds_v1/source?page=2" -o ds_v1.pdf   # the cited original
 ```
 
-With a model configured:
+For either model-assisted or local operation:
 
 ```bash
 # A cited answer to a policy question
@@ -162,7 +210,12 @@ curl -sN localhost:8000/api/v1/runs/$RUN/events          # progress; stays open 
 curl -s localhost:8000/api/v1/runs/$RUN | jq '.state, .pending_questions'
 curl -s -X POST localhost:8000/api/v1/runs/$RUN/resume -H 'content-type: application/json'   -d '{"answers": {"q_1": null}}'                        # null means "I don't know"
 curl -s localhost:8000/api/v1/runs/$RUN | jq '.assessment.status, .assessment.findings'
+curl -s localhost:8000/api/v1/runs/$RUN | jq '.assessment.confidence, [.assessment.findings[].confidence.score]'
 ```
+
+Use question IDs returned in `pending_questions` when resuming. In local mode, complete remaining checks as unknown with `POST /api/v1/runs/{run_id}/resume` and `{"answers": {}, "finish_local_review": true}`. Otherwise, submit the exact offered choices or `null` and repeat for subsequent batches.
+
+Model-assisted findings, results and lookup answers include a `confidence` object: a 0-100 evidence score, a band (high >= 80, medium >= 50, low) and the factors that produced it. It is computed in code from the run's checks and is not a probability; see [decisions.md](docs/architecture/decisions.md#results). Local review uses `confidence: null` because interpretation depends on the user's confirmations.
 
 `uv run python -m app.cli search "who approves temporary production access"` prints ranked clauses with their lexical and dense ranks. OpenAPI docs: http://localhost:8000/docs.
 
@@ -174,7 +227,7 @@ uv run python -m app.cli evaluate --split dev                   # retrieval, plu
 uv run python -m app.cli evaluate --split dev --retrieval-only  # no model calls
 ```
 
-The command creates and seeds a separate `<database>_eval` database, so evaluation cases never appear in the demo. It writes `docs/evaluation/results-<split>.md` (currently [results-dev.md](docs/evaluation/results-dev.md)) and a raw JSON file; the written failure analysis is in [docs/evaluation/analysis.md](docs/evaluation/analysis.md). Answer keys in `data/evaluation/` are never indexed or put into prompts.
+The command creates and seeds a separate `<database>_eval` database, so evaluation cases never appear in the demo. It writes `docs/evaluation/results-<split>.md`, including accuracy per confidence band once assessments run (currently [results-dev.md](docs/evaluation/results-dev.md)) and a raw JSON file; the written failure analysis is in [docs/evaluation/analysis.md](docs/evaluation/analysis.md). Answer keys in `data/evaluation/` are never indexed or put into prompts.
 
 ## Checks
 
@@ -195,23 +248,25 @@ CI (`.github/workflows/ci.yml`) runs the same checks plus a clean migration, cor
 
 ![System architecture](docs/architecture/architecture-system.jpg)
 
-One FastAPI process serves the API and runs each assessment as a background task: retrieval, compliance analysis, risk, validation and recommendation, then final checks that decide the status with ordered rules. Search runs inside PostgreSQL with local embeddings; the only external runtime call is the model request to the organizers' gateway. The full diagram (system and workflow pages) is [docs/architecture/architecture.pdf](docs/architecture/architecture.pdf), and the decisions and tradeoffs are in [docs/architecture/decisions.md](docs/architecture/decisions.md).
+One FastAPI process serves the API and runs each assessment as a background task: retrieval, compliance analysis, risk, validation and recommendation, then final checks that decide the status with ordered rules and retrieved-candidate coverage. Search runs inside PostgreSQL with local embeddings; the external runtime calls are to the configured model provider (the organizers' gateway or Anthropic). The full diagram (system and workflow pages) is [docs/architecture/architecture.pdf](docs/architecture/architecture.pdf), and the decisions and tradeoffs are in [docs/architecture/decisions.md](docs/architecture/decisions.md).
 
 ## Limitations
 
-- **No live model output yet.** The GPT-4o mini gateway client is tested against a local stub server only. Assessment accuracy, citation validity and run time are unmeasured until the organizers' key arrives.
+- **Development-set results only so far.** The latest 12/13 result uses Claude Sonnet 5.5 and a checklist tuned on the development split, and predates the input check (11/13 with today's code, since dev-012 is now refused). It cannot be attributed solely to the gate or compared directly with earlier GPT-4o mini results. Held-out labels still need owner review before the final run. A model can still misinterpret an accounted-for clause or choose unsupported policy precedence; coverage does not prevent those errors. Results vary between runs; see [analysis.md](docs/evaluation/analysis.md).
+- **500-token replies on the gateway.** The organizers' gateway caps each reply at 500 tokens, so long analysis replies are continued with follow-up requests. That costs time, and a continuation that does not join cleanly fails validation and uses the stage's one repair request.
 - **Small, fictional evaluation.** 13 development and 20 held-out scenarios on an invented corpus; results describe this corpus, not general accuracy. No held-out case expects a policy conflict, because the corpus's only two-policy conflict is in the development split.
 - **Valid citations are not correct interpretations.** Validation proves a quoted passage exists in a retrieved clause; whether it supports the conclusion relies on a model check and human review.
+- **Local review needs human interpretation.** It checks stored sources and explicit dispositions; it does not parse arbitrary narrative, independently determine applicability, or resolve policy exceptions and precedence. Unknown checks prevent clearance, and local results remain unreviewed.
 - **Retrieval misses some clauses.** Purpose-limitation rules are rarely in the top ten because scenarios describe what is sent, not why ([analysis](docs/evaluation/analysis.md)).
 - **One process, one user.** A restart fails an in-flight run (completed results stay saved). Demo authentication maps every request to one seeded user; this is not a public multi-user service.
-- **Digital PDFs only.** No OCR, DOCX or upload administration; the corpus is ingested from the command line.
+- **Digital PDFs only.** No OCR or DOCX. The demo corpus is ingested from the command line; an admin can upload a further PDF policy or version in the app (Policies → Manage), review its extracted clauses and then publish it.
 - **Prototype screens.** Review, reports, evaluation lab and settings are fixture prototypes and are labelled as such in live mode.
 
 ## Troubleshooting
 
 Evaluation rejects non-positive `--limit` values and unreviewed held-out labels before database setup. Disputed records are excluded. Each new run preserves a uniquely named raw JSON file and records scenario/corpus hashes; the Markdown report remains the latest result. See [evaluation input/review rules](data/evaluation/README.md).
 
-Model requests have no hidden SDK retries. Failed requests count against the attempt budget, and late replies are rejected. A transient gateway failure therefore needs an explicit retry from the app. Gateway URLs must use HTTP(S) with no embedded credentials, query or fragment; keys stay in `LLM_API_KEY`.
+Model requests have no hidden SDK retries. Failed requests count against the attempt budget, and late replies are rejected. Automatic mode switches to local review after a provider failure; a fresh run can try the provider again. Required mode records the failure and needs an explicit retry. Gateway URLs must use HTTP(S) with no embedded credentials, query or fragment; keys stay in `LLM_API_KEY`.
 
 | Symptom | Likely cause and fix |
 |---|---|
@@ -225,16 +280,16 @@ Model requests have no hidden SDK retries. Failed requests count against the att
 | `curl localhost:8000/health/ready` reports `database: unavailable` | The database is not running (for example after a restart of the computer): `uv run python -m app.cli db-start` in `services/api`. |
 | `migrations: pending` | Run `uv run python -m app.cli migrate`; the API never migrates on startup. |
 | Search returns nothing, or `demo_not_seeded` | Run `uv run python -m app.cli seed-demo`. The first run downloads the ~70 MB embedding model into `var/models`. |
-| `model_not_configured` when starting a case or asking a question | Set `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY` in `.env` and restart the API. |
-| `check-model` fails with `model_bad_request` | The gateway may not accept JSON-schema output: set `LLM_JSON_MODE=json_object`. |
-| `check-model` fails with `model_auth` | Check the key; if the gateway expects it in a named header rather than `Authorization: Bearer`, set `LLM_API_KEY_HEADER` (for example `api-key`). |
-| `check-model` fails with `model_not_found` | `LLM_BASE_URL` should end before `/chat/completions`, and `LLM_MODEL` must be the gateway's exact alias. |
+| `model_not_configured` when starting a case or asking a question | In `LLM_MODE=required`, configure the provider and restart the API. Use `LLM_MODE=auto` or `offline` to enable local operation. `check-model` is a provider diagnostic and still requires a model. |
+| `check-model` fails with `model_bad_request` | The gateway rejected the request format. For the organizers' gateway set `LLM_JSON_MODE=json` and `LLM_MAX_OUTPUT_TOKENS=500`; for another gateway without JSON-schema support, `LLM_JSON_MODE=json_object`. |
+| `check-model` fails with `model_auth` | Check the key (for `anthropic`, an `sk-ant-` key from the Anthropic Console); if the gateway expects it in a named header rather than `Authorization: Bearer`, set `LLM_API_KEY_HEADER` (for example `api-key`). |
+| `check-model` fails with `model_not_found` | `LLM_BASE_URL` should end before `/chat/completions` (for the organizers' gateway, `.../v1`); if `LLM_MODEL` is set it must be the gateway's exact alias. |
 | A run shows `interrupted` | The API restarted during that run. Start a new run; completed results are unaffected. |
 | The web app shows fixture data | Start Vite with `VITE_API_MODE=http` so `/api` is proxied to the API. |
 
 ## Acknowledgements
 
-Libraries and assets are listed with their licenses in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The runtime model is GPT-4o mini (OpenAI), reached through a gateway provided by the project organizers; it is not trained or fine-tuned here. The embedding model is BAAI/bge-small-en-v1.5. Parts of the code and documentation were written with the help of an AI coding assistant (Claude Code).
+Libraries and assets are listed with their licenses in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The runtime model is Claude Sonnet 5.5 (Anthropic) through the Anthropic API, with Claude Haiku 4.5 as a cheaper option; GPT-4o mini (OpenAI) through the project organizers' gateway is a supported alternative. None is trained or fine-tuned here. The embedding model is BAAI/bge-small-en-v1.5. Parts of the code and documentation were written with the help of an AI coding assistant (Claude Code).
 
 ## Layout
 

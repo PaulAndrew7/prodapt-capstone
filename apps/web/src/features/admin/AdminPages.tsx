@@ -75,13 +75,14 @@ export function Reports() {
 }
 
 const METRICS: [string, string][] = [
-  ["Clause recall at 10", "Share of the gold clauses retrieved in the top ten results, over answerable cases."],
-  ["Citation reference validity", "Citations that resolve to the correct authorized version and span."],
-  ["Citation support precision", "Cited claims that the cited text actually supports, checked by a person."],
-  ["Requirement macro-F1", "Agreement with gold labels across met, violated, unknown, not applicable and conflict."],
-  ["False-compliant rate", "Non-compliant gold cases the system called compliant within scope."],
-  ["Abstention precision and recall", "Whether evidence-poor cases are recognized without refusing answerable ones."],
-  ["Latency and cost per run", "Wall-clock time by stage and total, and model usage per completed run."],
+  ["Recall at 10", "Share of the labelled clauses in the top ten search results, over answerable scenarios."],
+  ["Citation validity", "Proposed citations that named a retrieved clause and quoted it exactly."],
+  ["Evidence support", "Decisive claims the cited text actually supports, checked by a person."],
+  ["Final-status accuracy", "Results matching an acceptable labelled status; failed runs count as wrong."],
+  ["False-compliant results", "Labelled non-compliant scenarios the system called compliant within scope."],
+  ["Requirement labels matched", "Labelled clause statuses reproduced by a finding."],
+  ["Accuracy by confidence band", "How often high, medium and low confidence results and findings were right. Each case shows its own scores."],
+  ["Run time", "Median time of a completed run, with failures counted."],
 ];
 
 export function Evaluation() {
@@ -97,11 +98,12 @@ export function Evaluation() {
           </h2>
           <p className="mt-3 max-w-[52ch] text-ink-2">
             Results appear after the evaluation harness runs against the frozen scenario set. Until then nothing is
-            estimated or filled in.
+            estimated or filled in. Each completed case already shows a confidence score for its result and for every
+            finding; this page measures how well those scores held up.
           </p>
-          <p className="mt-6 text-sm font-semibold">Run it from the repository root</p>
+          <p className="mt-6 text-sm font-semibold">Run it from services/api</p>
           <pre tabIndex={0} aria-label="Evaluation command" className="mt-2 overflow-x-auto bg-ink p-4 text-sm text-paper">
-            <code>docker compose run --rm api python -m app.cli evaluate --config evals/configs/baseline.yaml</code>
+            <code>uv run python -m app.cli evaluate --split test</code>
           </pre>
         </section>
         <section aria-labelledby="metrics-h">

@@ -4,6 +4,8 @@
   `corepack pnpm --dir apps/web contracts:fixtures`; contracts.test.ts fails on drift.
 */
 import type { Assessment, RunEvent } from "@/lib/api/types";
+import { coverageGapAssessment } from "./coverageCase";
+import { localReviewAssessment } from "./localReviewCase";
 import {
   VENDOR_RUN_ID,
   vendorAssessment,
@@ -35,6 +37,8 @@ export function vendorRunEventsFixture(): RunEvent[] {
 }
 
 export const CONTRACT_FIXTURES = {
+  "assessment.local-review.json": () => localReviewAssessment,
+  "assessment.coverage-gap.json": () => coverageGapAssessment,
   "assessment.vendor-sharing.json": vendorAssessmentFixture,
   "run-events.vendor-sharing.json": vendorRunEventsFixture,
 } as const;

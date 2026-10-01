@@ -33,10 +33,10 @@
 <section class="page" id="system">
   <header>
     <h1>Clause — <mark>system</mark> architecture</h1>
-    <div class="meta">Fictional Kestrel Mutual corpus · local demonstration<br>Source: docs/architecture/diagram/architecture.html · 26 Sep 2026</div>
+    <div class="meta">Fictional Kestrel Mutual corpus · local demonstration<br>Source: docs/architecture/diagram/architecture.html · 1 Oct 2026</div>
   </header>
   <figure>
-    <svg viewBox="0 0 1500 940" role="img" font-family="Switzer, ui-sans-serif, system-ui, sans-serif" aria-label="The browser talks only to one FastAPI process. That process holds the API routes, the five-stage assessment workflow run as a background task, and one model client. PostgreSQL with pgvector stores the policy library, cases and runs, and search runs inside it. The only call that leaves the machine is the model client's HTTPS request to the organizers' gateway for GPT-4o mini. Command-line tools seed the corpus and run the evaluation through the same workflow.">
+    <svg viewBox="0 0 1500 940" role="img" font-family="Switzer, ui-sans-serif, system-ui, sans-serif" aria-label="The browser talks only to one FastAPI process. That process holds the API routes, the five-stage assessment workflow run as a background task, and one model client. PostgreSQL with pgvector stores the policy library, cases and runs, and search runs inside it. The only call that leaves the machine is the model client's HTTPS request to the Anthropic API for Claude Sonnet 5.5; the organizers' GPT-4o mini gateway is a supported alternative. Command-line tools seed the corpus and run the evaluation through the same workflow.">
       <defs>
         <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111413"/></marker>
       </defs>
@@ -93,17 +93,17 @@
 
       <!-- Model client -->
       <rect x="600" y="80" width="400" height="120" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
-      <text x="620" y="112" font-family="Clash Display, Switzer, sans-serif" font-size="21" font-weight="600">Model client <tspan font-family="ui-monospace, Consolas, monospace" font-size="14" font-weight="400" fill="#4a524e">llm.py</tspan></text>
-      <text x="620" y="140" font-size="15">One gateway client, OpenAI chat format</text>
-      <text x="620" y="164" font-size="15">Strict JSON schema, validated, 1 repair</text>
-      <text x="620" y="187" font-size="14" fill="#4a524e">≤ 8 calls and 120 s per attempt</text>
+      <text x="620" y="112" font-family="Clash Display, Switzer, sans-serif" font-size="21" font-weight="600">Model client <tspan font-family="ui-monospace, Consolas, monospace" font-size="14" font-weight="400" fill="#4a524e">claude_model.py</tspan></text>
+      <text x="620" y="140" font-size="15">Anthropic SDK, structured outputs</text>
+      <text x="620" y="164" font-size="15">JSON validated in code, 1 repair</text>
+      <text x="620" y="187" font-size="14" fill="#4a524e">≤ 8 calls, 120 s; gateway client in llm.py</text>
 
-      <!-- Gateway (external, pending) -->
+      <!-- Model provider (external) -->
       <rect x="1280" y="80" width="200" height="120" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5" stroke-dasharray="7 5"/>
-      <text x="1298" y="110" font-size="16" fill="#4a524e">Organizers' gateway</text>
-      <text x="1298" y="140" font-family="Clash Display, Switzer, sans-serif" font-size="22" font-weight="700">GPT-4o mini</text>
-      <text x="1298" y="166" font-size="13" fill="#6b726e">Key supplied later;</text>
-      <text x="1298" y="184" font-size="13" fill="#6b726e">URL and auth pending</text>
+      <text x="1298" y="110" font-size="16" fill="#4a524e">Anthropic API</text>
+      <text x="1298" y="140" font-family="Clash Display, Switzer, sans-serif" font-size="18" font-weight="700">Claude Sonnet 5.5</text>
+      <text x="1298" y="166" font-size="13" fill="#6b726e">Or GPT-4o mini through</text>
+      <text x="1298" y="184" font-size="13" fill="#6b726e">the organizers' gateway</text>
 
       <!-- Data -->
       <rect x="360" y="690" width="200" height="150" rx="10" fill="#fbfcfb" stroke="#111413" stroke-width="1.5"/>
@@ -165,7 +165,7 @@
         <text x="1278" y="736">separate database</text>
       </g>
     </svg>
-    <figcaption>The browser talks only to FastAPI: JSON over HTTP for actions, Server-Sent Events for run progress. One API process holds the routes, the assessment workflow (a background task, so the API can return a run ID at once) and a single model client. Search runs inside PostgreSQL (full-text ranking plus pgvector, fused by reciprocal rank); query and clause embeddings are computed locally, so search needs no key. The only runtime call that leaves the machine is the model client's HTTPS request to the organizers' gateway for GPT-4o mini (dashed: not yet connected). Restarting the API fails an in-flight run; completed results stay saved.</figcaption>
+    <figcaption>The browser talks only to FastAPI: JSON over HTTP for actions, Server-Sent Events for run progress. One API process holds the routes, the assessment workflow (a background task, so the API can return a run ID at once) and a single model client. Search runs inside PostgreSQL (full-text ranking plus pgvector, fused by reciprocal rank); query and clause embeddings are computed locally, so search needs no key. The only runtime call that leaves the machine is the model client's HTTPS request to the Anthropic API for Claude Sonnet 5.5 (dashed: external), whose replies are constrained to each stage's JSON schema. The organizers' GPT-4o mini gateway is a supported alternative; it caps replies at 500 tokens, so there a cut-off reply is continued and joined before it is validated. Restarting the API fails an in-flight run; completed results stay saved.</figcaption>
   </figure>
 </section>
 

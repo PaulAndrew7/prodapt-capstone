@@ -13,7 +13,14 @@ from typing import Any
 import pytest
 
 from app.workflow.analysis import AnalysisOutput
-from app.workflow.llm import CallBudget, GatewayModel, ModelError, strict_schema
+from app.workflow.llm import (
+    MAX_CONTINUATIONS,
+    CallBudget,
+    GatewayModel,
+    ModelError,
+    join_continuation,
+    strict_schema,
+)
 from app.workflow.validation import ValidationOutput
 from tests.scripted import ScriptedModel
 
@@ -44,6 +51,28 @@ def test_late_valid_reply_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
         budget.structured("validation", "system", "prompt", ValidationOutput)
     assert exc.value.code == "deadline_exceeded"
     assert budget.calls == 1 and budget.input_tokens == 100
+
+
+def test_per_call_timeout_is_capped_and_a_late_reply_cannot_be_accepted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = [100.0]
+    monkeypatch.setattr("app.workflow.llm.time.monotonic", lambda: clock[0])
+
+    class SlowModel:
+        name = "slow:test"
+
+        def complete(self, **kwargs: Any) -> Any:
+            assert kwargs["timeout"] == 20
+            clock[0] += 21
+            from app.workflow.llm import ModelReply
+
+            return ModelReply('{"checks": []}')
+
+    budget = CallBudget(SlowModel(), 2, 120, started=clock[0], call_timeout_seconds=20)
+    with pytest.raises(ModelError) as exc:
+        budget.structured("validation", "system", "prompt", ValidationOutput)
+    assert exc.value.code == "model_timeout" and budget.calls == 1
 
 
 Handler = Callable[[dict[str, Any]], tuple[int, dict[str, Any]]]
@@ -118,6 +147,18 @@ def call(model: GatewayModel, timeout: float = 5) -> Any:
     )
 
 
+@pytest.mark.parametrize("payload", [{}, {**completion("{}"), "choices": "bad"}])
+def test_malformed_success_envelope_is_a_model_error(
+    stub: tuple[Stub, str], payload: dict[str, Any]
+) -> None:
+    state, url = stub
+    state.handler = lambda _: (200, payload)
+    with pytest.raises(ModelError) as exc:
+        call(gateway(url))
+    assert exc.value.code == "invalid_model_output"
+    assert "bad" not in exc.value.message
+
+
 def test_strict_schema_closes_every_object() -> None:
     schema = strict_schema(AnalysisOutput.model_json_schema())
     objects = [schema, *schema["$defs"].values()]
@@ -147,6 +188,15 @@ def test_request_uses_base_url_bearer_key_and_json_schema(stub: tuple[Stub, str]
     assert reply.served_model == "gpt-4o-mini-2024-07-18"
 
 
+def test_model_is_not_sent_when_the_gateway_chooses_it(stub: tuple[Stub, str]) -> None:
+    state, url = stub
+    model = GatewayModel(base_url=url, model=None, api_key="test-key")
+    reply = call(model)
+    assert "model" not in state.requests[0]["body"]
+    assert model.name == "gateway:server-default"
+    assert reply.served_model == "gpt-4o-mini-2024-07-18"
+
+
 def test_temperature_is_omitted_unless_configured(stub: tuple[Stub, str]) -> None:
     state, url = stub
     call(gateway(url))
@@ -170,6 +220,54 @@ def test_json_object_mode_puts_schema_in_system_message(stub: tuple[Stub, str]) 
     assert system.startswith("You check evidence.") and '"finding_id"' in system
 
 
+def test_json_mode_sends_the_plain_string_form(stub: tuple[Stub, str]) -> None:
+    """The organizers' gateway accepts only `"json"` or `"text"` and at most 500 tokens."""
+    state, url = stub
+    call(gateway(url, json_mode="json", max_output_tokens=500))
+    body = state.requests[0]["body"]
+    assert body["response_format"] == "json" and body["max_tokens"] == 500
+    assert '"finding_id"' in body["messages"][0]["content"]
+
+
+def test_cut_off_reply_is_continued_and_joined(stub: tuple[Stub, str]) -> None:
+    state, url = stub
+    parts = iter([completion('{"checks": [', finish="length"), completion("]}")])
+    state.handler = lambda _: (200, next(parts))
+    budget = CallBudget(gateway(url, json_mode="json"), max_calls=4, deadline_seconds=30)
+    out = budget.structured("validation", "system", "prompt", ValidationOutput)
+    assert out.checks == []
+    second = state.requests[1]["body"]
+    assert second["response_format"] == "text"
+    assert second["messages"][2] == {"role": "assistant", "content": '{"checks": ['}
+    assert "Continue it from exactly where it stopped" in second["messages"][3]["content"]
+    usage = budget.usage()
+    assert (usage["model_calls"], usage["model_requests"]) == (1, 2)
+    assert (usage["input_tokens"], usage["output_tokens"]) == (240, 60)
+
+
+def test_continuation_resumes_at_the_last_complete_line(stub: tuple[Stub, str]) -> None:
+    """Seen on the organizers' gateway: cut mid-line, the model rewrites that line whole."""
+    state, url = stub
+    first = '{\n  "checks": [],\n  "note": "cut o'
+    parts = iter([completion(first, finish="length"), completion('  "note": "cut off"\n}')])
+    state.handler = lambda _: (200, next(parts))
+    reply = call(gateway(url, json_mode="json"))
+    assert state.requests[1]["body"]["messages"][2]["content"] == '{\n  "checks": [],\n'
+    assert json.loads(reply.text) == {"checks": [], "note": "cut off"}
+
+
+@pytest.mark.parametrize(
+    ("text", "more", "joined"),
+    [
+        ('{"a": 1, ', '"b": 2}', '{"a": 1, "b": 2}'),  # a clean continuation
+        ('{"a": 1, "long_key": ', '"long_key": 2}', '{"a": 1, "long_key": 2}'),  # a repeat
+        ('{"a": 1, ', '```json\n"b": 2}\n```', '{"a": 1, "b": 2}'),  # a code fence
+    ],
+)
+def test_join_continuation_drops_repeats_and_fences(text: str, more: str, joined: str) -> None:
+    assert join_continuation(text, more) == joined
+
+
 def test_budget_records_served_model_and_validates(stub: tuple[Stub, str]) -> None:
     state, url = stub
     state.handler = lambda _: (200, completion('{"checks": []}'))
@@ -188,6 +286,7 @@ def test_budget_records_served_model_and_validates(stub: tuple[Stub, str]) -> No
         (404, "model_not_found", False),
         (429, "model_rate_limited", True),
         (400, "model_bad_request", False),
+        (422, "model_bad_request", False),
         (500, "model_error", True),
     ],
 )
@@ -228,6 +327,8 @@ def test_unusable_replies_fail_clearly(
     with pytest.raises(ModelError) as exc:
         call(gateway(url))
     assert exc.value.code == code
+    # Only a cut-off reply is continued, and only a bounded number of times.
+    assert len(state.requests) == (1 + MAX_CONTINUATIONS if code == "model_truncated" else 1)
 
 
 def test_timeout_is_reported(stub: tuple[Stub, str]) -> None:

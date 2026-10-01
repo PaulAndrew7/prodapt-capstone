@@ -45,7 +45,7 @@ export interface Policy {
   category: string;
   business_area: string;
   owner: string;
-  active_version_id: string;
+  active_version_id: string | null;
   versions: PolicyVersionSummary[];
 }
 
@@ -77,6 +77,81 @@ export interface PolicyVersion extends PolicyVersionSummary {
   extraction_warnings: string[];
 }
 
+export interface UploadPolicyInput {
+  policy_id?: string | null;
+  title?: string;
+  category?: string;
+  business_area?: string;
+  owner?: string;
+  label: string;
+  effective_from: string;
+  effective_to: string | null;
+}
+export interface ClauseReview { kind: Clause["kind"]; candidate: boolean }
+export interface RelationReview {
+  source_clause_id: string;
+  target_clause_id: string;
+  relation: "references" | "excepts" | "overrides";
+  approved: boolean;
+  rationale: string;
+}
+export interface StoredRelation extends RelationReview {
+  id: string;
+  source_heading: string;
+  target_heading: string;
+  target_version_id: string;
+  provenance: string;
+}
+export interface DraftReviewInput {
+  label: string;
+  effective_from: string;
+  effective_to: string | null;
+  expected_revision: number;
+  clauses: Record<string, ClauseReview>;
+  relations: RelationReview[];
+  review_confirmed: boolean;
+  acknowledge_warnings: boolean;
+}
+export interface DraftReview {
+  version: PolicyVersion;
+  candidate_clause_ids: string[];
+  relations: StoredRelation[];
+  revision: number;
+  review_complete: boolean;
+  warnings_acknowledged: boolean;
+  reviewed_at: string | null;
+  source_sha256: string;
+}
+export interface Publication { version_id: string; snapshot_id: string; published_at: string }
+export interface GraphNode {
+  id: string;
+  kind: "policy" | "version" | "clause" | "case" | "finding";
+  label: string;
+  href: string;
+  text: string | null;
+  source_url: string | null;
+  status: string | null;
+}
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  kind: "contains" | "references" | "excepts" | "overrides" | "supports";
+  approved: boolean;
+  provenance: string;
+}
+export interface PolicyGraph {
+  snapshot_id: string;
+  as_of: string;
+  policy_id: string | null;
+  case_id: string | null;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  truncated: boolean;
+  total_clauses: number;
+}
+export interface GraphInput { policy_id?: string; as_of?: string; snapshot_id?: string; case_id?: string }
+
 export interface Citation {
   id: string;
   policy_version_id: string;
@@ -94,7 +169,21 @@ export interface Fact {
   value: string | null;
   origin: FactOrigin;
   confirmed: boolean;
-  source_message_id?: string;
+  source_message_id?: string | null;
+}
+
+/* Evidence score computed by the API from recorded checks; not a probability. */
+export interface ConfidenceFactor {
+  label: string;
+  points: number;
+  max_points: number;
+}
+
+export interface Confidence {
+  score: number;
+  band: "high" | "medium" | "low";
+  basis: string;
+  factors: ConfidenceFactor[];
 }
 
 export interface Finding {
@@ -107,6 +196,7 @@ export interface Finding {
   citation_ids: string[];
   support: SupportState;
   missing_facts: string[];
+  confidence?: Confidence | null;
 }
 
 export interface Risk {
@@ -128,6 +218,31 @@ export interface Recommendation {
   kind: "mandatory" | "optional";
 }
 
+export interface CoverageRow {
+  clause_id: string;
+  policy_title: string;
+  policy_version_id: string;
+  version_label: string;
+  section: string;
+  heading: string;
+  text: string;
+  page_index: number;
+  source_url: string;
+  retrieval_reason: string;
+  candidate_basis: "clause_kind" | "reviewed_corpus" | "proposed_finding";
+  finding_ids: string[];
+  state: "assessed" | "not_applicable" | "unassessed" | "unconfirmed";
+  note: string;
+}
+
+export interface EvidenceCoverage {
+  gate_version: "retrieved-candidates-v1";
+  candidate_count: number;
+  accounted_count: number;
+  unresolved_clause_ids: string[];
+  rows: CoverageRow[];
+}
+
 export interface Assessment {
   schema_version: "1.0";
   run_id: string;
@@ -144,6 +259,17 @@ export interface Assessment {
   limitations: string[];
   review_state: ReviewState;
   hypothetical?: boolean;
+  confidence?: Confidence | null;
+  coverage?: EvidenceCoverage | null;
+  execution?: ExecutionInfo | null;
+}
+
+export interface ExecutionInfo {
+  mode: "llm" | "local_review";
+  reason: "configured_model" | "no_model" | "forced_offline" | "model_failure";
+  engine_version: string | null;
+  failed_stage: "analysis" | "validation" | "recommendation" | "lookup" | null;
+  error_code: string | null;
 }
 
 export interface ClarificationQuestion {
@@ -189,6 +315,7 @@ export interface RunEvent {
     | "recommendation.completed"
     | "clarification.required"
     | "run.resumed"
+    | "run.fallback"
     | "run.completed"
     | "run.failed"
     | "run.canceled";
@@ -218,6 +345,7 @@ export interface CaseDetail extends CaseSummary {
   assessment: Assessment | null;
   pending_questions: ClarificationQuestion[];
   agent_messages: AgentMessage[];
+  execution?: ExecutionInfo | null;
 }
 
 export interface LookupAnswer {
@@ -226,6 +354,8 @@ export interface LookupAnswer {
   citations: Citation[];
   support: SupportState;
   snapshot_id: string;
+  confidence?: Confidence | null;
+  execution?: ExecutionInfo | null;
 }
 
 export interface ApiError {

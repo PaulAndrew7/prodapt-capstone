@@ -2,12 +2,24 @@ import { useEffect, useReducer } from "react";
 import type { RunPhase } from "@/lib/events/runStore";
 import { avatarReducer, initialAvatarState, modeCaption, type AvatarMode } from "./controller";
 import { useAvatarPref } from "./avatarPref";
+import { MODE_EXPRESSION, type Expression } from "./expressions";
 import AvatarFigure from "./AvatarFigure";
 
-export function AvatarView({ mode, size }: { mode: AvatarMode; size: number }) {
+export function AvatarView({
+  mode,
+  expression,
+  size,
+  talking,
+}: {
+  mode: AvatarMode;
+  /* A finer expression than the mode's own, such as a workflow stage's. */
+  expression?: Expression;
+  size: number | string;
+  talking?: boolean;
+}) {
   return (
     <div className="shrink-0" style={{ width: size, height: size }}>
-      <AvatarFigure mode={mode} />
+      <AvatarFigure expression={expression ?? MODE_EXPRESSION[mode]} talking={talking} dim={mode === "unavailable"} />
     </div>
   );
 }
@@ -15,6 +27,7 @@ export function AvatarView({ mode, size }: { mode: AvatarMode; size: number }) {
 /*
   The workspace companion. Inputs are the same deduplicated run phase and UI focus the
   rest of the workspace uses; stale events cannot animate a newer conversation.
+  While a run is in progress she moves to the assessing stage, so this strip steps aside.
 */
 export function AvatarPanel({
   phase,
@@ -22,12 +35,14 @@ export function AvatarPanel({
   evidenceOpen,
   ackKey,
   stageLabel,
+  staged = false,
 }: {
   phase: RunPhase;
   composerFocused: boolean;
   evidenceOpen: boolean;
   ackKey: number;
   stageLabel: string | null;
+  staged?: boolean;
 }) {
   const { enabled, setEnabled } = useAvatarPref();
   const [state, dispatch] = useReducer(avatarReducer, { ...initialAvatarState, phase });
@@ -57,6 +72,7 @@ export function AvatarPanel({
       </div>
     );
   }
+  if (staged) return null;
 
   return (
     <div className="flex items-center gap-4 border-t-2 border-ink px-4 py-2 md:px-8">

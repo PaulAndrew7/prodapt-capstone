@@ -143,9 +143,22 @@ def test_worked_scenario_asks_then_completes_with_cited_violation(
     assert done["run_state"] == "completed" and done["latest_run_id"] == run["run_id"]
     a = done["assessment"]
     assert a["status"] == "non_compliant"
+    coverage = a["coverage"]
+    assert coverage["gate_version"] == "retrieved-candidates-v1"
+    assert coverage["candidate_count"] == len(coverage["rows"])
+    assert coverage["accounted_count"] >= 2
+    assert all(row["policy_version_id"] != "ds_v2" for row in coverage["rows"])
+    assert client.get(f"/api/v1/runs/{run['run_id']}").json()["assessment"]["coverage"] == coverage
     findings = {f["requirement_id"]: f for f in a["findings"]}
     assert findings[DS_42]["status"] == "violated" and findings[DS_42]["support"] == "validated"
     assert findings[VD_31]["status"] == "unknown"  # missing is not the same as absent
+    # Every verdict carries an evidence score; the headline takes the deciding finding's.
+    breach = findings[DS_42]["confidence"]
+    assert breach["band"] == "high"
+    assert breach["score"] == sum(x["points"] for x in breach["factors"])
+    assert all(f["confidence"] is not None for f in a["findings"])
+    assert a["confidence"]["score"] == breach["score"]
+    assert a["confidence"]["basis"].startswith("Decided by finding")
     # "I don't know" is recorded as a confirmed unknown, attributed to the answer message.
     vendor = next(f for f in done["facts"] if f["key"] == "vendor_review_status")
     assert vendor["value"] is None and vendor["origin"] == "unknown" and vendor["confirmed"]
@@ -264,23 +277,105 @@ def test_validation_can_downgrade_an_unstated_violation_to_unknown(
     assert a["status"] == "non_compliant"  # still decided by the stated breach of §4.2
 
 
-def test_out_of_scope_skips_later_model_calls(
+def test_suggesting_the_findings_own_status_counts_as_agreement(
+    client: TestClient, use_model: Callable[[object], None]
+) -> None:
+    """Seen live: an unknown finding "contradicted" with suggested_status "unknown"."""
+    checks = {
+        "checks": [
+            {"finding_id": "finding_1", "verdict": "supported", "suggested_status": None,
+             "reason": "Stated."},
+            {"finding_id": "finding_2", "verdict": "contradicted", "suggested_status": "unknown",
+             "reason": "The vendor review status is unknown."},
+        ]
+    }  # fmt: skip
+    use_model(
+        ScriptedModel(
+            analysis=[analysis_reply(questions=False)],
+            validation=[checks],
+            recommendation=[RECOMMENDATION],
+        )
+    )
+    case = create_case(client)
+    start(client, case["id"])
+    a = client.get(f"/api/v1/cases/{case['id']}").json()["assessment"]
+    vendor = next(f for f in a["findings"] if f["requirement_id"] == VD_31)
+    assert vendor["status"] == "unknown" and vendor["support"] == "validated"
+    assert "Validation:" not in vendor["rationale"]
+
+
+def test_model_scope_claim_cannot_hide_unassessed_retrieved_candidates(
     client: TestClient, use_model: Callable[[object], None]
 ) -> None:
     model = ScriptedModel(
         analysis=[{"in_scope": False, "facts": [], "findings": [], "questions": []}]
     )
     use_model(model)
-    case = create_case(client, "Can I bring my dog to the office on Fridays after lunch?")
+    case = create_case(client)
     start(client, case["id"])
     a = client.get(f"/api/v1/cases/{case['id']}").json()["assessment"]
-    assert a["status"] == "out_of_scope" and "not a compliant result" in a["summary"]
+    assert a["status"] == "insufficient_information" and "coverage gap" in a["summary"]
+    assert a["coverage"]["unresolved_clause_ids"]
+    assert "incomplete" in a["confidence"]["basis"]
     assert model.stages() == ["analysis"]
 
 
-def test_model_failure_fails_the_run_without_a_result(
-    client: TestClient, use_model: Callable[[object], None]
+@pytest.mark.parametrize("as_of", ["2026-09-30", "2026-10-01"])
+def test_coverage_uses_the_policy_version_in_force_and_preserves_omissions(
+    client: TestClient, use_model: Callable[[object], None], as_of: str
 ) -> None:
+    version = "ds_v1" if as_of == "2026-09-30" else "ds_v2"
+    reply = analysis_reply(questions=False)
+    reply["facts"] = [
+        {**fact, "value": "Recorded before transfer"}
+        if fact["key"] == "data_owner_approval"
+        else dict(fact)
+        for fact in reply["facts"]
+    ]
+    reply["findings"] = [reply["findings"][0]]
+    reply["findings"][0].update(
+        requirement_clause_id=f"{version}_4_4.2",
+        status="met",
+        evidence=[{"clause_id": f"{version}_4_4.2", "quote": DS_42_QUOTE}],
+    )
+    model = ScriptedModel(
+        analysis=[reply],
+        validation=[validation_reply(finding_1="supported")],
+        recommendation=[{"actions": []}],
+    )
+    use_model(model)
+    response = client.post(
+        "/api/v1/cases",
+        json={
+            "text": "External sharing of customer data with a vendor has written data-owner approval "
+            "recorded in the data-sharing register. The retention period was not discussed.",
+            "business_area": "Marketing",
+            "as_of": as_of,
+        },
+    )
+    assert response.status_code == 201
+    run = start(client, response.json()["id"])
+    assessment = client.get(f"/api/v1/runs/{run['run_id']}").json()["assessment"]
+    assert assessment["status"] == "insufficient_information"
+    rows = assessment["coverage"]["rows"]
+    assert {r["policy_version_id"] for r in rows if r["policy_version_id"].startswith("ds_")} == {
+        version
+    }
+    if version == "ds_v2":
+        omitted = next(r for r in rows if r["clause_id"] == "ds_v2_4_4.5")
+        assert omitted["state"] == "unassessed" and omitted["finding_ids"] == []
+        assert client.get(omitted["source_url"], follow_redirects=False).status_code == 307
+    else:
+        assert all(r["clause_id"] != "ds_v2_4_4.5" for r in rows)
+
+
+def test_model_failure_in_required_mode_fails_without_a_result(
+    client: TestClient, use_model: Callable[[object], None], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.api import cases
+
+    settings = cases.get_settings().model_copy(update={"llm_mode": "required"})
+    monkeypatch.setattr(cases, "get_settings", lambda: settings)
     use_model(ScriptedModel(analysis=[ModelError("model_timeout", "Too slow.", retryable=True)]))
     case = create_case(client)
     run = start(client, case["id"])
@@ -290,9 +385,13 @@ def test_model_failure_fails_the_run_without_a_result(
     assert stream_events(client, run["run_id"])[-1]["type"] == "run.failed"
 
 
-def test_one_repair_then_invalid_output_fails(
-    client: TestClient, use_model: Callable[[object], None]
+def test_one_repair_then_invalid_output_in_required_mode_fails(
+    client: TestClient, use_model: Callable[[object], None], monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    from app.api import cases
+
+    settings = cases.get_settings().model_copy(update={"llm_mode": "required"})
+    monkeypatch.setattr(cases, "get_settings", lambda: settings)
     model = ScriptedModel(analysis=["not json", {"in_scope": True}])
     use_model(model)
     case = create_case(client)
@@ -365,7 +464,14 @@ def test_cancel_while_waiting_and_between_stages(
     assert model.stages() == ["analysis"]
 
 
-def test_no_model_configured_is_a_clear_error(client: TestClient) -> None:
+def test_no_model_in_required_mode_is_a_clear_error(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.api import cases, search
+
+    settings = cases.get_settings().model_copy(update={"llm_mode": "required"})
+    monkeypatch.setattr(cases, "get_settings", lambda: settings)
+    monkeypatch.setattr(search, "get_settings", lambda: settings)
     case = create_case(client)
     r = client.post(f"/api/v1/cases/{case['id']}/runs")
     assert r.status_code == 503 and r.json()["code"] == "model_not_configured"
@@ -419,7 +525,9 @@ def test_lookup_answers_with_checked_citations(
     q = {"question": "Who must approve sharing customer data externally?", "as_of": "2026-09-26"}
     a = client.post("/api/v1/lookup", json=q).json()
     assert a["support"] == "validated" and a["citations"][0]["quote"] == DS_42_QUOTE
+    assert a["confidence"]["band"] == "high"
     assert a["snapshot_id"] == "snapshot_demo_v1"
     b = client.post("/api/v1/lookup", json=q).json()
     assert b["support"] == "unsupported" and b["citations"] == []
     assert b["answer"].startswith("No answer is shown")
+    assert b["confidence"]["score"] == 0 and b["confidence"]["basis"] == "Answer withheld"

@@ -100,29 +100,57 @@
     box-decoration-break: clone;
   }
 
+  /*
+    One word of a HighlightMark. --edge is where the marker is inside this word (0% to 100%
+    of its width). Behind it the on-mark ink fades in over --trail and is solid from --solid
+    back; the trail closes over the last stretch of the sweep so the final letter ends black.
+    The text underneath stays opaque through the fade and is cut only under solid ink, so
+    nothing turns dark ahead of the marker and nothing thins out inside the fade.
+  */
   .mark-word {
+    --edge: calc((var(--sweep, 0) - var(--word-start)) * var(--word-scale) * 1%);
+    --trail: calc(0.9em * (1 - clamp(0, (var(--sweep, 0) - 85) / 15, 1)));
+    --solid: calc(var(--edge) - var(--trail));
     position: relative;
     display: inline-block;
     white-space: pre;
+    isolation: isolate;
   }
 
-  .mark-word-overlay {
+  .mark-word-fill {
     position: absolute;
-    inset: 0;
+    z-index: -1;
+    left: 0;
     /* Overlap adjoining fills so scaling does not leave hairline seams. */
     right: -1px;
+    /* Sized from the text, not the line box, so tight headlines keep their descenders on yellow. */
+    top: calc(50% - 0.5em);
+    bottom: calc(50% - 0.6em);
+    background: var(--mark);
     pointer-events: none;
-    user-select: none;
-    color: var(--on-mark);
-    background-image: linear-gradient(var(--mark), var(--mark));
-    background-repeat: no-repeat;
-    background-position: 0 58%;
-    background-size: 100% 88%;
-    /* Keep descenders outside tight headline line boxes visible. */
-    clip-path: inset(-0.2em clamp(0%, calc(100% - (var(--sweep, 0%) - var(--word-start)) * var(--word-scale)), 100%) -0.2em 0);
+    clip-path: inset(0 clamp(0%, calc(100% - var(--edge)), 100%) 0 0);
   }
 
-  .mark-word-overlay::before {
+  .mark-word-base {
+    /* Inline padding widens the mask box to the glyphs without moving the text. */
+    padding-block: 0.3em;
+    /* Cut a hair behind the solid ink, so the two antialiased edges never leave a seam. */
+    -webkit-mask-image: linear-gradient(90deg, transparent calc(var(--solid) - 0.08em), #000 calc(var(--solid) - 0.08em));
+    mask-image: linear-gradient(90deg, transparent calc(var(--solid) - 0.08em), #000 calc(var(--solid) - 0.08em));
+  }
+
+  .mark-word-ink {
+    position: absolute;
+    inset: -0.3em 0;
+    padding-top: 0.3em;
+    color: var(--on-mark);
+    pointer-events: none;
+    user-select: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 var(--solid), transparent var(--edge));
+    mask-image: linear-gradient(90deg, #000 var(--solid), transparent var(--edge));
+  }
+
+  .mark-word-ink::before {
     content: attr(data-text);
   }
 

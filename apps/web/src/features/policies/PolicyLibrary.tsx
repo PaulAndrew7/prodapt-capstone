@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import type { Policy } from "@/lib/api/types";
 import { EmptyState, ErrorNotice, Skeleton } from "@/components/Feedback";
 import { formatDate, todayIso } from "@/lib/format";
+import { ButtonLink } from "@/components/Button";
 
 function activeVersion(p: Policy) {
   return p.versions.find((v) => v.id === p.active_version_id) ?? p.versions[0];
@@ -15,6 +16,7 @@ function IndexStatus({ p }: { p: Policy }) {
   const draft = p.versions.find((v) => v.status === "draft");
   const failed = p.versions.find((v) => v.index_status === "failed");
   if (failed) return <span className="font-semibold text-violated">Indexing failed</span>;
+  if (!p.versions.some((v) => v.status === "published")) return <span className="font-semibold text-unknown">Unpublished draft</span>;
   if (draft?.index_status === "indexing")
     return (
       <span>
@@ -39,8 +41,9 @@ export function PolicyLibrary() {
     <div className="mx-auto max-w-[1600px] px-4 py-10 md:px-8 md:py-14">
       <h1 className="font-display text-[clamp(2.75rem,5vw,4.5rem)] font-bold leading-none">Policies</h1>
       <p className="mt-4 max-w-[60ch] text-lg text-ink-2">
-        The fictional Kestrel Mutual corpus Clause searches. Every finding cites a clause in one of these versions.
+        Published policy evidence Clause searches, including the fictional Kestrel Mutual demo corpus. Every finding cites a clause in one of these versions.
       </p>
+      <div className="mt-6 flex flex-wrap gap-3"><ButtonLink to="/app/policies/manage" variant="mark">Manage policies</ButtonLink><ButtonLink to="/app/policies/graph" variant="outline">Explore knowledge graph</ButtonLink></div>
 
       <h2 className="mt-12 font-display text-3xl font-semibold">All policies</h2>
       <div className="mt-5 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by category">
@@ -85,6 +88,7 @@ export function PolicyLibrary() {
             <tbody className="divide-y divide-rule border-t-2 border-ink md:border-t-0">
               {rows.map((p) => {
                 const v = activeVersion(p);
+                if (!v) return null;
                 const next = p.versions.find((x) => x.status === "published" && x.effective_from > today);
                 return (
                   <tr key={p.id} className="group grid gap-1 py-4 md:table-row md:py-0">
@@ -102,7 +106,7 @@ export function PolicyLibrary() {
                     <td className="text-sm md:py-5 md:pr-6 md:text-base">{p.category}</td>
                     <td className="tnum md:py-5 md:pr-6">
                       <span className="font-semibold">{v.label}</span>
-                      <span className="text-ink-2"> since {formatDate(v.effective_from)}</span>
+                      <span className="text-ink-2"> {v.status === "draft" ? "· draft, unpublished" : v.effective_from > today ? `· scheduled ${formatDate(v.effective_from)}` : p.active_version_id ? `since ${formatDate(v.effective_from)}` : "· no version currently in force"}</span>
                       {next && (
                         <span className="block text-sm">
                           <span className="mark-span font-semibold">{next.label}</span> from {formatDate(next.effective_from)}

@@ -11,16 +11,19 @@ for (const theme of ["light", "dark"] as const) {
 
       test("highlights remain readable through delay, playback and reset", async ({ page }) => {
         await page.route("**/__highlight-test", async (route) => {
-          const response = await route.fetch({ url: "http://localhost:5173/" });
+          const response = await route.fetch({ url: new URL("/", route.request().url()).href });
           await route.fulfill({ response, body: (await response.text()).replace("/src/main.tsx", "/e2e/fixtures/highlight.tsx") });
         });
         await page.goto("/__highlight-test");
         const mark = page.locator("h1 mark");
         const text = theme === "dark" ? "rgb(237, 241, 238)" : "rgb(17, 20, 19)";
+        const fill = mark.locator(".mark-word-fill").first();
+        const ink = mark.locator(".mark-word-ink").first();
         await expect(mark).toHaveText("backed by policy.");
         await expect(mark).toHaveCSS("color", text);
+        await expect(mark.locator(".mark-word-base").first()).toHaveCSS("color", text);
         await expect.poll(() => sweep(mark)).toBe(0);
-        await expect(mark.locator(".mark-word-overlay").first()).toHaveCSS("clip-path", /100%/);
+        await expect(fill).toHaveCSS("clip-path", /100%/);
         await expect(page.getByRole("heading", { name: "Your next move, backed by policy." })).toBeVisible();
 
         // Multiline text and transformed ancestors reproduce the original rendering conditions.
@@ -38,15 +41,15 @@ for (const theme of ["light", "dark"] as const) {
           await expect(mark).toHaveCSS("color", text);
         }
         await expect.poll(() => sweep(mark)).toBe(100);
-        await expect(mark.locator(".mark-word-overlay").first()).toHaveCSS("color", "rgb(17, 20, 19)");
-        await expect(mark.locator(".mark-word-overlay").first()).toHaveCSS("background-image", /rgb\(221, 255, 60\)/);
-        await expect(mark.locator(".mark-word-overlay").first()).toHaveCSS("clip-path", / 0% /);
+        await expect(ink).toHaveCSS("color", "rgb(17, 20, 19)");
+        await expect(fill).toHaveCSS("background-color", "rgb(221, 255, 60)");
+        await expect(fill).toHaveCSS("clip-path", / 0% /);
         await expect(page.locator(".mark-span")).toHaveCSS("color", "rgb(17, 20, 19)");
 
         await page.getByRole("button").click();
         await expect.poll(() => sweep(mark)).toBe(0);
         await expect(mark).toHaveCSS("color", text);
-        await expect(mark.locator(".mark-word-overlay").first()).toHaveCSS("clip-path", /100%/);
+        await expect(fill).toHaveCSS("clip-path", /100%/);
         await page.getByRole("button").click();
         await expect.poll(() => sweep(mark)).toBe(100);
         await expect(mark).toHaveText("backed by policy.");

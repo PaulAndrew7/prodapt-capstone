@@ -90,6 +90,10 @@ export function deriveStages(events: RunEvent[]): Record<AgentRole, StageStatus>
       STAGES.forEach((s) => { status[s.role] = "pending"; });
       cursor = 0;
     }
+    if (e.type === "run.fallback") {
+      STAGES.forEach((s) => { status[s.role] = s.role === "retrieval" ? "done" : "pending"; });
+      cursor = 1;
+    }
     const idx = STAGES.findIndex((s) => s.done === e.type);
     if (idx >= 0) {
       status[STAGES[idx].role] = "done";

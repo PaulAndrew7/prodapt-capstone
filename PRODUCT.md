@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-React + TypeScript + Vite frontend (`apps/web`), FastAPI + Pydantic backend (`services/api`), PostgreSQL + pgvector and Docker Compose. The revised implementation plan uses ordinary Python functions for the five-role workflow in one API process; that workflow remains to be implemented. FastAPI is user-confirmed; the frontend stack was approved with the frontend plan (docs/design/FRONTEND_PLAN.md).
+React + TypeScript + Vite frontend (`apps/web`), FastAPI + Pydantic backend (`services/api`), PostgreSQL + pgvector, run locally from a Python package (`uv run python -m app.cli db-start`; Docker was dropped on 29 September). The five-role workflow is ordinary Python functions in one API process (`services/api/app/workflow/`). FastAPI is user-confirmed; the frontend stack was approved with the frontend plan (docs/design/FRONTEND_PLAN.md).
 
 ## Users
 

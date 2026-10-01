@@ -64,7 +64,10 @@ def finding(n: int, status: RequirementStatus, support: SupportState, req: str =
         ([(S.MET, V), (S.MET, U)], AssessmentStatus.INSUFFICIENT_INFORMATION),
         ([(S.MET, V), (S.VIOLATED, C)], AssessmentStatus.INSUFFICIENT_INFORMATION),
         ([(S.VIOLATED, P)], AssessmentStatus.INSUFFICIENT_INFORMATION),
-        # An unknown that validation found irrelevant does not block a result.
+        # A disputed "not applicable" means the requirement may apply (dev-009, 29 September).
+        ([(S.MET, V), (S.NOT_APPLICABLE, C)], AssessmentStatus.INSUFFICIENT_INFORMATION),
+        # A disputed unknown may hide a breach; one that validation found irrelevant does not.
+        ([(S.MET, V), (S.UNKNOWN, C)], AssessmentStatus.INSUFFICIENT_INFORMATION),
         ([(S.MET, V), (S.UNKNOWN, U)], AssessmentStatus.COMPLIANT_WITHIN_SCOPE),
         ([(S.NOT_APPLICABLE, V)], AssessmentStatus.OUT_OF_SCOPE),
         ([], AssessmentStatus.OUT_OF_SCOPE),
@@ -279,3 +282,21 @@ def test_interrupted_runs_fail_on_startup(
     assert runs["run_running"].error["code"] == "interrupted"  # type: ignore[index]
     # A run waiting for the user keeps its questions and can still be answered.
     assert runs["run_waiting_for_user"].state == RunState.WAITING_FOR_USER
+
+
+def test_exception_clauses_name_the_requirement_they_replace(db: Session) -> None:
+    from app.seed import DEMO_ORG_ID, DEMO_SNAPSHOT_ID
+    from app.workflow.retrieval import retrieve
+
+    evidence = retrieve(
+        db,
+        DEMO_ORG_ID,
+        snapshot_id=DEMO_SNAPSHOT_ID,
+        as_of=date(2026, 9, 25),
+        query="A regulator's written request for customer claim records, approved by Legal",
+        embedder=None,
+    )
+    clauses = evidence.by_id()
+    assert clauses["ds_v1_4_4.4"].excepts == ("ds_v1_4_4.2",)
+    assert 'excepts="ds_v1_4_4.2"' in clauses["ds_v1_4_4.4"].as_prompt()
+    assert clauses["ds_v1_4_4.2"].excepts == ()

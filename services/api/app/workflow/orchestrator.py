@@ -20,10 +20,13 @@ from typing import Any
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.domain.contracts import (
     AgentRole,
     Assessment,
+    AssessmentStatus,
     EventType,
+    ExecutionInfo,
     ReviewState,
     RunState,
     SupportState,
@@ -31,13 +34,14 @@ from app.domain.contracts import (
 from app.persistence import models as m
 from app.retrieval.embeddings import Embedder
 from app.workflow import analysis as analysis_stage
+from app.workflow import confidence, coverage, input_guard, local_review
 from app.workflow import recommendation as recommendation_stage
 from app.workflow import risk as risk_stage
 from app.workflow import validation as validation_stage
 from app.workflow.analysis import Analysis, Answer
 from app.workflow.llm import CallBudget, ModelClient, ModelError, require_model
 from app.workflow.outcome import derive_status, limitations, summarize
-from app.workflow.retrieval import MAX_CLAUSES, SEARCH_LIMIT, retrieve
+from app.workflow.retrieval import MAX_CLAUSES, SEARCH_LIMIT, Evidence, retrieve
 
 log = logging.getLogger("clause.workflow")
 
@@ -56,6 +60,14 @@ def run_config(model: ModelClient | None, embedder: Embedder | None) -> dict[str
             recommendation_stage.PROMPT_VERSION,
         ],
         "risk_rubric": risk_stage.RUBRIC_VERSION,
+        "coverage_gate": coverage.GATE_VERSION,
+        "input_guard": input_guard.VERSION,
+        "execution_policy": get_settings().llm_mode,
+        "execution": (
+            ExecutionInfo(mode="llm", reason="configured_model")
+            if model
+            else local_review.execution(forced=get_settings().llm_mode == "offline")
+        ).model_dump(mode="json"),
         "retrieval": {
             "search_limit": SEARCH_LIMIT,
             "max_clauses": MAX_CLAUSES,
@@ -76,6 +88,8 @@ class WorkflowDeps:
     embedder: Embedder | None
     max_calls: int
     deadline_seconds: int
+    allow_fallback: bool = True
+    call_timeout_seconds: float = 20
 
 
 @dataclass
@@ -89,6 +103,9 @@ class Attempt:
     snapshot_id: str
     answers: list[Answer]
     resumed: bool
+    execution: ExecutionInfo | None = None
+    finish_local_review: bool = False
+    active_stage: str = "analysis"
     started: float = field(default_factory=time.monotonic)
     parent_message: str | None = None
 
@@ -153,7 +170,17 @@ def _stage_done(
         run = lock_run(s, attempt.run_id)
         if run.state != RunState.RUNNING:
             raise Canceled
-        append_event(s, attempt.run_id, event, payload)
+        append_event(
+            s,
+            attempt.run_id,
+            event,
+            {
+                **payload,
+                "execution": attempt.execution.model_dump(mode="json")
+                if attempt.execution
+                else None,
+            },
+        )
         message_id = m.new_id("amsg")
         s.add(
             m.AgentMessageRow(
@@ -162,8 +189,15 @@ def _stage_done(
                 sender=sender,
                 recipient=recipient.value if isinstance(recipient, AgentRole) else recipient,
                 type=type_,
-                summary=summary,
-                payload=detail,
+                summary=("Local review: " + summary)
+                if attempt.execution and attempt.execution.mode == "local_review"
+                else summary,
+                payload={
+                    **detail,
+                    "execution": attempt.execution.model_dump(mode="json")
+                    if attempt.execution
+                    else None,
+                },
                 causal_parent_id=attempt.parent_message,
                 elapsed_ms=attempt.elapsed_ms(),
                 created_at=_now(),
@@ -185,8 +219,31 @@ def _begin(deps: WorkflowDeps, run_id: str) -> Attempt | None:
         run = lock_run(s, run_id)
         if run.state != RunState.QUEUED:
             return None  # a duplicate start, or canceled before it began
+        if not run.config.get("execution"):
+            info = (
+                ExecutionInfo(mode="llm", reason="configured_model")
+                if deps.model
+                else local_review.execution()
+            )
+            run.config = {**run.config, "execution": info.model_dump(mode="json")}
         resumed = latest_event(s, run_id, EventType.RUN_RESUMED)
-        answers = [Answer(**a) for a in (resumed.payload.get("answers", []) if resumed else [])]
+        answers_by_key = {}
+        for event in s.scalars(
+            select(m.RunEventRow)
+            .where(
+                m.RunEventRow.run_id == run_id, m.RunEventRow.type == EventType.RUN_RESUMED.value
+            )
+            .order_by(m.RunEventRow.sequence)
+        ):
+            for item in event.payload.get("answers", []):
+                if (
+                    run.config.get("execution", {}).get("mode") == "local_review"
+                    and event.payload.get("execution_mode") != "local_review"
+                ):
+                    continue
+                answer = Answer(**item)
+                answers_by_key[answer.fact_key] = answer
+        answers = list(answers_by_key.values())
         run.state = RunState.RUNNING
         run.started_at = run.started_at or _now()
         if resumed is None:
@@ -203,6 +260,10 @@ def _begin(deps: WorkflowDeps, run_id: str) -> Attempt | None:
             snapshot_id=run.snapshot_id,
             answers=answers,
             resumed=resumed is not None,
+            execution=ExecutionInfo.model_validate(run.config["execution"])
+            if run.config.get("execution")
+            else None,
+            finish_local_review=bool(run.config.get("local_review_complete")),
         )
         s.commit()
         return attempt
@@ -230,7 +291,22 @@ def _save_facts(deps: WorkflowDeps, attempt: Attempt, result: Analysis) -> None:
         s.commit()
 
 
-def _ask(deps: WorkflowDeps, attempt: Attempt, result: Analysis, budget: CallBudget) -> None:
+def _usage(budget: CallBudget | None) -> dict[str, Any]:
+    return (
+        budget.usage()
+        if budget
+        else {
+            "model": None,
+            "served_model": None,
+            "model_calls": 0,
+            "model_requests": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+        }
+    )
+
+
+def _ask(deps: WorkflowDeps, attempt: Attempt, result: Analysis, budget: CallBudget | None) -> None:
     count = (
         "one question" if len(result.questions) == 1 else _plural(len(result.questions), "question")
     )
@@ -239,15 +315,20 @@ def _ask(deps: WorkflowDeps, attempt: Attempt, result: Analysis, budget: CallBud
         if run.state != RunState.RUNNING:
             raise Canceled
         run.state = RunState.WAITING_FOR_USER
-        run.usage = {**run.usage, "waiting_attempt": budget.usage()}
+        run.usage = {**run.usage, "waiting_attempt": _usage(budget)}
         s.add(
             m.CaseMessage(
                 id=m.new_id("msg"),
                 case_id=attempt.case_id,
                 role="assistant",
                 created_at=_now(),
-                text=f"Some facts that decide this case are missing. I have {count} before "
-                "I finish the assessment.",
+                text=(
+                    f"Local review has {count} source-linked checks in this batch. "
+                    "Confirm each disposition, or finish with remaining checks unknown."
+                    if attempt.execution and attempt.execution.mode == "local_review"
+                    else f"Some facts that decide this case are missing. I have {count} before "
+                    "I finish the assessment."
+                ),
             )
         )
         append_event(
@@ -261,7 +342,7 @@ def _ask(deps: WorkflowDeps, attempt: Attempt, result: Analysis, budget: CallBud
 
 
 def _publish(
-    deps: WorkflowDeps, attempt: Attempt, assessment: Assessment, budget: CallBudget
+    deps: WorkflowDeps, attempt: Attempt, assessment: Assessment, budget: CallBudget | None
 ) -> None:
     with deps.session_factory() as s:
         run = lock_run(s, attempt.run_id)
@@ -271,7 +352,7 @@ def _publish(
         run.result_status = assessment.status
         run.state = RunState.COMPLETED
         run.finished_at = _now()
-        run.usage = {**run.usage, "final_attempt": budget.usage(), "run_ms": attempt.elapsed_ms()}
+        run.usage = {**run.usage, "final_attempt": _usage(budget), "run_ms": attempt.elapsed_ms()}
         case = s.get_one(m.Case, attempt.case_id)
         case.scope = assessment.scope
         case.updated_at = _now()
@@ -300,8 +381,17 @@ def fail_run(
 
 
 def _stages(deps: WorkflowDeps, attempt: Attempt, allow_clarification: bool) -> None:
-    budget = CallBudget(require_model(deps.model), deps.max_calls, deps.deadline_seconds)
-
+    if refusal := input_guard.screen(attempt.scenario):
+        fail_run(deps.session_factory, attempt.run_id, refusal.code, refusal.message, False)
+        return
+    # Clarification text is user input too. Short factual answers can rely on the
+    # scenario for context, but must not redirect the model on a resumed attempt.
+    for answer in attempt.answers:
+        if answer.answer and (
+            refusal := input_guard.screen(answer.answer, allow_short_answer=True)
+        ):
+            fail_run(deps.session_factory, attempt.run_id, refusal.code, refusal.message, False)
+            return
     # 1. Retrieval: local search, no model call.
     with deps.session_factory() as s:
         evidence = retrieve(
@@ -312,6 +402,9 @@ def _stages(deps: WorkflowDeps, attempt: Attempt, allow_clarification: bool) -> 
             query=attempt.scenario,
             embedder=deps.embedder,
         )
+    if refusal := input_guard.check_evidence(attempt.scenario, evidence):
+        fail_run(deps.session_factory, attempt.run_id, refusal.code, refusal.message, False)
+        return
     clauses = evidence.by_id()
     policies = evidence.policies()
     _stage_done(
@@ -329,8 +422,79 @@ def _stages(deps: WorkflowDeps, attempt: Attempt, allow_clarification: bool) -> 
         ),
     )
 
-    # 2. Analysis: one model call, skipped when retrieval found nothing to compare.
-    if evidence.clauses:
+    local = (
+        deps.allow_fallback
+        and attempt.execution is not None
+        and attempt.execution.mode == "local_review"
+    )
+    if deps.model is None and deps.allow_fallback and not local:
+        # A provider can disappear while a model run waits for clarification.
+        # Persist the switch and do not treat earlier model answers as local attestations.
+        local = True
+        attempt.execution = local_review.execution(forced=get_settings().llm_mode == "offline")
+        attempt.answers = []
+        with deps.session_factory() as s:
+            run = lock_run(s, attempt.run_id)
+            if run.state != RunState.RUNNING:
+                raise Canceled
+            run.config = {**run.config, "execution": attempt.execution.model_dump(mode="json")}
+            append_event(
+                s, run.id, EventType.RUN_FALLBACK, attempt.execution.model_dump(mode="json")
+            )
+            s.commit()
+    if local:
+        _review_stages(deps, attempt, evidence, None, allow_clarification, local=True)
+        return
+    budget = CallBudget(
+        require_model(deps.model),
+        deps.max_calls,
+        deps.deadline_seconds,
+        call_timeout_seconds=deps.call_timeout_seconds,
+    )
+    try:
+        _review_stages(deps, attempt, evidence, budget, allow_clarification, local=False)
+    except ModelError as exc:
+        if not deps.allow_fallback:
+            raise
+        attempt.execution = local_review.execution(error_code=exc.code, stage=attempt.active_stage)
+        # Model clarification answers were not explicit local dispositions.
+        attempt.answers = []
+        with deps.session_factory() as s:
+            run = lock_run(s, attempt.run_id)
+            if run.state != RunState.RUNNING:
+                raise Canceled from exc
+            run.config = {**run.config, "execution": attempt.execution.model_dump(mode="json")}
+            run.usage = {**run.usage, "fallback_attempt": budget.usage()}
+            append_event(
+                s, run.id, EventType.RUN_FALLBACK, attempt.execution.model_dump(mode="json")
+            )
+            s.commit()
+        log.warning(
+            "Run %s switched to local review at %s (%s)",
+            attempt.run_id,
+            attempt.active_stage,
+            attempt.execution.error_code,
+        )
+        _review_stages(deps, attempt, evidence, None, allow_clarification, local=True)
+
+
+def _review_stages(
+    deps: WorkflowDeps,
+    attempt: Attempt,
+    evidence: Evidence,
+    budget: CallBudget | None,
+    allow_clarification: bool,
+    *,
+    local: bool,
+) -> None:
+    clauses = evidence.by_id()
+    attempt.active_stage = "analysis"
+    if local:
+        result = local_review.analyze(
+            evidence, attempt.answers, ask=allow_clarification and not attempt.finish_local_review
+        )
+    elif evidence.clauses:
+        assert budget is not None
         result = analysis_stage.analyze(
             budget,
             scenario=attempt.scenario,
@@ -385,16 +549,22 @@ def _stages(deps: WorkflowDeps, attempt: Attempt, allow_clarification: bool) -> 
     )
 
     # 4. Validation: code checks, then one model call. Risk is recomputed afterwards.
-    checked = validation_stage.validate(
-        budget,
-        scenario=attempt.scenario,
-        answers=attempt.answers,
-        facts=result.facts,
-        findings=result.findings,
-        proposed=result.proposed_evidence,
-        evidence=evidence,
-    )
+    attempt.active_stage = "validation"
+    if local:
+        checked = local_review.validate(result, evidence)
+    else:
+        assert budget is not None
+        checked = validation_stage.validate(
+            budget,
+            scenario=attempt.scenario,
+            answers=attempt.answers,
+            facts=result.facts,
+            findings=result.findings,
+            proposed=result.proposed_evidence,
+            evidence=evidence,
+        )
     findings = checked.findings
+    coverage_report = coverage.inspect(evidence, findings)
     risks = risk_stage.assess(findings, clauses)
     confirmed = checked.count(SupportState.VALIDATED)
     _stage_done(
@@ -408,20 +578,34 @@ def _stages(deps: WorkflowDeps, attempt: Attempt, allow_clarification: bool) -> 
             "downgraded": checked.downgraded,
             "citations_proposed": checked.proposed_references,
             "citation_problems": checked.invalid_references + checked.quote_mismatches,
+            "coverage_candidates": coverage_report.candidate_count,
+            "coverage_accounted": coverage_report.accounted_count,
+            "coverage_unresolved": len(coverage_report.unresolved_clause_ids),
         },
         (
             AgentRole.VALIDATION,
             AgentRole.RECOMMENDATION,
             "findings.validated",
-            f"Confirmed {confirmed} of {_plural(len(findings), 'finding')} against the cited text",
-            {"support": {f.id: f.support.value for f in findings}, "notes": checked.notes},
+            f"Confirmed {confirmed} of {_plural(len(findings), 'finding')} against the cited text; "
+            f"accounted for {coverage_report.accounted_count} of "
+            f"{coverage_report.candidate_count} retrieved candidates",
+            {
+                "support": {f.id: f.support.value for f in findings},
+                "notes": checked.notes,
+                "coverage": coverage_report.model_dump(mode="json"),
+            },
         ),
     )
 
     # 5. Recommendation: one model call on validated gaps.
-    actions, dropped = recommendation_stage.recommend(
-        budget, scenario=attempt.scenario, findings=findings, citations=checked.citations
-    )
+    attempt.active_stage = "recommendation"
+    if local:
+        actions, dropped = local_review.recommend(checked)
+    else:
+        assert budget is not None
+        actions, dropped = recommendation_stage.recommend(
+            budget, scenario=attempt.scenario, findings=findings, citations=checked.citations
+        )
     _stage_done(
         deps,
         attempt,
@@ -437,7 +621,21 @@ def _stages(deps: WorkflowDeps, attempt: Attempt, allow_clarification: bool) -> 
     )
 
     # 6. Final checks: the contract validates every field; the rules decide the status.
-    status = derive_status(findings)
+    status = derive_status(findings, coverage_report)
+    if local and not findings:
+        status = AssessmentStatus.INSUFFICIENT_INFORMATION
+    findings = [
+        f.model_copy(
+            update={
+                "confidence": None
+                if local
+                else confidence.score_finding(
+                    f, checked.citations, result.facts, evidence, verified=checked.verified_quotes
+                )
+            }
+        )
+        for f in findings
+    ]
     cited_policies = sorted(
         {clauses[c.clause_id].policy_title for c in checked.citations if c.clause_id in clauses}
     )
@@ -449,7 +647,9 @@ def _stages(deps: WorkflowDeps, attempt: Attempt, allow_clarification: bool) -> 
         status=status,
         scope="Kestrel Mutual demo corpus"
         + (f": {', '.join(cited_policies)}" if cited_policies else ""),
-        summary=summarize(status, findings),
+        summary=local_review.summary(status, findings)
+        if local
+        else summarize(status, findings, coverage_report),
         findings=findings,
         citations=checked.citations,
         risks=risks,
@@ -462,8 +662,15 @@ def _stages(deps: WorkflowDeps, attempt: Attempt, allow_clarification: bool) -> 
             invalid_references=checked.invalid_references,
             dropped_actions=dropped,
             unanswered=sum(1 for a in attempt.answers if a.answer is None),
-        ),
+            coverage=coverage_report,
+        )
+        + ([local_review.LIMITATION] if local else []),
         review_state=ReviewState.UNREVIEWED,
+        confidence=None
+        if local
+        else confidence.score_assessment(status, findings, evidence, coverage_report),
+        coverage=coverage_report,
+        execution=attempt.execution,
     )
     _publish(deps, attempt, assessment, budget)
 

@@ -4,6 +4,10 @@
 
 One file per original feature package, generated 2026-09-26. Each record carries its own implementation evidence.
 
+The [30 September offline batch](SESSION_2026-09-30_OFFLINE.md) implements model-independent assessments and source lookup, automatic failure fallback, cumulative user-confirmation batches, early completion and visible report provenance. No model provider was called for its verification; existing model evaluation results remain separate.
+
+The [30 September coverage batch](SESSION_2026-09-30_COVERAGE.md) adds retrieved-candidate accounting, the evidence inspector, print/export coverage and broader evaluation metrics. Verification: 235 backend tests, 36 frontend unit tests and 24 browser tests passed. The latest Claude Sonnet 5.5 development run returned 12/13 correct final statuses; held-out and manual evidence-support review remain pending.
+
 Latest: the [27 September input/progress batch](SESSION_2026-09-27.md) completed ten fixes. Verification totals: 178 backend tests and 26 frontend tests passed; production build passed. Required model/owner-review work remains pending.
 
 The [26 September readiness batch](SESSION_2026-09-26.md) completed ten bounded acceptance tasks across F03, F04 and F15. Those three records now use the revised submission scope; deferred requirements remain explicitly excluded.
@@ -19,7 +23,7 @@ The [second readiness batch](SESSION_2026-09-26_B.md) completed twenty fixes acr
 | [F04](F04.md) | Policy library and source viewer | DONE | 5/5 |
 | [F05](F05.md) | Hybrid retrieval | IN_PROGRESS | 4/5 |
 | [F06](F06.md) | Grounded policy lookup | IN_REVIEW | 4/5 |
-| [F07](F07.md) | Graph, A2A exchanges and handoffs | IN_REVIEW | 6/6 |
+| [F07](F07.md) | Graph, A2A exchanges and handoffs | DONE | 6/6 |
 | [F08](F08.md) | Compliance analysis and clarification | IN_REVIEW | 4/5 |
 | [F09](F09.md) | Risk and gap assessment | IN_REVIEW | 4/5 |
 | [F10](F10.md) | Interpretation and validation | IN_REVIEW | 4/5 |

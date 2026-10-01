@@ -20,6 +20,9 @@ import { exportReport } from "@/lib/exportReport";
 import { PrintReport } from "./PrintReport";
 import { STAGES } from "@/lib/events/runStore";
 import { AvatarPanel } from "@/features/avatar/AvatarPanel";
+import { AssessingStage } from "@/features/avatar/AssessingStage";
+import { ExecutionNotice } from "@/components/ExecutionNotice";
+import { useAvatarPref } from "@/features/avatar/avatarPref";
 
 type Evidence = { findingId: string; citationId: string } | null;
 
@@ -112,6 +115,7 @@ export function CaseWorkspace() {
   const [ackKey, setAckKey] = useState(0);
   const lastTrigger = useRef<HTMLElement | null>(null);
   const [revealKey, setRevealKey] = useState<string | null>(null);
+  const companion = useAvatarPref((s) => s.enabled);
 
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ["case", caseId] });
@@ -120,7 +124,7 @@ export function CaseWorkspace() {
 
   const start = useMutation({ mutationFn: () => api.startRun(caseId), onSuccess: refresh });
   const answer = useMutation({
-    mutationFn: (answers: Record<string, string | null>) => api.answerClarification(detail!.latest_run_id!, answers),
+    mutationFn: ({ answers, finishLocalReview = false }: { answers: Record<string, string | null>; finishLocalReview?: boolean }) => api.answerClarification(detail!.latest_run_id!, answers, finishLocalReview),
     onSuccess: refresh,
   });
   const cancel = useMutation({ mutationFn: () => api.cancelRun(detail!.latest_run_id!), onSuccess: refresh });
@@ -182,9 +186,13 @@ export function CaseWorkspace() {
 
   const assessment = detail.assessment;
   const activeFinding = evidence && assessment?.findings.find((f) => f.id === evidence.findingId);
-  const failure = [...events].reverse().find((e) => e.type === "run.failed")?.payload.message;
+  const failureEvent = [...events].reverse().find((e) => e.type === "run.failed")?.payload;
+  const failure = failureEvent?.message;
+  const declined = failureEvent?.code === "request_out_of_scope" || failureEvent?.code === "request_redirected";
   const running = phase === "queued" || phase === "running";
   const waiting = phase === "waiting_for_user";
+  // While a run is in progress the companion moves from the strip to the assessment pane.
+  const staged = companion && (running || waiting);
 
   return (
     <div className="mx-auto flex max-w-[1600px] flex-col lg:h-[calc(100dvh-4rem)]">
@@ -225,10 +233,14 @@ export function CaseWorkspace() {
         >
           <div tabIndex={0} aria-label="Conversation, questions and facts" role="region" className="flex-1 space-y-10 px-4 py-8 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink md:px-8 lg:overflow-y-auto lg:overscroll-contain">
             <Transcript messages={detail.messages} />
+            {phase !== "completed" && <ExecutionNotice execution={detail.execution} />}
             {waiting && detail.pending_questions.length > 0 && (
               <ClarificationBlock
+                key={detail.pending_questions.map((q) => q.id).join("|")}
                 questions={detail.pending_questions}
-                onSubmit={(a) => answer.mutate(a)}
+                onSubmit={(a) => answer.mutate({ answers: a })}
+                localReview={detail.execution?.mode === "local_review"}
+                onFinishLocal={() => answer.mutate({ answers: {}, finishLocalReview: true })}
                 submitting={answer.isPending}
                 onOpenClause={openClause}
               />
@@ -250,6 +262,7 @@ export function CaseWorkspace() {
               evidenceOpen={Boolean(evidence || previewClause)}
               ackKey={ackKey}
               stageLabel={STAGES.find((s) => stages[s.role] === "active")?.label ?? null}
+              staged={staged}
             />
           </div>
           <div className={clsx("sticky bottom-0 lg:static", waiting && "hidden")}>
@@ -284,7 +297,16 @@ export function CaseWorkspace() {
               <HypotheticalPanel caseId={detail.id} real={assessment} onBack={() => setHypothetical(false)} />
             ) : (
               <>
-                {(running || waiting) && (
+                {staged && (
+                  // Bleeds into the pane's right and bottom padding so she stands on its edge.
+                  <div className="-mb-8 -mr-4 flex min-h-[calc(100%+2rem)] flex-col gap-10 md:-mb-10 md:-mr-10 md:min-h-[calc(100%+2.5rem)]">
+                    <div className="mr-4 md:mr-10">
+                      <StageTrack stages={stages} />
+                    </div>
+                    <AssessingStage phase={phase} stages={stages} asOf={detail.as_of} questionCount={detail.pending_questions.length} />
+                  </div>
+                )}
+                {(running || waiting) && !staged && (
                   <div className="space-y-10">
                     <StageTrack stages={stages} />
                     {waiting ? (
@@ -347,9 +369,11 @@ export function CaseWorkspace() {
                 )}
                 {phase === "failed" && (
                   <ErrorNotice
-                    title="The run failed before a result"
-                    body={`${typeof failure === "string" ? `${failure} ` : ""}A failed run is not a compliance verdict. Start a new run; nothing was recorded as a result.`}
-                    onRetry={() => start.mutate()}
+                    title={declined ? "This request wasn't assessed" : "The run failed before a result"}
+                    body={declined && typeof failure === "string"
+                      ? failure
+                      : `${typeof failure === "string" ? `${failure} ` : ""}A failed run is not a compliance verdict. Start a new run; nothing was recorded as a result.`}
+                    onRetry={declined ? undefined : () => start.mutate()}
                   />
                 )}
                 {start.isError && (

@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0",
+  "run_id": "run_coverage_fixture",
+  "case_revision_id": "scenario_002",
+  "policy_snapshot_id": "snapshot_demo_v1",
+  "as_of": "2026-10-01",
+  "status": "insufficient_information",
+  "scope": "Kestrel Mutual demo data-sharing and vendor policies",
+  "summary": "One retrieved requirement candidate has no confirmed assessment or justified exclusion. A compliant result is withheld until this coverage gap is reviewed.",
+  "findings": [
+    {
+      "id": "finding_1",
+      "requirement_id": "ds_v2_4_4.2",
+      "title": "Data-owner approval is recorded",
+      "status": "met",
+      "rationale": "Written data-owner approval was recorded before transfer.",
+      "fact_ids": [
+        "fact_approval_absent",
+        "fact_recipient"
+      ],
+      "citation_ids": [
+        "cite_coverage_approval"
+      ],
+      "support": "validated",
+      "missing_facts": []
+    }
+  ],
+  "citations": [
+    {
+      "id": "cite_coverage_approval",
+      "policy_version_id": "ds_v2",
+      "clause_id": "ds_v2_4_4.2",
+      "page_index": 1,
+      "section_path": [
+        "4",
+        "4.2"
+      ],
+      "quote": "requires written approval from the data owner",
+      "source_url": "/api/v1/policy-versions/ds_v2/source?page=2"
+    }
+  ],
+  "risks": [],
+  "recommendations": [],
+  "limitations": [
+    "Fictional Kestrel Mutual policies in snapshot_demo_v1, effective on 1 October 2026. Coverage accounts for retrieved candidates only."
+  ],
+  "review_state": "unreviewed",
+  "confidence": null,
+  "coverage": {
+    "gate_version": "retrieved-candidates-v1",
+    "candidate_count": 2,
+    "accounted_count": 1,
+    "unresolved_clause_ids": [
+      "ds_v2_4_4.5"
+    ],
+    "rows": [
+      {
+        "clause_id": "ds_v2_4_4.2",
+        "policy_title": "Customer Data Sharing Policy",
+        "policy_version_id": "ds_v2",
+        "version_label": "v2",
+        "section": "4.2",
+        "heading": "Data-owner approval",
+        "page_index": 1,
+        "text": "External sharing of customer data requires written approval from the data owner, recorded in the data-sharing register before any transfer takes place.",
+        "source_url": "/api/v1/policy-versions/ds_v2/source?page=2",
+        "retrieval_reason": "search",
+        "candidate_basis": "clause_kind",
+        "finding_ids": [
+          "finding_1"
+        ],
+        "state": "assessed",
+        "note": "Written data-owner approval was recorded before transfer."
+      },
+      {
+        "clause_id": "ds_v2_4_4.5",
+        "policy_title": "Customer Data Sharing Policy",
+        "policy_version_id": "ds_v2",
+        "version_label": "v2",
+        "section": "4.5",
+        "heading": "Retention period",
+        "page_index": 1,
+        "text": "Each external share must record a retention period, after which the recipient deletes or returns the data and confirms this in writing.",
+        "source_url": "/api/v1/policy-versions/ds_v2/source?page=2",
+        "retrieval_reason": "search",
+        "candidate_basis": "clause_kind",
+        "finding_ids": [],
+        "state": "unassessed",
+        "note": "The analysis emitted no finding for this retrieved candidate."
+      }
+    ]
+  }
+}

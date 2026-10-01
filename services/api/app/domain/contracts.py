@@ -56,7 +56,7 @@ class FactOrigin(StrEnum):
 
 
 class RunState(StrEnum):
-    """Workflow state. A timeout is `failed`, never a compliance verdict."""
+    """Workflow state. Model errors may switch engines; application failures stay failed."""
 
     QUEUED = "queued"
     RUNNING = "running"
@@ -191,6 +191,23 @@ class Fact(Contract):
     source_message_id: str | None = None
 
 
+class ConfidenceFactor(Contract):
+    label: str
+    points: int = Field(ge=0)
+    max_points: int = Field(ge=0)
+
+
+class Confidence(Contract):
+    """Evidence score computed in code from recorded checks (app/workflow/confidence.py).
+
+    A ranking of how well a verdict is backed, not a probability that it is correct."""
+
+    score: int = Field(ge=0, le=100)
+    band: Literal["high", "medium", "low"]
+    basis: str
+    factors: list[ConfidenceFactor]
+
+
 class Finding(Contract):
     id: str
     requirement_id: str
@@ -201,6 +218,7 @@ class Finding(Contract):
     citation_ids: list[str]
     support: SupportState
     missing_facts: list[str]
+    confidence: Confidence | None = None
 
 
 class Risk(Contract):
@@ -222,6 +240,41 @@ class Recommendation(Contract):
     kind: RecommendationKind
 
 
+class CoverageRow(Contract):
+    clause_id: str
+    policy_title: str
+    policy_version_id: str
+    version_label: str
+    section: str
+    heading: str
+    text: str
+    page_index: int = Field(ge=0)
+    source_url: str
+    retrieval_reason: str
+    candidate_basis: Literal["clause_kind", "reviewed_corpus", "proposed_finding"]
+    finding_ids: list[str]
+    state: Literal["assessed", "not_applicable", "unassessed", "unconfirmed"]
+    note: str
+
+
+class EvidenceCoverage(Contract):
+    """Accounting for retrieved candidates, not proof that retrieval found every obligation."""
+
+    gate_version: Literal["retrieved-candidates-v1"] = "retrieved-candidates-v1"
+    candidate_count: int = Field(ge=0)
+    accounted_count: int = Field(ge=0)
+    unresolved_clause_ids: list[str]
+    rows: list[CoverageRow]
+
+
+class ExecutionInfo(Contract):
+    mode: Literal["llm", "local_review"]
+    reason: Literal["configured_model", "no_model", "forced_offline", "model_failure"]
+    engine_version: str | None = None
+    failed_stage: Literal["analysis", "validation", "recommendation", "lookup"] | None = None
+    error_code: str | None = None
+
+
 class Assessment(Contract):
     schema_version: Literal["1.0"] = SCHEMA_VERSION
     run_id: str
@@ -238,6 +291,10 @@ class Assessment(Contract):
     limitations: list[str]
     review_state: ReviewState
     hypothetical: bool | None = None
+    confidence: Confidence | None = None
+    # Absent on older saved runs. Never reconstruct completeness from findings alone.
+    coverage: EvidenceCoverage | None = None
+    execution: ExecutionInfo | None = None
 
 
 class ClarificationQuestion(Contract):
@@ -270,6 +327,7 @@ class EventType(StrEnum):
     RECOMMENDATION_COMPLETED = "recommendation.completed"
     CLARIFICATION_REQUIRED = "clarification.required"
     RUN_RESUMED = "run.resumed"
+    RUN_FALLBACK = "run.fallback"
     RUN_COMPLETED = "run.completed"
     RUN_FAILED = "run.failed"
     RUN_CANCELED = "run.canceled"
@@ -348,6 +406,7 @@ class ResumeRequest(Contract):
         Annotated[str, Field(min_length=1, max_length=128)],
         Annotated[str, Field(max_length=4000)] | None,
     ] = Field(max_length=3)
+    finish_local_review: bool = False
 
 
 class RunError(Contract):
@@ -367,6 +426,7 @@ class RunStatus(Contract):
     created_at: datetime
     started_at: datetime | None
     finished_at: datetime | None
+    execution: ExecutionInfo | None = None
 
 
 class CaseDetail(CaseSummary):
@@ -380,6 +440,7 @@ class CaseDetail(CaseSummary):
     assessment: Assessment | None
     pending_questions: list[ClarificationQuestion]
     agent_messages: list[AgentMessage]
+    execution: ExecutionInfo | None = None
 
 
 # --- Search and lookup --------------------------------------------------------------------
@@ -421,6 +482,8 @@ class LookupAnswer(Contract):
     citations: list[Citation]
     support: SupportState
     snapshot_id: str
+    confidence: Confidence | None = None
+    execution: ExecutionInfo | None = None
 
 
 class Page[T](Contract):

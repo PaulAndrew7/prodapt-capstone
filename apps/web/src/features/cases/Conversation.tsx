@@ -80,12 +80,16 @@ export function ClarificationBlock({
   submitting,
   onOpenClause,
   initialAnswers = {},
+  localReview = false,
+  onFinishLocal,
 }: {
   questions: ClarificationQuestion[];
   onSubmit: (answers: Record<string, string | null>) => void;
   submitting: boolean;
   onOpenClause: (clause: Clause) => void;
   initialAnswers?: Record<string, string>;
+  localReview?: boolean;
+  onFinishLocal?: () => void;
 }) {
   const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers);
   const clauseRef = useSectionRef();
@@ -100,9 +104,9 @@ export function ClarificationBlock({
   return (
     <section aria-labelledby="clarify-h" className="bg-sheet p-5 outline-2 outline-ink md:p-6">
       <h3 id="clarify-h" className="font-display text-2xl font-semibold leading-tight">
-        {questions.length === 1 ? "One question" : `${questions.length} questions`} before I finish
+        {localReview ? `${questions.length} local review checks` : `${questions.length === 1 ? "One question" : `${questions.length} questions`} before I finish`}
       </h3>
-      <p className="mt-1 text-ink-2">Answer what you know. &ldquo;I don&rsquo;t know&rdquo; is a valid answer.</p>
+      <p className="mt-1 text-ink-2">{localReview ? "Confirm each clause after reading its source. More retrieved checks may follow. " : "Answer what you know. "}&ldquo;I don&rsquo;t know&rdquo; is a valid answer.</p>
       <form
         className="mt-5 space-y-7"
         onSubmit={(e) => {
@@ -183,8 +187,12 @@ export function ClarificationBlock({
           );
         })}
         <Button type="submit" variant="mark" size="lg" loading={submitting} disabled={!complete}>
-          Answer
+          {localReview ? "Save confirmations" : "Answer"}
         </Button>
+        {localReview && onFinishLocal && <div>
+          <Button type="button" variant="outline" className="h-auto min-h-10 w-full whitespace-normal py-2" disabled={submitting} onClick={onFinishLocal}>Finish with remaining checks unknown</Button>
+          <p className="mt-2 text-sm text-ink-2">Unsaved selections are left unknown. The report will withhold clearance while checks remain unknown.</p>
+        </div>}
       </form>
     </section>
   );

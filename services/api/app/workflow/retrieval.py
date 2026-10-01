@@ -12,9 +12,10 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.domain.contracts import ClauseKind, SearchRequest
+from app.ingestion.review_metadata import reviewed_candidates
 from app.persistence import models as m
 from app.retrieval.embeddings import Embedder
-from app.retrieval.search import search
+from app.retrieval.search import eligible_version_ids, search
 
 SEARCH_LIMIT = 10
 MAX_CLAUSES = 14
@@ -34,11 +35,15 @@ class EvidenceClause:
     page_start: int
     spans: tuple[tuple[int, int, int], ...]  # (text_start, text_end, page_index)
     reason: str  # "search" or why it was added
+    # For an exception clause: the requirement clauses it replaces (stored `excepts` relations).
+    excepts: tuple[str, ...] = ()
+    reviewed_candidate: bool = False
 
     def as_prompt(self) -> str:
+        excepts = f' excepts="{", ".join(self.excepts)}"' if self.excepts else ""
         return (
             f'<clause id="{self.id}" policy="{self.policy_title}" version="{self.version_label}" '
-            f'section="{self.section}" heading="{self.heading}" kind="{self.kind}">\n'
+            f'section="{self.section}" heading="{self.heading}" kind="{self.kind}"{excepts}>\n'
             f"{self.text}\n</clause>"
         )
 
@@ -57,7 +62,7 @@ class Evidence:
         return sorted({c.policy_title for c in self.clauses})
 
 
-def _evidence(clause: m.Clause, reason: str) -> EvidenceClause:
+def _evidence(clause: m.Clause, reason: str, excepts: tuple[str, ...] = ()) -> EvidenceClause:
     version = clause.version
     return EvidenceClause(
         id=clause.id,
@@ -72,6 +77,8 @@ def _evidence(clause: m.Clause, reason: str) -> EvidenceClause:
         page_start=clause.page_start,
         spans=tuple((s.text_start, s.text_end, s.page_index) for s in clause.spans),
         reason=reason,
+        excepts=excepts,
+        reviewed_candidate=clause.clause_key in reviewed_candidates(version.id, version.provenance),
     )
 
 
@@ -96,18 +103,24 @@ def retrieve(
     )
     hit_ids = [h.clause.id for h in result.hits]
     chosen: dict[str, str] = {cid: "search" for cid in hit_ids}
+    excepts: dict[str, list[str]] = {}
 
     def add(clause_id: str, reason: str) -> None:
         if clause_id not in chosen and len(chosen) < MAX_CLAUSES:
             chosen[clause_id] = reason
 
     if hit_ids:
-        # Relations never cross versions, so related clauses share the hit's snapshot.
+        # Both endpoints must be eligible, including manually reviewed cross-policy links.
+        eligible = eligible_version_ids(organization_id, snapshot_id, as_of, policy_ids)
+        allowed_ids = set(
+            session.scalars(select(m.Clause.id).where(m.Clause.policy_version_id.in_(eligible)))
+        )
         relations = session.execute(
             select(
                 m.ClauseRelation.source_clause_id,
                 m.ClauseRelation.target_clause_id,
                 m.ClauseRelation.relation,
+                m.ClauseRelation.approved_by,
             ).where(
                 or_(
                     m.ClauseRelation.source_clause_id.in_(hit_ids),
@@ -115,7 +128,14 @@ def retrieve(
                 )
             )
         ).all()
-        for source, target, relation in sorted(relations):
+        for source, target, relation, approved_by in sorted(relations):
+            if source not in allowed_ids or target not in allowed_ids:
+                continue
+            source_clause = session.get_one(m.Clause, source)
+            if source_clause.version.provenance.get("managed_upload") and approved_by is None:
+                continue
+            if relation == m.RelationKind.EXCEPTS:
+                excepts.setdefault(source, []).append(target)
             if source in hit_ids:
                 add(target, f"cited by {source}")
             elif relation == m.RelationKind.EXCEPTS:
@@ -136,6 +156,9 @@ def retrieve(
     return Evidence(
         snapshot_id=result.policy_snapshot_id or snapshot_id,
         as_of=as_of,
-        clauses=[_evidence(rows[cid], reason) for cid, reason in chosen.items()],
+        clauses=[
+            _evidence(rows[cid], reason, tuple(t for t in excepts.get(cid, []) if t in chosen))
+            for cid, reason in chosen.items()
+        ],
         search_hits=len(hit_ids),
     )

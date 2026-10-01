@@ -100,6 +100,13 @@ def seed_demo(
             embedder=embedder,
         )
         (created if result.created else skipped).append(doc["version_id"])
+        from app.ingestion.review_metadata import demo_candidates
+
+        if "reviewed_candidates" not in result.version.provenance:
+            result.version.provenance = {
+                **result.version.provenance,
+                "reviewed_candidates": demo_candidates().get(doc["version_id"], []),
+            }
 
     if session.get(m.PolicySnapshot, DEMO_SNAPSHOT_ID) is None:
         session.add(

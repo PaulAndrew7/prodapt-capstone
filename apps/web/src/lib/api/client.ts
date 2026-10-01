@@ -7,6 +7,7 @@ import type {
   Policy,
   PolicyVersion,
   RunEvent,
+  UploadPolicyInput, DraftReview, DraftReviewInput, Publication, PolicyGraph, GraphInput,
 } from "./types";
 
 export interface NewCaseInput {
@@ -40,7 +41,7 @@ export interface ComplianceApi {
     afterSequence?: number,
   ): () => void;
   /** Up to three answers, each at most 4,000 characters; null means unknown. */
-  answerClarification(runId: string, answers: Record<string, string | null>): Promise<void>;
+  answerClarification(runId: string, answers: Record<string, string | null>, finishLocalReview?: boolean): Promise<void>;
   cancelRun(runId: string): Promise<void>;
   createBranch(caseId: string, changes: HypotheticalChange[]): Promise<Assessment>;
   submitReview(caseId: string, runId: string, input: ReviewInput): Promise<void>;
@@ -48,4 +49,9 @@ export interface ComplianceApi {
   getPolicyVersion(versionId: string): Promise<PolicyVersion>;
   getClause(clauseId: string): Promise<Clause>;
   lookup(question: string): Promise<LookupAnswer>;
+  uploadPolicy(file: File, metadata: UploadPolicyInput): Promise<DraftReview>;
+  getDraftReview(versionId: string): Promise<DraftReview>;
+  saveDraftReview(versionId: string, input: DraftReviewInput): Promise<DraftReview>;
+  publishPolicy(versionId: string, expectedRevision: number): Promise<Publication>;
+  getPolicyGraph(input: GraphInput): Promise<PolicyGraph>;
 }

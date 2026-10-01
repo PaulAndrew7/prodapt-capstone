@@ -14,6 +14,7 @@ import type {
   Policy,
   PolicyVersion,
   RunEvent,
+  UploadPolicyInput, DraftReview, DraftReviewInput, Publication, PolicyGraph, GraphInput,
 } from "./types";
 
 const BASE = "/api/v1";
@@ -21,7 +22,7 @@ const BASE = "/api/v1";
 async function request<T>(path: string, init?: RequestInit & { idempotencyKey?: string }): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
-  if (init?.body) headers.set("Content-Type", "application/json");
+  if (init?.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
   if (init?.idempotencyKey) headers.set("Idempotency-Key", init.idempotencyKey);
   const res = await fetch(`${BASE}${path}`, { ...init, headers, credentials: "same-origin" });
   if (!res.ok) {
@@ -47,6 +48,7 @@ const EVENT_TYPES: RunEvent["type"][] = [
   "recommendation.completed",
   "clarification.required",
   "run.resumed",
+  "run.fallback",
   "run.completed",
   "run.failed",
   "run.canceled",
@@ -108,10 +110,10 @@ export class HttpApi implements ComplianceApi {
     EVENT_TYPES.forEach((t) => source.addEventListener(t, handler as EventListener));
     return () => source.close();
   }
-  answerClarification(runId: string, answers: Record<string, string | null>) {
+  answerClarification(runId: string, answers: Record<string, string | null>, finishLocalReview = false) {
     return request<void>(`/runs/${encodeURIComponent(runId)}/resume`, {
       method: "POST",
-      body: JSON.stringify({ answers }),
+      body: JSON.stringify({ answers, ...(finishLocalReview && { finish_local_review: true }) }),
     });
   }
   cancelRun(runId: string) {
@@ -144,5 +146,24 @@ export class HttpApi implements ComplianceApi {
       method: "POST",
       body: JSON.stringify({ question }),
     });
+  }
+  uploadPolicy(file: File, metadata: UploadPolicyInput) {
+    const body = new FormData();
+    body.append("file", file);
+    body.append("metadata", JSON.stringify(metadata));
+    return request<DraftReview>("/admin/policies/upload", { method: "POST", body });
+  }
+  getDraftReview(versionId: string) {
+    return request<DraftReview>(`/admin/policy-versions/${encodeURIComponent(versionId)}/review`);
+  }
+  saveDraftReview(versionId: string, input: DraftReviewInput) {
+    return request<DraftReview>(`/admin/policy-versions/${encodeURIComponent(versionId)}/review`, { method: "POST", body: JSON.stringify(input) });
+  }
+  publishPolicy(versionId: string, expectedRevision: number) {
+    return request<Publication>(`/admin/policy-versions/${encodeURIComponent(versionId)}/publish`, { method: "POST", body: JSON.stringify({ expected_revision: expectedRevision }) });
+  }
+  getPolicyGraph(input: GraphInput) {
+    const params = new URLSearchParams(Object.entries(input).filter(([, value]) => Boolean(value)) as [string, string][]);
+    return request<PolicyGraph>(`/policy-graph?${params}`);
   }
 }

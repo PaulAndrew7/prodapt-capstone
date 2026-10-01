@@ -30,7 +30,8 @@ def grounded_lookup(
     model: Annotated[ModelClient | None, Depends(get_model_client)],
 ) -> LookupAnswer:
     """A short answer that cites the retrieved clauses it relies on (F06)."""
-    if model is None:
+    settings = get_settings()
+    if model is None and settings.llm_mode == "required":
         raise AppError(
             503,
             "model_not_configured",
@@ -48,7 +49,9 @@ def grounded_lookup(
             snapshot_id=snapshot_id,
             model=model,
             embedder=get_embedder(),
-            deadline_seconds=get_settings().run_deadline_seconds,
+            deadline_seconds=settings.run_deadline_seconds,
+            allow_fallback=settings.llm_mode != "required",
+            call_timeout_seconds=settings.llm_call_timeout_seconds,
         )
     except ModelError as exc:
         raise AppError(502, exc.code, exc.message, retryable=exc.retryable) from exc

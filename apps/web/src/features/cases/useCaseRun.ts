@@ -18,6 +18,7 @@ const REFRESH = new Set<RunEvent["type"]>([
   "run.failed",
   "run.canceled",
   "run.resumed",
+  "run.fallback",
 ]);
 
 function fill(status: StageStatus) {

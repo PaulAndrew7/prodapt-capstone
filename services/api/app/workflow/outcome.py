@@ -3,19 +3,36 @@
 Only findings the validation stage confirmed ("validated") are established. The ordered rules:
 1. an established violation                                  -> non_compliant
 2. otherwise an established conflict                         -> conflicting_policy
-3. otherwise an established unknown, or any violated/met/conflict claim that validation
-   did not confirm                                            -> insufficient_information
+3. otherwise an established unknown, any violated/met/conflict/not-applicable claim that
+   validation did not confirm, an unknown that validation disputed, or an unresolved
+   retrieved requirement candidate
+                                                              -> insufficient_information
 4. otherwise at least one established met requirement        -> compliant_within_scope
 5. otherwise (no applicable requirement)                      -> out_of_scope
-An unconfirmed claim can therefore never produce a compliant result.
+An unconfirmed claim or omitted retrieved candidate can never produce a compliant result.
 """
 
-from app.domain.contracts import AssessmentStatus, Finding, RequirementStatus, SupportState
+from app.domain.contracts import (
+    AssessmentStatus,
+    EvidenceCoverage,
+    Finding,
+    RequirementStatus,
+    SupportState,
+)
 
-DECISIVE = (RequirementStatus.VIOLATED, RequirementStatus.MET, RequirementStatus.CONFLICT)
+# Claims that must be confirmed before a result can be compliant. A disputed "not applicable"
+# means the requirement may apply after all, so it blocks compliance like the others.
+CLAIMS = (
+    RequirementStatus.VIOLATED,
+    RequirementStatus.MET,
+    RequirementStatus.CONFLICT,
+    RequirementStatus.NOT_APPLICABLE,
+)
 
 
-def derive_status(findings: list[Finding]) -> AssessmentStatus:
+def derive_status(
+    findings: list[Finding], coverage: EvidenceCoverage | None = None
+) -> AssessmentStatus:
     established = [f for f in findings if f.support == SupportState.VALIDATED]
     statuses = {f.status for f in established}
     if RequirementStatus.VIOLATED in statuses:
@@ -23,9 +40,15 @@ def derive_status(findings: list[Finding]) -> AssessmentStatus:
     if RequirementStatus.CONFLICT in statuses:
         return AssessmentStatus.CONFLICTING_POLICY
     unconfirmed = any(
-        f.support != SupportState.VALIDATED and f.status in DECISIVE for f in findings
+        f.support != SupportState.VALIDATED
+        and (f.status in CLAIMS or f.support == SupportState.CONTRADICTED)
+        for f in findings
     )
-    if RequirementStatus.UNKNOWN in statuses or unconfirmed:
+    if (
+        RequirementStatus.UNKNOWN in statuses
+        or unconfirmed
+        or (coverage is not None and coverage.unresolved_clause_ids)
+    ):
         return AssessmentStatus.INSUFFICIENT_INFORMATION
     if RequirementStatus.MET in statuses:
         return AssessmentStatus.COMPLIANT_WITHIN_SCOPE
@@ -50,7 +73,11 @@ def _sentence_count(n: int, noun: str) -> str:
     return f"{number} {noun}" + ("" if n == 1 else "s")
 
 
-def summarize(status: AssessmentStatus, findings: list[Finding]) -> str:
+def summarize(
+    status: AssessmentStatus,
+    findings: list[Finding],
+    coverage: EvidenceCoverage | None = None,
+) -> str:
     established = [f for f in findings if f.support == SupportState.VALIDATED]
 
     def having(s: RequirementStatus) -> list[Finding]:
@@ -75,11 +102,23 @@ def summarize(status: AssessmentStatus, findings: list[Finding]) -> str:
             "decide which one applies." + open_note
         )
     if status == AssessmentStatus.INSUFFICIENT_INFORMATION:
+        unresolved_count = len(coverage.unresolved_clause_ids) if coverage is not None else 0
+        coverage_note = (
+            f"{_sentence_count(unresolved_count, 'retrieved requirement candidate')} "
+            f"{'has' if unresolved_count == 1 else 'have'} no confirmed assessment or "
+            "justified exclusion. A compliant result is withheld "
+            "until this coverage gap is reviewed."
+            if unresolved_count
+            else ""
+        )
         if unknown:
             return (
                 f"The result depends on facts that are not known yet: {_titles(unknown)}. "
                 "No breach is established from the facts given."
+                + (f" {coverage_note}" if coverage_note else "")
             )
+        if coverage_note:
+            return coverage_note
         return (
             "Some findings could not be confirmed against the cited policy text, so no "
             "overall result is given."
@@ -105,6 +144,7 @@ def limitations(
     invalid_references: int,
     dropped_actions: int,
     unanswered: int,
+    coverage: EvidenceCoverage | None = None,
 ) -> list[str]:
     notes = [
         f"Assessed only against the fictional Kestrel Mutual demo policies in snapshot "
@@ -112,6 +152,18 @@ def limitations(
         "considered.",
     ]
     unconfirmed = [f for f in findings if f.support != SupportState.VALIDATED]
+    if coverage is not None:
+        notes.append(
+            f"Coverage accounts for {coverage.accounted_count} of {coverage.candidate_count} "
+            "retrieved requirement candidates. It uses clause classifications and a reviewed "
+            "demo-corpus catalog; it cannot detect requirements retrieval missed or prove "
+            "that a validated interpretation is correct."
+        )
+        if coverage.unresolved_clause_ids:
+            notes.append(
+                "Unresolved coverage: " + ", ".join(coverage.unresolved_clause_ids) + ". "
+                "These candidates are not established violations or missing business facts."
+            )
     if unconfirmed:
         notes.append(
             f"{_count(len(unconfirmed), 'finding')} could not be confirmed against the cited text "

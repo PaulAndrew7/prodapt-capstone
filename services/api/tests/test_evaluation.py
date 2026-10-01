@@ -129,6 +129,31 @@ def test_failed_runs_remain_in_accuracy_and_requirement_denominators(inputs: Pat
     assert summary["completed"] == 1 and summary["failed"] == 1
 
 
+def test_only_a_scope_refusal_counts_as_an_out_of_scope_result() -> None:
+    assert ev.declined_status({"code": "request_out_of_scope", "message": "x"}) == "out_of_scope"
+    assert ev.declined_status({"code": "request_redirected", "message": "x"}) is None
+    assert ev.declined_status({"code": "model_timeout", "message": "x"}) is None
+    assert ev.declined_status(None) is None
+
+
+def test_report_marks_runs_declined_by_the_input_check(inputs: Path) -> None:
+    rows = [
+        result(
+            run_state="failed",
+            acceptable_status=["out_of_scope"],
+            status="out_of_scope",
+            status_ok=True,
+            error="request_out_of_scope: I couldn't connect this request",
+        ),
+        result("dev-3", run_state="failed", status_ok=False, error="request_redirected: no"),
+    ]
+    summary = ev.summarize("dev", "snapshot", rows, ScriptedModel(), None)
+    assert summary["status_correct"] == 1 and summary["failed"] == 2
+    text = ev.write_report(summary, rows)[0].read_text(encoding="utf-8")
+    assert "out_of_scope (declined by the input check) ✓" in text
+    assert "request_redirected: no ✗" in text
+
+
 def test_report_escapes_error_text_in_tables(inputs: Path) -> None:
     rows = [result(run_state="failed", error="bad | reply\n<script>oops</script>")]
     report, _ = ev.write_report(ev.summarize("dev", "snapshot", rows, ScriptedModel(), None), rows)
@@ -155,3 +180,91 @@ def test_manual_review_excludes_nondecisive_findings() -> None:
     assert {c["status"] for c in claims} == {"met", "violated", "conflict"}
     assert len(claims) == 3 and all(c["support"] == "validated" for c in claims)
     assert all(c["supported_by_reviewer"] is None for c in claims)
+
+
+def test_accuracy_is_reported_per_confidence_band(inputs: Path) -> None:
+    rows = [
+        result(
+            run_state="completed",
+            status_ok=True,
+            confidence_score=90,
+            confidence_band="high",
+            finding_bands=[
+                {"requirement_id": "a", "band": "high", "score": 90, "matched": True},
+                {"requirement_id": "b", "band": "low", "score": 30, "matched": False},
+            ],
+        ),
+        result("dev-3", run_state="completed", status_ok=False, confidence_band="high"),
+        result("dev-4", run_state="failed", status_ok=False),  # no score: not in any band
+    ]
+    summary = ev.summarize("dev", "snapshot", rows, ScriptedModel(), None)
+    assert summary["by_band"]["high"] == {
+        "results": 2,
+        "results_correct": 1,
+        "findings": 1,
+        "findings_matched": 1,
+    }
+    assert summary["by_band"]["low"]["findings"] == 1
+    assert summary["by_band"]["low"]["findings_matched"] == 0
+    report, _ = ev.write_report(summary, rows)
+    text = report.read_text(encoding="utf-8")
+    assert "| High | 1/2 (50%) | 1/1 (100%) |" in text
+    assert "| Medium | n/a | n/a |" in text
+    assert "| 90 high |" in text
+
+
+def test_unjustified_clearance_includes_unknown_and_conflict_labels(inputs: Path) -> None:
+    rows = [
+        result(
+            "dev-1",
+            run_state="completed",
+            status="compliant_within_scope",
+            acceptable_status=["insufficient_information"],
+            false_compliant=False,
+        ),
+        result(
+            "dev-3",
+            run_state="completed",
+            status="compliant_within_scope",
+            acceptable_status=["conflicting_policy"],
+            false_compliant=False,
+        ),
+        result("dev-4", run_state="failed", acceptable_status=["non_compliant"]),
+        result(
+            "dev-5",
+            run_state="completed",
+            status="compliant_within_scope",
+            acceptable_status=["compliant_within_scope", "insufficient_information"],
+        ),
+    ]
+    summary = ev.summarize("dev", "snapshot", rows, ScriptedModel(), None)
+    assert summary["false_compliant"] == 0
+    assert summary["unjustified_compliant"] == 2 and summary["labelled_no_clearance"] == 3
+    report, _ = ev.write_report(summary, rows)
+    assert "Unjustified compliant results | 2 of 3" in report.read_text(encoding="utf-8")
+
+
+def test_coverage_reporting_distinguishes_abstention_from_correctness(inputs: Path) -> None:
+    rows = [
+        result(
+            run_state="completed",
+            status="insufficient_information",
+            acceptable_status=["compliant_within_scope"],
+            coverage_candidates=3,
+            coverage_accounted=1,
+            coverage_unresolved=2,
+        ),
+        result(
+            "dev-3",
+            run_state="completed",
+            status="insufficient_information",
+            acceptable_status=["compliant_within_scope", "insufficient_information"],
+            coverage_candidates=1,
+            coverage_accounted=1,
+            coverage_unresolved=0,
+        ),
+        result("dev-4", run_state="failed"),
+    ]
+    summary = ev.summarize("dev", "snapshot", rows, ScriptedModel(), None)
+    assert summary["coverage_recorded"] == 2 and summary["coverage_incomplete_runs"] == 1
+    assert summary["coverage_unresolved"] == 2 and summary["cautious_misses"] == 1

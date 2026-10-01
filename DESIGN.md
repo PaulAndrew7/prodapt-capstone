@@ -249,7 +249,7 @@ On the front door, depth is literal and spatial rather than material: a Three.js
 
 Every corner is square (0px). Structural lines are 2px ink: header bottoms, pane dividers, table heads, inputs, outline buttons, drawers, menus. Lighter dividers between rows are 1px hairline grey. Scaled miniatures (product exhibits) and small tags use a 1.5px ink line so they read at reduced scale. Dashed ink borders mean "inferred" or "fixture": dashed is a data-provenance signal, not decoration.
 
-The highlighter is a shape too: a flat fill 88% of the line height, sitting slightly below centre (background-position 58%), with 0.08em horizontal overhang, cloned per line so a wrapped span is marked line by line.
+The highlighter is a shape too: a flat fill about 1.1em tall, sized from the text rather than the line box so tight headlines keep their ascenders and descenders on yellow, sitting slightly below centre, with 0.08em horizontal overhang, laid per word so a wrapped span is marked line by line.
 
 ## Components
 
@@ -286,7 +286,7 @@ Blunt, square and heavy; a pressed button drops 1px.
 - **Skip link:** mark fill with on-mark text when focused.
 
 ### Highlighter Mark (signature)
-The span that pins a verdict to its words. Animates a `--sweep` custom property from 0% to 100% of the background width (420ms default, ease-out), so wrapped text sweeps line by line. It marks a span only when the stored quote is an exact substring of the clause text; otherwise the clause renders unmarked. Instant under reduced motion. Evidence links that open a clause take the same fill on hover.
+The span that pins a verdict to its words. Animates a `--sweep` custom property from 0 to 100 (700ms default, 1.1s on front-door headlines, ease-in-out), so wrapped text sweeps line by line. The words keep their normal ink until the marker reaches them (light on the dark theme, near-black on the light one), then turn on-mark black behind the marker's edge through a short fade that closes as the sweep ends; nothing darkens ahead of the marker. It marks a span only when the stored quote is an exact substring of the clause text; otherwise the clause renders unmarked. Front-door headlines play when they scroll into view. Instant under reduced motion. Evidence links that open a clause take the same fill on hover.
 
 ### Verdict Headline
 The assessment result set in Clash Display, each word rising out of an overflow mask with a 80ms stagger, paired with a word-and-icon status line. No score, no dial.
@@ -301,7 +301,9 @@ Sheet panel with a 2px ink left rule sliding in over 280ms. Per citation: policy
 On the front door, product explanations are real app components rendered at a fixed logical size (1280 by 800 by default), scaled to fit, framed in a 1.5px ink border on paper, and made inert and hidden from assistive tech; the figure label describes them. Exhibits step through states while 40% in view, pause offscreen, show the final state under reduced motion, and offer a Replay link.
 
 ### Avatar
-A small anime girl drawn as flat SVG parts in the product's own finish: ink outlines, flat fills, indigo hair with a zig-zag shine, green irises with a mark glow, and the mark only as a fill on her two hair clips and sailor bow. Each mode has its own expression (eyes, mouth, brows, head tilt, gaze) plus at most one small accessory (typing dots, a question mark, sparkles, a heart, or z's when unavailable, which also greys her out). One frame loop drives breathing, the head spring, gaze and blinks; it idles offscreen and holds the expression still under reduced motion. Accessory ink uses currentColor so it reads on paper and on mark. It is optional: every task works without it.
+An anime girl drawn as flat SVG parts in the product's own finish: ink outlines, flat fills, indigo hair with a zig-zag shine, green irises with a mark glow, and the mark only as a fill (her two hair clips, sailor bow, and the lightbulb, check and sparkle emotes). Each expression is a full look: eyes (open, happy, sparkle, startled, squint, welling up, asleep), mouth, brows, a hand pose (fists, praying, a finger at the chin or raised, a magnifying glass, a sheet with a highlighted line), at most one manga emote (exclamation, question mark, thought cloud, sweat drop, lightbulb, check, sparkles, hearts, typing dots, z's) and a movement (sway, hop, tremble, nod, scan). One frame loop drives breathing, the head spring, gaze, blinks, a talking mouth and the emotes; it idles offscreen and holds the expression still under reduced motion. Emote ink uses currentColor so it reads on paper and on mark.
+
+In the workspace she sits in a small strip under the conversation. While a run is in progress she moves to the assessment pane as a large figure anchored to its bottom edge over a halftone disc, acting out the stage the run is in (from the same events as the stage track), with a Clash Display headline for the stage and a square speech bubble in Switzer that types her line while she talks. The stage track keeps the live announcement; the bubble is read once. It is optional: "Hide figure" returns the pane to the plain progress view, and every task works without her.
 
 ### Intro
 The front door opens once per page load on the wordmark set across the screen, its mark bar filling as the display face, fonts, window load and the hero's first frame arrive (at least 1.3s, at most 6s). The wordmark then flies into the nav's logo slot while a paper curtain edged with a 2px ink rule lifts off the page and the hero rises in behind it. Under reduced motion the letters do not rise and the intro fades out instead of flying.

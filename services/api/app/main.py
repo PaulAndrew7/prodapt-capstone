@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import cases, health, policies, search
+from app.api import cases, health, policies, policy_admin, policy_graph, search
 from app.api.errors import RequestIdMiddleware, install_error_handlers
 from app.config import get_settings
 from app.persistence.db import new_session
@@ -51,6 +51,8 @@ def create_app() -> FastAPI:
     install_error_handlers(app)
     app.include_router(health.router)
     app.include_router(policies.router)
+    app.include_router(policy_admin.router)
+    app.include_router(policy_graph.router)
     app.include_router(search.router)
     app.include_router(cases.router)
     return app

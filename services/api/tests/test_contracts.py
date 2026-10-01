@@ -26,6 +26,16 @@ def test_vendor_assessment_fixture_validates() -> None:
         assert set(r.finding_ids) <= finding_ids
     # A supported violation decides the displayed status (§5.2 rule 1).
     assert any(f.status == c.RequirementStatus.VIOLATED for f in assessment.findings)
+    assert assessment.coverage is None  # Older runs do not acquire fabricated completeness.
+
+
+def test_coverage_fixture_validates_and_preserves_the_omitted_clause() -> None:
+    data = json.loads((FIXTURES / "assessment.coverage-gap.json").read_text(encoding="utf-8"))
+    assessment = c.Assessment.model_validate(data)
+    assert assessment.status == c.AssessmentStatus.INSUFFICIENT_INFORMATION
+    assert assessment.coverage is not None
+    assert assessment.coverage.unresolved_clause_ids == ["ds_v2_4_4.5"]
+    assert all(f.requirement_id != "ds_v2_4_4.5" for f in assessment.findings)
 
 
 def test_run_event_fixture_validates() -> None:
@@ -33,6 +43,15 @@ def test_run_event_fixture_validates() -> None:
     parsed = [c.RunEvent.model_validate(e) for e in events]
     assert [e.sequence for e in parsed] == list(range(1, len(parsed) + 1))
     assert len({e.event_id for e in parsed}) == len(parsed)
+
+
+def test_local_review_fixture_records_engine_without_model_confidence() -> None:
+    data = json.loads((FIXTURES / "assessment.local-review.json").read_text(encoding="utf-8"))
+    result = c.Assessment.model_validate(data)
+    assert result.execution and result.execution.mode == "local_review"
+    assert result.execution.error_code == "model_timeout"
+    assert result.confidence is None
+    assert all(f.status == c.RequirementStatus.UNKNOWN for f in result.findings)
 
 
 def _ts_union(name: str) -> set[str]:
